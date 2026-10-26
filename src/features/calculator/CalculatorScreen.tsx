@@ -1,164 +1,148 @@
-// 학점계산 (§3.7, §7). 예상 성적은 시나리오에만 저장하고 실제 이수 현황은 바꾸지 않는다.
-import { useMemo } from 'react';
+// 학점 계산 (Figma, §3.7, §7). 예상 성적은 시나리오에만 저장하고 실제 이수 현황은 바꾸지 않는다.
+// 학년 알약 탭 → 그 학년의 학기 카드가 순서대로. 현재 학기 카드만 강의를 추가하고 예상 등급을 넣을 수 있다.
+// 저장 데이터(학년도+학기)는 그대로 두고 화면에서만 gradeYearOf()로 학년을 묶는다.
+import { useMemo, useState } from 'react';
 import { useStore } from '../../app/store';
 import { calculateScenario, computeGpa, effectiveCourses, formatGpa, type GpaResult } from '../../domain/gpa/gpa';
+import { gradeTermLabel, gradeYearOf, semesterOrder } from '../../domain/gradeYear';
 import { LETTER_GRADES } from '../../domain/grades';
 import { latestSnapshot } from '../../domain/state';
-import { compareTerms, formatUnits, sameTerm, termKey, termLabel } from '../../domain/terms';
-import type { Course, Grade, GradeScenario, ScenarioEntry } from '../../domain/types';
-import { AREA_LABEL, STATUS_LABEL } from '../common';
+import { formatUnits, sameTerm, termKey } from '../../domain/terms';
+import type { Course, Grade, GradeScenario, ScenarioEntry, Term } from '../../domain/types';
 
-const gpaText = (g: GpaResult) => (g.hundredths === null ? '계산 대상 성적 없음' : formatGpa(g.hundredths));
+const YEARS = [1, 2, 3, 4] as const;
+const gpaNum = (g: GpaResult) => (g.hundredths === null ? '—' : formatGpa(g.hundredths));
+const sumUnits = (list: Course[]) => list.reduce((s, c) => s + c.creditUnits, 0);
+const gradeText = (c: Course) => c.grade ?? (c.recordKind === 'recognizedCredit' ? '인정' : '—');
 
 export function CalculatorScreen() {
   const { state, save, openEditor } = useStore();
-  const term = state.profile!.currentTerm;
+  const profile = state.profile!;
+  const term = profile.currentTerm;
+  const currentYear = gradeYearOf(term, profile);
+  const [yearSel, setYearSel] = useState<number>(currentYear);
+
   const scenarioId = `scn-${termKey(term)}`;
   const scenario = state.scenarios.find((s) => s.id === scenarioId) ?? null;
   const snap = latestSnapshot(state);
   // 상세 성적 없이 요약 평점만 있으면 '요약값 기반 추정'
   const summary = snap?.source === 'summaryInput' ? snap.reportedGpa : undefined;
   const r = useMemo(() => calculateScenario(state.courses, scenario, summary), [state.courses, scenario, summary]);
+  const base = r.baseline;
+  const hasScenario = !!scenario?.entries.some((e) => e.expectedGrade);
 
-  const currentCourses = state.courses.filter((c) => sameTerm(c.term, term) && (c.status === 'inProgress' || c.status === 'planned'));
-  const retakeTargets = effectiveCourses(state.courses).filter((c) => !sameTerm(c.term, term) && c.status === 'completed'
-    && c.recordKind === 'course' && c.gpaInclusion !== 'excluded');
-  const entry = (courseId: string) => scenario?.entries.find((e) => e.courseId === courseId);
-  const errorFor = (courseId: string) => r.errors.find((e) => e.courseId === courseId)?.message;
-
-  const setEntry = (courseId: string, patch: Partial<ScenarioEntry>) => save((s) => {
+  const setGrade = (courseId: string, expectedGrade: Grade) => save((s) => {
     const cur: GradeScenario = s.scenarios.find((x) => x.id === scenarioId) ?? { id: scenarioId, term, baselineSnapshotId: snap?.id ?? 'none', entries: [] };
     const old = cur.entries.find((e) => e.courseId === courseId) ?? { courseId, expectedGrade: null };
-    const next = { ...old, ...patch };
+    const next: ScenarioEntry = { ...old, expectedGrade };
     const entries = [...cur.entries.filter((e) => e.courseId !== courseId), ...(next.expectedGrade || next.replacesCourseId ? [next] : [])];
     return { ...s, scenarios: [...s.scenarios.filter((x) => x.id !== scenarioId), { ...cur, entries }] };
   });
-  const clearScenario = () => save((s) => ({ ...s, scenarios: s.scenarios.filter((x) => x.id !== scenarioId) }));
 
-  const pastTerms = useMemo(() => {
-    const eff = effectiveCourses(state.courses).filter((c) => c.status === 'completed' || c.status === 'notEarned');
-    const m = new Map<string, Course[]>();
-    for (const c of eff.sort((a, b) => compareTerms(b.term, a.term))) {
-      if (!m.has(termKey(c.term))) m.set(termKey(c.term), []);
-      m.get(termKey(c.term))!.push(c);
+  // 이번 학기 과목 / 지난 학기(성적이 확정된 과목)
+  const currentCourses = state.courses.filter((c) => sameTerm(c.term, term));
+  const pastByTerm = useMemo(() => {
+    const m = new Map<string, { term: Term; list: Course[] }>();
+    for (const c of effectiveCourses(state.courses)) {
+      if (sameTerm(c.term, term) || !(c.status === 'completed' || c.status === 'notEarned')) continue;
+      const k = termKey(c.term);
+      if (!m.has(k)) m.set(k, { term: c.term, list: [] });
+      m.get(k)!.list.push(c);
     }
     return [...m.values()];
-  }, [state.courses]);
+  }, [state.courses, term]);
 
-  const base = r.baseline;
-  const delta = r.projected.earned - base.earned;
-  const hasScenario = !!scenario?.entries.some((e) => e.expectedGrade);
+  const showCurrent = currentYear === yearSel;
+  const pastInYear = pastByTerm.filter((g) => gradeYearOf(g.term, profile) === yearSel)
+    // 현재 학년은 최근 학기부터("지난 학기"), 지난 학년은 1학기 → 2학기 순서
+    .sort((a, b) => (showCurrent ? semesterOrder(b.term) - semesterOrder(a.term) : semesterOrder(a.term) - semesterOrder(b.term)));
+
   return (
-    <div className="screen">
-      <p className="eyebrow">학점 시뮬레이션</p>
-      <h1>학점 계산</h1>
-      <p className="lead">이번 학기 예상 성적을 넣어 누적 평점이 어떻게 바뀌는지 확인해요. 실제 이수 현황은 바뀌지 않아요.</p>
+    <div className="page">
+      <h1 className="page-title">학점 계산</h1>
+      <p className="page-lead">지금까지 받은 학점 상세내역을 확인할 수 있어요.<br />예상 학점을 입력하면 총 학점을 미리 계산할 수 있어요.</p>
 
-      <div className="two">
-        <section className="card stat">
-          <p className="small muted">현재 누적 평점</p>
-          <p className="num">{gpaText(base.gpa)}</p>
-          <p className="small muted">{base.gpa.estimated ? '요약값 기반 추정' : '4.5점 만점'}</p>
+      <div className="gpa-cards" style={{ marginTop: 24 }}>
+        <section className="gpa-card light" aria-label="현재 누적 평점">
+          <p className="gpa-label">현재 누적 평점</p>
+          <p className="gpa-num">{gpaNum(base.gpa)}</p>
+          <p className="gpa-sub">{base.gpa.estimated ? '요약값 기반 추정' : '4.5점 만점'}</p>
         </section>
-        <section className="card stat dark">
-          <p className="small">예상 누적 평점</p>
-          <p className="num">{hasScenario ? gpaText(r.projected.gpa) : '—'}</p>
-          <p className="small">{hasScenario ? `취득학점 ${delta >= 0 ? '+' : ''}${formatUnits(delta)}학점` : '예상 성적을 넣어 보세요'}</p>
+        <section className="gpa-card dark" aria-label="예상 누적 평점">
+          <p className="gpa-label">예상 누적 평점</p>
+          <p className="gpa-num">{hasScenario ? gpaNum(r.projected.gpa) : '—'}</p>
+          <p className="gpa-sub">기존 취득학점 {formatUnits(base.earned)}학점</p>
         </section>
       </div>
-      <dl className="stats card">
-        <div><dt>주전공 평점</dt><dd>{gpaText(base.majorGpa)}</dd></div>
-        <div><dt>GPA 대상 학점</dt><dd>{formatUnits(base.gpa.creditUnits)}</dd></div>
-        <div><dt>총 취득학점</dt><dd>{formatUnits(base.earned)}</dd></div>
-      </dl>
 
-      <section className="card accent" aria-labelledby="now-title">
-        <p className="small"><span className="chip">현재 학기</span> {termLabel(term)}</p>
-        <h2 id="now-title" className="h3">이번 학기 예상 성적</h2>
-        {currentCourses.length === 0 && <p className="muted small">이번 학기 수강 중인 과목이 없어요. 과목을 추가해 주세요.</p>}
-        <ul className="calc-list">
-          {currentCourses.map((c) => {
-            const e = entry(c.id);
-            const usedElsewhere = new Set(scenario?.entries.filter((x) => x.courseId !== c.id && x.replacesCourseId).map((x) => x.replacesCourseId));
-            const picked = e?.replacesCourseId ?? c.replacesCourseId ?? '';
-            return (
-              <li key={c.id}>
-                <div className="row-between">
-                  <span className="name">{c.name}</span>
-                  <span className="small muted">{formatUnits(c.creditUnits)}학점</span>
-                </div>
-                <div className="row2">
-                  <label>예상 등급
-                    <select value={e?.expectedGrade ?? ''} onChange={(x) => setEntry(c.id, { expectedGrade: (x.target.value || null) as Grade })}>
-                      <option value="">미입력</option>
-                      {LETTER_GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
-                    </select>
-                  </label>
-                  <label>재수강이면 기존 기록
-                    <select value={picked} onChange={(x) => setEntry(c.id, { replacesCourseId: x.target.value || undefined })}>
-                      <option value="">재수강 아님</option>
-                      {/* 과목 수정에서 지정한 기록은 이미 계산에서 빠져 목록에 없으므로 따로 보여 준다 */}
-                      {picked && !retakeTargets.some((t) => t.id === picked) && (
-                        <option value={picked}>{state.courses.find((t) => t.id === picked)?.name ?? '이전 기록'} (과목 수정에서 지정)</option>
-                      )}
-                      {retakeTargets.filter((t) => !usedElsewhere.has(t.id)).map((t) => (
-                        <option key={t.id} value={t.id}>{t.name} ({termLabel(t.term)} {t.grade ?? '?'})</option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-                {errorFor(c.id) && <p className="error small" role="alert">{errorFor(c.id)}</p>}
-              </li>
-            );
-          })}
-        </ul>
-        <div className="row">
-          <button type="button" className="btn ghost" onClick={() => openEditor({ preset: { status: 'inProgress', term } })}>과목 추가</button>
-          {scenario && <button type="button" className="btn ghost" onClick={clearScenario}>시나리오 삭제</button>}
-        </div>
-        {hasScenario && (
-          <dl className="stats">
-            <div><dt>이번 학기 예상 평점</dt><dd>{gpaText(r.termGpa)}</dd></div>
-            <div><dt>예상 누적 평점</dt><dd>{gpaText(r.projected.gpa)}</dd></div>
-            <div><dt>예상 취득학점</dt><dd>{formatUnits(r.projected.earned)} ({delta >= 0 ? '+' : ''}{formatUnits(delta)})</dd></div>
-          </dl>
+      <div className="pill-tabs" role="group" aria-label="학년 선택" style={{ marginTop: 24 }}>
+        {YEARS.map((y) => (
+          <button key={y} type="button" aria-pressed={yearSel === y} onClick={() => setYearSel(y)}>{y}학년</button>
+        ))}
+      </div>
+
+      <div className="stack" style={{ marginTop: 22 }}>
+        {showCurrent && (
+          <div>
+            <section className="term-card current" aria-label={gradeTermLabel(term, profile)}>
+              <div className="term-head">
+                <span>{gradeTermLabel(term, profile)}</span>
+                <span>{hasScenario ? gpaNum(r.termGpa) : '-'}</span>
+              </div>
+              {currentCourses.map((c) => {
+                const open = c.status === 'inProgress' || c.status === 'planned';
+                return (
+                  <div key={c.id} className="term-row">
+                    <button type="button" className="name-btn" onClick={() => openEditor({ courseId: c.id })}>
+                      {c.name}<span className="units">({formatUnits(c.creditUnits)}학점)</span>
+                    </button>
+                    {open ? (
+                      <select className="grade-select" aria-label={`${c.name} 예상 등급`}
+                        value={scenario?.entries.find((e) => e.courseId === c.id)?.expectedGrade ?? ''}
+                        onChange={(e) => setGrade(c.id, (e.target.value || null) as Grade)}>
+                        <option value="">-</option>
+                        {LETTER_GRADES.map((g) => <option key={g} value={g}>{g}</option>)}
+                      </select>
+                    ) : <span className="grade">{gradeText(c)}</span>}
+                  </div>
+                );
+              })}
+              <button type="button" className="term-add" onClick={() => openEditor({ preset: { status: 'inProgress', term } })}>
+                <i className="icon ic-plus" aria-hidden="true" />강의 정보 추가하기
+              </button>
+              <div className="term-foot">{currentCourses.length ? `총 ${formatUnits(sumUnits(currentCourses))}학점` : '총 - 학점'}</div>
+            </section>
+            {currentCourses.length === 0 && <p className="term-hint">현재 이수 중인 강의 정보를 추가하고 예상 학점을 계산해보세요!</p>}
+          </div>
         )}
-        <details>
-          <summary>계산 근거 보기</summary>
-          <ul className="plain small">
-            <li>평점 = 절사(Σ학점×등급점수 ÷ GPA 대상 학점), 소수 셋째자리 이하 버림</li>
-            <li>현재: {(base.gpa.points / 10000).toFixed(2)} ÷ {formatUnits(base.gpa.creditUnits)} → {gpaText(base.gpa)}</li>
-            {hasScenario && <li>예상: {(r.projected.gpa.points / 10000).toFixed(2)} ÷ {formatUnits(r.projected.gpa.creditUnits)} → {gpaText(r.projected.gpa)}</li>}
-            <li>일반 F는 분모에 포함, P/F 과목·등급 없는 인정학점은 평점에서 제외, 성적 모름은 판단 보류 ({state.courses.filter((c) => c.gpaInclusion === 'unresolved').length}개)</li>
-            <li>재수강을 고르면 기존 기록의 학점·점수를 빼고 새 등급으로 다시 계산해요. 같은 기존 과목은 한 번만 대체할 수 있어요.</li>
-            {base.gpa.estimated && <li>요약 평점 × GPA 대상 학점으로 복원한 근사치라 실제와 조금 다를 수 있어요.</li>}
-          </ul>
-        </details>
-      </section>
 
-      {pastTerms.length > 0 && <h2 className="h3 divider">지난 학기</h2>}
-      {pastTerms.map((list) => {
-        const g = computeGpa(list);
-        return (
-          <section key={termKey(list[0].term)} className="card">
-            <div className="row-between">
-              <h3 className="h4">{termLabel(list[0].term)}</h3>
-              <span className="small">{g.hundredths === null ? '평점 대상 없음' : `학기 평점 ${formatGpa(g.hundredths)}`}</span>
-            </div>
-            <ul className="course-list">
-              {list.map((c) => (
-                <li key={c.id}>
-                  <button type="button" className="course-row" onClick={() => openEditor({ courseId: c.id })}>
-                    <span className="name">{c.name}</span>
-                    <span className="small muted">{AREA_LABEL[c.area]} · {formatUnits(c.creditUnits)}학점 · {c.grade ?? (c.recordKind === 'recognizedCredit' ? '인정' : STATUS_LABEL[c.status])}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="btn small ghost" onClick={() => openEditor({ preset: { status: 'completed', term: list[0].term } })}>이 학기에 과목 추가</button>
-          </section>
-        );
-      })}
+        {showCurrent && pastInYear.length > 0 && <p className="divider-label">지난 학기</p>}
+
+        {pastInYear.map((g) => <PastTerm key={termKey(g.term)} term={g.term} list={g.list} />)}
+
+        {!showCurrent && pastInYear.length === 0 && <p className="st-empty">이 학년에 저장된 학기가 없어요.</p>}
+      </div>
     </div>
+  );
+}
+
+function PastTerm({ term, list }: { term: Term; list: Course[] }) {
+  const { state, openEditor } = useStore();
+  const g = computeGpa(list);
+  const earned = list.filter((c) => c.earnedInclusion === 'included');
+  return (
+    <section className="term-card" aria-label={gradeTermLabel(term, state.profile!)}>
+      <div className="term-head">
+        <span>{gradeTermLabel(term, state.profile!)}</span>
+        <span>{g.hundredths === null ? '-' : formatGpa(g.hundredths)}</span>
+      </div>
+      {list.map((c) => (
+        <button key={c.id} type="button" className="term-row" onClick={() => openEditor({ courseId: c.id })}>
+          <span>{c.name}<span className="units">({formatUnits(c.creditUnits)}학점)</span></span>
+          <span className="grade">{gradeText(c)}</span>
+        </button>
+      ))}
+      <div className="term-foot">총 {formatUnits(sumUnits(earned))}학점</div>
+    </section>
   );
 }

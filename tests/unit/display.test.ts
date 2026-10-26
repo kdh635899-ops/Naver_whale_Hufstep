@@ -93,7 +93,7 @@ describe('학생이 체크한 줄도 충족 수에 들어가고, 학점은 더�
     expect(STATUS_SCREEN).not.toContain('studentMarkedCourseIds');
   });
   it('묶음 요건 줄도 ○/✓ 두 가지만 쓰고, 다시 누르면 체크가 풀린다', () => {
-    expect(STATUS_SCREEN).toContain("{done ? '✓' : '○'}");
+    expect(STATUS_SCREEN).toContain("{it.done ? '✓' : '○'}");
     expect(STATUS_SCREEN).not.toContain("'?' :");
     expect(STATUS_SCREEN).toContain('toggleConfirm(g.group.id)');
   });

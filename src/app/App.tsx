@@ -1,6 +1,6 @@
 // 사이드바 앱 뼈대: 헤더 · 5개 메뉴 · 화면 · 공유 과목 편집기.
 // 메뉴 순서(§2.2): 종정시 입력 → 학사 현황 → 시간표 → 학점 계산 → 마이페이지
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { View } from '../domain/state';
 import { AssessmentsScreen } from '../features/assessments/AssessmentsScreen';
 import { CalculatorScreen } from '../features/calculator/CalculatorScreen';
@@ -20,6 +20,16 @@ const TABS: { view: View; label: string }[] = [
   { view: 'calculator', label: '학점 계산' },
   { view: 'mypage', label: '마이페이지' },
 ];
+
+function Splash() {
+  return (
+    <div className="splash" role="status" aria-label="불러오는 중">
+      <div className="logo-lg" aria-hidden="true">W</div>
+      <p className="splash-name">HUFStep</p>
+      <p className="splash-sub">외대생의 학사 도우미</p>
+    </div>
+  );
+}
 
 function Header() {
   return (
@@ -41,7 +51,10 @@ export function App() {
   useEffect(() => {
     if (status === 'ready' && mode === 'real' && noProfile && new URLSearchParams(window.location.search).has('demo')) startDemo();
   }, [status, mode, noProfile, startDemo]);
-  if (s.status === 'loading') return <div className="loading" role="status">불러오는 중…</div>;
+  // 스플래시(Figma): 앱을 열면 먼저 보인다. 데이터를 다 읽었어도 로고가 보이도록 잠깐(1.2초) 유지한다.
+  const [splashDone, setSplashDone] = useState(false);
+  useEffect(() => { const t = window.setTimeout(() => setSplashDone(true), 1200); return () => window.clearTimeout(t); }, []);
+  if (s.status === 'loading' || !splashDone) return <Splash />;
   if (s.status === 'error') return <LoadError />;
   if (!s.state.profile) return <Start />;
 

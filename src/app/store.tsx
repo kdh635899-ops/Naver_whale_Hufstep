@@ -74,8 +74,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   // 처음 열 때: 저장값 불러오기. 실패하면 덮어쓰지 않고 오류 화면.
   useEffect(() => {
+    let cancelled = false; // 개발 모드(StrictMode)에서 효과가 두 번 돌 때, 앞선 요청의 늦은 결과가 지금 상태를 덮어쓰지 않게 한다
     loadState().then(
       (s) => {
+        if (cancelled) return;
         const loaded = s ?? emptyState();
         realState.current = loaded;
         setState(loaded);
@@ -83,8 +85,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setStatus('ready');
         void checkRoute();
       },
-      (e: Error) => { setLoadError(e.message); setStatus('error'); },
+      (e: Error) => { if (cancelled) return; setLoadError(e.message); setStatus('error'); },
     );
+    return () => { cancelled = true; };
   }, [checkRoute]);
 
   // 실제 오늘 날짜: 자정·창 재활성화·절전 복귀 때 다시 계산 (날짜를 고정하지 않음)
@@ -123,8 +126,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const setView = useCallback((v: View) => {
     setViewState(v);
     window.scrollTo(0, 0);
-    if (mode === 'real' && stateRef.current.profile) {
-      const next = { ...stateRef.current, settings: { ...stateRef.current.settings, lastView: v } };
+    // 방금 save()가 끝났어도 아직 다시 그려지기 전이면 stateRef는 옛 값이다 → 항상 마지막으로 저장한 realState를 기준으로 쓴다
+    // (그렇지 않으면 '저장 직후 화면 이동'이 방금 저장한 과목을 옛 상태로 덮어쓴다)
+    const cur = realState.current;
+    if (mode === 'real' && cur.profile) {
+      const next = { ...cur, settings: { ...cur.settings, lastView: v } };
       saveState(next).then(() => { realState.current = next; setState(next); }, () => { /* 마지막 화면 기억 실패는 무시 */ });
     }
   }, [mode]);

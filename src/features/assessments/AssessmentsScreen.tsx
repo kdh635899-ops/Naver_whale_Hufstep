@@ -1,21 +1,21 @@
 // 시간표: 월~금 격자와 맨 아래 '시간 미정' 줄을 하나의 시간표로 표시한다.
 // 시간표(학생이 입력한 수업 시간) → 과목 누르면 하단 상세 패널(자유 메모 + 중간·기말 정보) → 메모 저장과 시험 정보 수정은 따로.
 // 시험 정보 저장은 store.save()를 거쳐 오늘 집계·알림 예약을 갱신한다. 자유 메모는 알림을 만들지 않는다.
-import { useEffect, useId, useMemo, useState } from 'react';
+import { Fragment, useEffect, useId, useState } from 'react';
 import { useStore } from '../../app/store';
 import { calendarFor } from '../../data';
-import { countEventsForDate, countText, deriveEvaluationEvents, eventsOn, KIND_LABEL, PHASE_LABEL } from '../../domain/assessment-events/events';
+import { deriveEvaluationEvents, eventsOn, KIND_LABEL, PHASE_LABEL } from '../../domain/assessment-events/events';
 import { newId } from '../../domain/state';
-import { compareTerms, formatUnits, localDateTime, sameTerm, termKey, termLabel } from '../../domain/terms';
+import { formatUnits, localDateTime, sameTerm } from '../../domain/terms';
 import { classTimeText, DAY_LABEL, layoutWeek, toMinutes } from '../../domain/timetable';
-import type { Assessment, ClassTime, Course, Term } from '../../domain/types';
+import type { Assessment, ClassTime, Course } from '../../domain/types';
 import { assessmentSchema, classTimeSchema, courseMemoSchema, firstIssue, MEMO_MAX } from '../../domain/validation/schemas';
 import { AREA_LABEL, ConsentGate, Sheet, STATUS_LABEL } from '../common';
 
-/** 시간표 한 시간의 높이(px) */
-const HOUR_PX = 72;
-/** 과목 블록 배경 (기존 팔레트의 옅은 청록·파랑 계열) */
-const TINTS = ['#e8f6f6', '#e8f0fb', '#eef1f8', '#e6f2ee', '#f1eefa'];
+/** 시간표 한 시간의 높이(px) — Figma 70px, CSS(.tt-cell)와 같아야 한다 */
+const HOUR_PX = 70;
+/** 과목 블록 배경 (Figma 시간표 파스텔) */
+const TINTS = ['#dff1ed', '#e3edf9', '#eee8f8', '#f9e9de', '#f5efcf'];
 /** 저장 전 메모 초안: 패널을 닫았다 열어도 남는다. ponytail: 메모리에만 — 사이드바를 다시 열면 사라짐 */
 const memoDrafts = new Map<string, string>();
 
@@ -31,11 +31,11 @@ export function phaseLabel(a?: Assessment): string {
   return `${REPL[a.replacementType ?? 'other']} 대체`;
 }
 
-/** 좁은 시간표 칸용 짧은 표시: O / X / — / 발표·보고서… (전체 문구는 aria-label과 상세 패널에) */
-function shortLabel(a?: Assessment): string {
+/** 시간표 블록용 짧은 표시(Figma): 시험O / 시험X / — / 발표·보고서… */
+function evText(a?: Assessment): string {
   if (!a || a.mode === null) return '—';
-  if (a.mode === 'exam') return 'O';
-  if (a.mode === 'none') return 'X';
+  if (a.mode === 'exam') return '시험O';
+  if (a.mode === 'none') return '시험X';
   return REPL[a.replacementType ?? 'other'];
 }
 
@@ -47,34 +47,20 @@ export function prettyDate(d?: string): string {
 }
 
 export function AssessmentsScreen() {
-  const { state, today, openEditor, todayRoute, consumeTodayRoute } = useStore();
+  const { state, openEditor, todayRoute, consumeTodayRoute } = useStore();
   const current = state.profile!.currentTerm;
-  const [termSel, setTermSel] = useState(termKey(current));
   const [detail, setDetail] = useState<string | null>(null);
   const [todayDate, setTodayDate] = useState<string | null>(null);
 
-  // 알림 클릭으로 들어오면 그 날짜 목록을 연다
+  // 알림을 눌러 들어오면 그 날짜의 평가 목록을 연다 (화면에는 '오늘 평가' 줄이 없지만 알림 연결은 그대로)
   useEffect(() => {
-    if (todayRoute) { setTermSel(termKey(current)); setTodayDate(todayRoute); consumeTodayRoute(); }
-  }, [todayRoute, consumeTodayRoute, current]);
+    if (todayRoute) { setTodayDate(todayRoute); consumeTodayRoute(); }
+  }, [todayRoute, consumeTodayRoute]);
 
-  const terms = useMemo(() => {
-    const m = new Map<string, Term>([[termKey(current), current]]);
-    const withAssess = new Set(state.assessments.map((a) => a.courseId));
-    for (const c of state.courses) if (c.status === 'inProgress' || withAssess.has(c.id)) m.set(termKey(c.term), c.term);
-    return [...m.values()].sort((a, b) => compareTerms(b, a));
-  }, [state.courses, state.assessments, current]);
-  const term = terms.find((t) => termKey(t) === termSel) ?? current;
-  const isCurrent = sameTerm(term, current);
-
-  // 현재 학기: '수강 중' 과목. 지난 학기 열람: 그 학기에 평가 기록이 있는 과목.
-  const courses = state.courses.filter((c) => sameTerm(c.term, term)
-    && (c.status === 'inProgress' || (!isCurrent && state.assessments.some((a) => a.courseId === c.id))));
-  const events = useMemo(() => deriveEvaluationEvents(state.assessments, state.courses, state.completions, current),
-    [state.assessments, state.courses, state.completions, current]);
-  const todayCounts = countEventsForDate(events, today);
+  // 이번 학기 '수강 중' 과목
+  const courses = state.courses.filter((c) => sameTerm(c.term, current) && c.status === 'inProgress');
   const find = (courseId: string, phase: Phase) => state.assessments.find((a) => a.courseId === courseId && a.phase === phase);
-  // 패널은 닫힐 때 원래 버튼으로 포커스를 돌려준다. 시간 미정 줄↔요일 칸으로 옮겨졌으면 그 과목의 새 버튼으로.
+  // 패널은 닫힐 때 원래 버튼으로 포커스를 돌려준다.
   const closeDetail = (id: string) => {
     setDetail(null);
     requestAnimationFrame(() => {
@@ -84,36 +70,12 @@ export function AssessmentsScreen() {
   };
 
   return (
-    <div className="screen">
-      <div className="row-between">
-        <p className="eyebrow">{termLabel(term)}</p>
-        {terms.length > 1 && (
-          <label className="inline-select">
-            <span className="sr-only">학기 선택</span>
-            <select value={termSel} onChange={(e) => setTermSel(e.target.value)}>
-              {terms.map((t) => <option key={termKey(t)} value={termKey(t)}>{termLabel(t)}</option>)}
-            </select>
-          </label>
-        )}
-      </div>
-      <h1>시간표</h1>
-
-      {isCurrent && (
-        <button type="button" className="today-line" onClick={() => setTodayDate(today)} aria-haspopup="dialog">
-          <span>{todayCounts.total ? `오늘 ${countText(todayCounts)}` : '오늘 등록된 평가가 없어요'}</span> <span aria-hidden="true">›</span>
-        </button>
-      )}
-
-      <div className="row-between">
-        <h2 className="h3">{isCurrent ? '이번 학기' : '그 학기'} 과목 · {courses.length}과목</h2>
-        {isCurrent && <button type="button" className="btn small" onClick={() => openEditor({ preset: { status: 'inProgress', term: current } })}>과목 추가</button>}
-      </div>
+    <div className="page">
+      <h1 className="page-title">시간표</h1>
+      <p className="page-lead">이번 학기 수강하는 수업 시간표를 추가하고,<br />시험 정보나 기억할 내용을 메모로 남길 수 있어요.</p>
 
       <Timetable courses={courses} times={state.classTimes} find={find} onOpen={setDetail}
-        hasMemo={(id) => state.courseMemos.some((m) => m.courseId === id)} />
-      {isCurrent && !calendarFor(state.profile!.homeCampus, current) && (
-        <p className="muted small">학교 공식 시험 기간 데이터는 아직 없어요. 과목별 날짜는 직접 입력해 주세요.</p>
-      )}
+        onAdd={() => openEditor({ preset: { status: 'inProgress', term: current } })} />
 
       {detail && <DetailPanel courseId={detail} onClose={() => closeDetail(detail)} />}
       {todayDate && (
@@ -124,68 +86,66 @@ export function AssessmentsScreen() {
   );
 }
 
-/** 월~금 시간표. 과목 블록 = 큰 과목명 + 작은 중간·기말 표시. 한 과목이 여러 칸에 나올 수 있다. */
-function Timetable({ courses, times, find, onOpen, hasMemo }: {
+/** 월~금 시간표(Figma 격자). 과목 블록 = 과목명 + 아래칸에 '중간 …/기말 …'. 한 과목이 여러 칸에 나올 수 있다. */
+function Timetable({ courses, times, find, onOpen, onAdd }: {
   courses: Course[]; times: ClassTime[]; find: (courseId: string, phase: Phase) => Assessment | undefined;
-  onOpen: (courseId: string) => void; hasMemo: (courseId: string) => boolean;
+  onOpen: (courseId: string) => void; onAdd: () => void;
 }) {
   const byId = new Map(courses.map((c, i) => [c.id, { c, tint: TINTS[i % TINTS.length] }]));
-  const { blocks, fromHour, toHour } = layoutWeek(times.filter((t) => byId.has(t.courseId)));
+  const { blocks, fromHour } = layoutWeek(times.filter((t) => byId.has(t.courseId)));
+  const toHour = Math.max(17, ...blocks.map((b) => Math.ceil(toMinutes(b.end) / 60)));
+  const hours = Array.from({ length: toHour - fromHour }, (_, i) => fromHour + i);
   const timed = new Set(blocks.map((b) => b.courseId));
   const pending = courses.filter((c) => !timed.has(c.id));
-  const hours = Array.from({ length: toHour - fromHour }, (_, i) => fromHour + i);
-
-  // 요일 칸과 시간 미정 줄이 같은 버튼을 사용하므로 모양·상세 패널 동작이 같다.
-  const renderBlock = (courseId: string, time?: ClassTime) => {
-    const { c, tint } = byId.get(courseId)!;
-    const mid = find(c.id, 'midterm');
-    const fin = find(c.id, 'final');
-    const memo = hasMemo(c.id);
-    return (
-      <button type="button" className="tt-block" data-course={c.id} style={{ background: tint }} onClick={() => onOpen(c.id)} aria-haspopup="dialog"
-        aria-label={`${c.name}, ${time ? classTimeText(time) : '시간 미정'}, 중간 ${phaseLabel(mid)}, 기말 ${phaseLabel(fin)}${memo ? ', 메모 있음' : ''}`}>
-        <span className="tt-name">{c.name}</span>
-        <span className="tt-eval">중간 {shortLabel(mid)}</span>
-        <span className="tt-eval">기말 {shortLabel(fin)}</span>
-        {memo && <span className="tt-memo" aria-hidden="true">✎</span>}
-      </button>
-    );
-  };
 
   return (
-    <section className="timetable-wrap" aria-labelledby="tt-title">
-      <h2 id="tt-title" className="h4">수업 시간표</h2>
-      {pending.length > 0 && <p className="muted small">시간 미정 과목을 눌러 요일·시간을 넣어 주세요.</p>}
-      <div className="timetable">
-        <div className="tt-days" aria-hidden="true"><span />{DAY_LABEL.map((d) => <span key={d}>{d}</span>)}</div>
-        <div className="tt-body" style={{ height: hours.length * HOUR_PX, ['--hour' as string]: `${HOUR_PX}px` }}>
-          <div className="tt-hours" aria-hidden="true">
-            {hours.map((h, i) => <span key={h} style={{ top: i * HOUR_PX }}>{h}</span>)}
-          </div>
+    <>
+      <div className="tt" role="group" aria-label="수업 시간표">
+        <div className="tt-grid" aria-hidden="true">
+          <div className="tt-dayh" />
+          {DAY_LABEL.map((d) => <div key={d} className="tt-dayh">{d}</div>)}
+          {hours.map((h) => (
+            <Fragment key={h}>
+              <div className="tt-cell hour">{h}</div>
+              {DAY_LABEL.map((d) => <div key={d} className="tt-cell" />)}
+            </Fragment>
+          ))}
+        </div>
+        <div className="tt-over">
+          <div />
           {DAY_LABEL.map((dayName, day) => (
-            <ul key={dayName} className="tt-col" aria-label={`${dayName}요일`}>
+            <div key={dayName} className="tt-lane" role="list" aria-label={`${dayName}요일`}>
               {blocks.filter((b) => b.day === day).map((b, i) => {
+                const { c, tint } = byId.get(b.courseId)!;
+                const mid = find(c.id, 'midterm');
+                const fin = find(c.id, 'final');
                 const top = ((toMinutes(b.start) - fromHour * 60) / 60) * HOUR_PX;
                 const height = ((toMinutes(b.end) - toMinutes(b.start)) / 60) * HOUR_PX;
                 return (
-                  <li key={`${b.courseId}-${i}`} style={{ top, height, left: `${(b.lane / b.lanes) * 100}%`, width: `${100 / b.lanes}%` }}>
-                    {renderBlock(b.courseId, b)}
-                  </li>
+                  <button key={`${b.courseId}-${i}`} type="button" role="listitem" data-course={c.id} aria-haspopup="dialog"
+                    className={`tt-blk${height <= HOUR_PX ? ' short' : ''}`}
+                    style={{ top, height, left: `${(b.lane / b.lanes) * 100}%`, width: `${100 / b.lanes}%`, right: 'auto', background: tint }}
+                    onClick={() => onOpen(c.id)}
+                    aria-label={`${c.name}, ${classTimeText(b)}, 중간 ${phaseLabel(mid)}, 기말 ${phaseLabel(fin)}`}>
+                    <span className="nm">{c.name}</span>
+                    <span className="ev">중간 {evText(mid)}</span>
+                    <span className="ev">기말 {evText(fin)}</span>
+                  </button>
                 );
               })}
-            </ul>
+            </div>
           ))}
         </div>
-        {pending.length > 0 && (
-          <div className="tt-pending">
-            <span className="tt-pending-label" id="tt-pending-label">시간 미정</span>
-            <ul className="tt-pending-list" aria-labelledby="tt-pending-label">
-              {pending.map((c) => <li key={c.id}>{renderBlock(c.id)}</li>)}
-            </ul>
-          </div>
-        )}
       </div>
-    </section>
+      {/* Figma에는 없지만 수업 시간을 넣을 입구가 필요해서 최소로 둔다 (시간 미정 과목 + 과목 추가) */}
+      <div className="tt-extra">
+        {pending.length > 0 && <span>시간 미정</span>}
+        {pending.map((c) => (
+          <button key={c.id} type="button" className="pill" data-course={c.id} aria-haspopup="dialog" onClick={() => onOpen(c.id)}>{c.name}</button>
+        ))}
+        <button type="button" className="pill" onClick={onAdd}>+ 과목 추가</button>
+      </div>
+    </>
   );
 }
 
