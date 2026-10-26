@@ -1,0 +1,15 @@
+[
+ {
+  "id": "policy-default",
+  "gradeAliases": {
+   "A": "A0",
+   "A°": "A0",
+   "Ao": "A0"
+  },
+  "maxCreditUnitsPerCourse": 2000,
+  "sourceIds": [
+   "src-hufs-transfer-2026-seoul"
+  ],
+  "status": "unverified"
+ }
+]

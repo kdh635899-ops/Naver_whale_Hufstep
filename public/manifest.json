@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "HUFStep",
+  "version": "0.2.0",
+  "description": "한국외대 학생의 이수학점과 졸업요건, 평가일정, 예상 평점을 관리합니다.",
+  "permissions": ["alarms", "notifications"],
+  "sidebar_action": {
+    "default_page": "sidebar.html",
+    "default_icon": { "16": "icons/icon16.png" },
+    "default_title": "HUFStep",
+    "use_navigation_bar": false,
+    "mobile_user_agent": false
+  },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "content_security_policy": {
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'"
+  }
+}

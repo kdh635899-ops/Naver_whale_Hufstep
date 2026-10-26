@@ -1,0 +1,40 @@
+[
+ {
+  "campus": "seoul",
+  "term": {
+   "academicYear": 2026,
+   "semester": "2"
+  },
+  "midtermPeriod": {
+   "from": "2026-10-20",
+   "to": "2026-10-26"
+  },
+  "finalPeriod": {
+   "from": "2026-12-15",
+   "to": "2026-12-21"
+  },
+  "sourceIds": [
+   "src-app-853b204c454b"
+  ],
+  "status": "verified"
+ },
+ {
+  "campus": "global",
+  "term": {
+   "academicYear": 2026,
+   "semester": "2"
+  },
+  "midtermPeriod": {
+   "from": "2026-10-20",
+   "to": "2026-10-26"
+  },
+  "finalPeriod": {
+   "from": "2026-12-15",
+   "to": "2026-12-21"
+  },
+  "sourceIds": [
+   "src-app-853b204c454b"
+  ],
+  "status": "verified"
+ }
+]

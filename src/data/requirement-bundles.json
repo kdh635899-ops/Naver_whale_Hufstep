@@ -1,0 +1,1273 @@
+[
+ {
+  "schemaVersion": 1,
+  "id": "common-gpa-seoul:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "common",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "common-gpa-seoul:gpa",
+    "title": "졸업 평점평균",
+    "description": "전체 평점평균 2.00 이상 (F 포함)",
+    "checkMethod": "studentConfirm",
+    "sourceIds": [
+     "src-4c8051c832fe",
+     "src-b1500495d490"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-4c8051c832fe",
+   "src-b1500495d490"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "common-gpa-global:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "common",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "common-gpa-global:gpa",
+    "title": "졸업 평점평균",
+    "description": "전체 평점평균 2.00 이상 (F 포함)",
+    "checkMethod": "studentConfirm",
+    "sourceIds": [
+     "src-27c8b2389edf",
+     "src-4c8051c832fe"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-27c8b2389edf",
+   "src-4c8051c832fe"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "eicc-no-required-2015-2024:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2024,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-cfafcf03e2"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "eicc-no-required-2015-2024:none",
+    "title": "학과 전공필수 면제",
+    "description": "이 규칙의 학번·입학유형·전공 역할 범위에서 전공필수 과목 없음이 명시됨. 다른 졸업요건은 별도.",
+    "checkMethod": "informational",
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-4f535f5c7148",
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "eicc-no-required-2015-2024:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "primary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2024,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [
+    "seoul-cfafcf03e2"
+   ],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "eicc-no-required-2015-2024:none",
+    "title": "학과 전공필수 면제",
+    "description": "이 규칙의 학번·입학유형·전공 역할 범위에서 전공필수 과목 없음이 명시됨. 다른 졸업요건은 별도.",
+    "checkMethod": "informational",
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-4f535f5c7148",
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "eicc-required-2025:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-cfafcf03e2"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "eicc-required-2025:group-0",
+    "title": "통번역기초실습(1) / 통번역기초실습(2)",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "A01697",
+     "A01701"
+    ],
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "eicc-required-2025:group-1",
+    "title": "번역강독과실습(1) / 번역강독과실습(2)",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "A01336",
+     "A01335"
+    ],
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "eicc-required-2025:group-2",
+    "title": "한영통역(1) / 한영통역(2)",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "A01723",
+     "A01731"
+    ],
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-4f535f5c7148",
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c",
+   "src-timetable-wis-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "eicc-required-2025:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "primary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [
+    "seoul-cfafcf03e2"
+   ],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "eicc-required-2025:group-0",
+    "title": "통번역기초실습(1) / 통번역기초실습(2)",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "A01697",
+     "A01701"
+    ],
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "eicc-required-2025:group-1",
+    "title": "번역강독과실습(1) / 번역강독과실습(2)",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "A01336",
+     "A01335"
+    ],
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "eicc-required-2025:group-2",
+    "title": "한영통역(1) / 한영통역(2)",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "A01723",
+     "A01731"
+    ],
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-4f535f5c7148",
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c",
+   "src-timetable-wis-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "kle-required-2025:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-2dbdbecdb5"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "kle-required-2025:group-0",
+    "title": "국어교육론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04304"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "kle-required-2025:group-1",
+    "title": "국어학개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04107"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "kle-required-2025:group-2",
+    "title": "국문학개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04317"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c",
+   "src-timetable-wis-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "kle-required-2025:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-2dbdbecdb5"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "kle-required-2025:group-0",
+    "title": "국어교육론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04304"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "kle-required-2025:group-1",
+    "title": "국어학개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04107"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "kle-required-2025:group-2",
+    "title": "국문학개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04317"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c",
+   "src-timetable-wis-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "kle-required-2025:import-3",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "primary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [
+    "seoul-2dbdbecdb5"
+   ],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "kle-required-2025:group-0",
+    "title": "국어교육론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04304"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "kle-required-2025:group-1",
+    "title": "국어학개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04107"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   },
+   {
+    "id": "kle-required-2025:group-2",
+    "title": "국문학개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "E04317"
+    ],
+    "sourceIds": [
+     "src-7d7c9a0b4468",
+     "src-ff95c611891c",
+     "src-timetable-wis-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-7d7c9a0b4468",
+   "src-ff95c611891c",
+   "src-timetable-wis-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "japanese-assessment-primary:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "primary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [
+    "seoul-japanese-language-culture"
+   ],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [
+   {
+    "kind": "departmentExam",
+    "id": "japanese-assessment-primary:cert",
+    "title": "학과 졸업평가·인증",
+    "passCriteria": "(FLEX Japanese [listening,reading] 700점 이상 또는 (JLPT N1 합격 및 JLPT N1 120점 이상) 또는 JPT 750점 이상); 졸업식일 기준 24개월 이내 성적; 기준 미달 시 학과시험 대체 불가; 예외 불가; FLEX IBT 불인정",
+    "exemptions": [],
+    "alternatives": [],
+    "sourceIds": [
+     "src-4e9970a51c01"
+    ]
+   }
+  ],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-4e9970a51c01"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "japanese-assessment-dual:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-japanese-language-culture"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [
+   {
+    "kind": "departmentExam",
+    "id": "japanese-assessment-dual:cert",
+    "title": "학과 졸업평가·인증",
+    "passCriteria": "(FLEX Japanese [listening,reading] 600점 이상 또는 (JLPT N1 합격) 또는 JPT 700점 이상); 졸업식일 기준 24개월 이내 성적; 기준 미달 시 학과시험 대체 불가; 예외 불가; FLEX IBT 불인정",
+    "exemptions": [],
+    "alternatives": [],
+    "sourceIds": [
+     "src-4e9970a51c01"
+    ]
+   }
+  ],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-4e9970a51c01"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "japanese-minor-no-assessment:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-japanese-language-culture"
+   ],
+   "programTypes": [
+    "minor"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "japanese-minor-no-assessment:assessment-none",
+    "title": "학과 졸업평가 면제",
+    "description": "명시된 전공 역할의 학과 졸업평가 요건 없음. 학교 공통 인증은 별도.",
+    "checkMethod": "informational",
+    "sourceIds": [
+     "src-4e9970a51c01"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-4e9970a51c01"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-education-False:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2020,
+   "cohortTo": 2024,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-2141b7d57c"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-education-False:group-0",
+    "title": "(KFL학부)한국어교육입문",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "H01106"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-education-False:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2020,
+   "cohortTo": 2024,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-2141b7d57c"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-education-False:group-0",
+    "title": "(KFL학부)한국어교육입문",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "H01106"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-education-True:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-2141b7d57c"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-education-True:group-0",
+    "title": "(KFL학부)한국어학의이해",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "U72155"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-education-True:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-2141b7d57c"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-education-True:group-0",
+    "title": "(KFL학부)한국어학의이해",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "U72155"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-translation-False:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2020,
+   "cohortTo": 2024,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-fd335bc600"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-translation-False:group-0",
+    "title": "(KFL학부)한국어통번역입문",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "H01107"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-translation-False:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2020,
+   "cohortTo": 2024,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-fd335bc600"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-translation-False:group-0",
+    "title": "(KFL학부)한국어통번역입문",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "H01107"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-translation-True:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-fd335bc600"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-translation-True:group-0",
+    "title": "(KFL학부)한국어통번역입문",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "H01107"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "extended-kfl-dual-translation-True:import-2",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-fd335bc600"
+   ],
+   "programTypes": [
+    "double"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "extended-kfl-dual-translation-True:group-0",
+    "title": "(KFL학부)한국어통번역입문",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "H01107"
+    ],
+    "sourceIds": [
+     "src-65e71b1fe9ef",
+     "src-wis-playwright-2022-2026"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-65e71b1fe9ef",
+   "src-wis-playwright-2022-2026"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "scope-eicc-minor-no-required:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-cfafcf03e2"
+   ],
+   "programTypes": [
+    "minor"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "scope-eicc-minor-no-required:none",
+    "title": "학과 전공필수 면제",
+    "description": "이 규칙의 학번·입학유형·전공 역할 범위에서 전공필수 과목 없음이 명시됨. 다른 졸업요건은 별도.",
+    "checkMethod": "informational",
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-4f535f5c7148",
+   "src-7d7c9a0b4468"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "scope-eicc-minor-no-english-assessment:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "secondary",
+  "applicability": {
+   "homeCampus": "seoul",
+   "cohortFrom": 2019,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [],
+   "secondaryDepartmentIds": [
+    "seoul-cfafcf03e2"
+   ],
+   "programTypes": [
+    "minor"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [],
+  "certifications": [],
+  "commonRequirements": [
+   {
+    "id": "scope-eicc-minor-no-english-assessment:assessment-none",
+    "title": "학과 졸업평가 면제",
+    "description": "EICC 학과의 영어성적 요건만 해당. 학교 공통 외국어인증은 별도",
+    "checkMethod": "informational",
+    "sourceIds": [
+     "src-4f535f5c7148",
+     "src-7d7c9a0b4468"
+    ]
+   }
+  ],
+  "sourceIds": [
+   "src-4f535f5c7148",
+   "src-7d7c9a0b4468"
+  ]
+ },
+ {
+  "schemaVersion": 1,
+  "id": "batch-climate-required-2025-2026:import-1",
+  "dataVersion": "2026.10.25.import1",
+  "status": "verified",
+  "scope": "primary",
+  "applicability": {
+   "homeCampus": "global",
+   "cohortFrom": 2025,
+   "cohortTo": 2026,
+   "entryTypes": [
+    "freshman",
+    "transferBachelor",
+    "transferGeneral"
+   ],
+   "primaryDepartmentIds": [
+    "global-a41e6c540b"
+   ],
+   "secondaryDepartmentIds": [],
+   "programTypes": [
+    "single",
+    "double",
+    "minor",
+    "intensive"
+   ]
+  },
+  "totalRequiredUnits": null,
+  "requiredUnitsByArea": {},
+  "requiredCourseGroups": [
+   {
+    "id": "batch-climate-required-2025-2026:group-0",
+    "title": "기후경제학원론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "L01103"
+    ],
+    "sourceIds": [
+     "src-154fc832955c",
+     "src-4b10abc69878",
+     "src-timetable-wis-2026",
+     "src-timetable-wis-batch-20261025"
+    ]
+   },
+   {
+    "id": "batch-climate-required-2025-2026:group-1",
+    "title": "기후변화개론1",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "L01101"
+    ],
+    "sourceIds": [
+     "src-154fc832955c",
+     "src-4b10abc69878",
+     "src-timetable-wis-2026",
+     "src-timetable-wis-batch-20261025"
+    ]
+   },
+   {
+    "id": "batch-climate-required-2025-2026:group-2",
+    "title": "기후변화개론2",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "L01106"
+    ],
+    "sourceIds": [
+     "src-154fc832955c",
+     "src-4b10abc69878",
+     "src-timetable-wis-2026",
+     "src-timetable-wis-batch-20261025"
+    ]
+   },
+   {
+    "id": "batch-climate-required-2025-2026:group-3",
+    "title": "기후변화의통계분석",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "L01108"
+    ],
+    "sourceIds": [
+     "src-154fc832955c",
+     "src-4b10abc69878",
+     "src-timetable-wis-2026",
+     "src-timetable-wis-batch-20261025"
+    ]
+   },
+   {
+    "id": "batch-climate-required-2025-2026:group-4",
+    "title": "기후시스템의이해",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "L01208"
+    ],
+    "sourceIds": [
+     "src-154fc832955c",
+     "src-4b10abc69878",
+     "src-timetable-wis-2026",
+     "src-timetable-wis-batch-20261025"
+    ]
+   },
+   {
+    "id": "batch-climate-required-2025-2026:group-5",
+    "title": "에너지시스템개론",
+    "minCount": 1,
+    "acceptableCourseCodes": [
+     "L01203"
+    ],
+    "sourceIds": [
+     "src-154fc832955c",
+     "src-4b10abc69878",
+     "src-timetable-wis-2026",
+     "src-timetable-wis-batch-20261025"
+    ]
+   }
+  ],
+  "certifications": [],
+  "commonRequirements": [],
+  "sourceIds": [
+   "src-154fc832955c",
+   "src-4b10abc69878",
+   "src-timetable-wis-2026",
+   "src-timetable-wis-batch-20261025"
+  ]
+ }
+]

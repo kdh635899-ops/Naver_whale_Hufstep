@@ -1,0 +1,171 @@
+// 앱 전역 상태: 저장된 학생 상태 + 데모 모드 + 실제 '오늘' 날짜 + 화면 이동.
+// 저장은 모두 여기 save()를 거친다: 검사 → IndexedDB 한 번에 저장 → 성공 시에만 화면 상태 교체 → 알림 예약 갱신.
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { catalog, departmentFacts, departmentMetaById } from '../data';
+import { buildDemoState } from '../data/demo';
+import { buildOfficialReport, type OfficialReport } from '../domain/requirements/officialRules';
+import { resolveRequirements } from '../domain/requirements/resolve';
+import { emptyState, type AppState, type View } from '../domain/state';
+import { dateKey } from '../domain/terms';
+import type { Course } from '../domain/types';
+import { notifyBackground } from '../platform/browser';
+import { clearEverything, KEYS, kvDelete, kvGet, loadState, saveState, type PendingRoute } from '../storage/repository';
+
+export type Mode = 'real' | 'demo';
+export interface EditorTarget { courseId?: string; preset?: Partial<Course> }
+
+interface Store {
+  status: 'loading' | 'ready' | 'error';
+  loadError: string;
+  mode: Mode;
+  state: AppState;
+  now: Date;
+  today: string;
+  view: View;
+  setView: (v: View) => void;
+  /** 저장 성공 여부를 돌려준다. 실패하면 화면 상태와 기존 저장값은 그대로. */
+  save: (next: AppState | ((s: AppState) => AppState)) => Promise<boolean>;
+  saveError: string;
+  clearSaveError: () => void;
+  startDemo: () => void;
+  exitDemo: () => void;
+  resetAll: () => Promise<void>;
+  editor: EditorTarget | null;
+  openEditor: (t: EditorTarget | null) => void;
+  /** 알림 클릭 등으로 열어야 할 날짜별 평가 목록 */
+  todayRoute: string | null;
+  consumeTodayRoute: () => void;
+  resolved: ReturnType<typeof resolveRequirements>;
+  /** 실제 모드의 공식 규칙 평가 (데모 모드에서는 null — 공식 데이터와 섞지 않음) */
+  report: OfficialReport | null;
+}
+
+const Ctx = createContext<Store | null>(null);
+export const useStore = () => {
+  const s = useContext(Ctx);
+  if (!s) throw new Error('StoreProvider가 필요해요');
+  return s;
+};
+
+export function StoreProvider({ children }: { children: ReactNode }) {
+  const [status, setStatus] = useState<Store['status']>('loading');
+  const [loadError, setLoadError] = useState('');
+  const [mode, setMode] = useState<Mode>('real');
+  const [state, setState] = useState<AppState>(emptyState);
+  const realState = useRef<AppState>(emptyState());
+  const [now, setNow] = useState(() => new Date());
+  const [view, setViewState] = useState<View>('status');
+  const [saveError, setSaveError] = useState('');
+  const [editor, openEditor] = useState<EditorTarget | null>(null);
+  const [todayRoute, setTodayRoute] = useState<string | null>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const checkRoute = useCallback(async () => {
+    try {
+      const r = await kvGet<PendingRoute>(KEYS.route);
+      if (r?.view === 'today') {
+        await kvDelete([KEYS.route]);
+        setViewState('assessments');
+        setTodayRoute(r.date);
+      }
+    } catch { /* 무시 */ }
+  }, []);
+
+  // 처음 열 때: 저장값 불러오기. 실패하면 덮어쓰지 않고 오류 화면.
+  useEffect(() => {
+    loadState().then(
+      (s) => {
+        const loaded = s ?? emptyState();
+        realState.current = loaded;
+        setState(loaded);
+        setViewState(loaded.profile ? loaded.settings.lastView : 'status');
+        setStatus('ready');
+        void checkRoute();
+      },
+      (e: Error) => { setLoadError(e.message); setStatus('error'); },
+    );
+  }, [checkRoute]);
+
+  // 실제 오늘 날짜: 자정·창 재활성화·절전 복귀 때 다시 계산 (날짜를 고정하지 않음)
+  useEffect(() => {
+    const refresh = () => setNow((prev) => {
+      const n = new Date();
+      return dateKey(n) === dateKey(prev) && n.getTime() - prev.getTime() < 60_000 ? prev : n;
+    });
+    const onVisible = () => { if (document.visibilityState === 'visible') { refresh(); void checkRoute(); } };
+    const timer = window.setInterval(refresh, 30_000);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [checkRoute]);
+
+  const save = useCallback(async (next: AppState | ((s: AppState) => AppState)) => {
+    const value = typeof next === 'function' ? next(stateRef.current) : next;
+    if (mode === 'demo') { setState(value); return true; } // 데모는 메모리에서만
+    try {
+      await saveState(value);
+      realState.current = value;
+      setState(value);
+      setSaveError('');
+      void notifyBackground({ type: 'reconcile' });
+      return true;
+    } catch (e) {
+      setSaveError(`저장하지 못했어요. 기존 기록은 그대로예요. (${(e as Error).message})`);
+      return false;
+    }
+  }, [mode]);
+
+  const setView = useCallback((v: View) => {
+    setViewState(v);
+    window.scrollTo(0, 0);
+    if (mode === 'real' && stateRef.current.profile) {
+      const next = { ...stateRef.current, settings: { ...stateRef.current.settings, lastView: v } };
+      saveState(next).then(() => { realState.current = next; setState(next); }, () => { /* 마지막 화면 기억 실패는 무시 */ });
+    }
+  }, [mode]);
+
+  const startDemo = useCallback(() => {
+    setMode('demo');
+    setState(buildDemoState(new Date()));
+    setViewState('status');
+  }, []);
+  const exitDemo = useCallback(() => {
+    setMode('real');
+    setState(realState.current);
+    openEditor(null);
+    setViewState(realState.current.profile ? realState.current.settings.lastView : 'status');
+  }, []);
+
+  const resetAll = useCallback(async () => {
+    await clearEverything();
+    await notifyBackground({ type: 'clearAll' });
+    realState.current = emptyState();
+    setMode('real');
+    setState(emptyState());
+    setLoadError('');
+    setStatus('ready');
+    setViewState('status');
+  }, []);
+
+  const today = dateKey(now);
+  const report = useMemo(() => (state.profile && mode === 'real'
+    ? buildOfficialReport({
+      profile: state.profile, bundles: catalog.bundles, rules: catalog.officialRules, supportGaps: catalog.supportGaps,
+      dept: departmentFacts, meta: departmentMetaById, today,
+    })
+    : null), [state.profile, mode, today]);
+  const resolved = useMemo(() => (!state.profile ? null
+    : mode === 'demo' ? resolveRequirements(state.profile, catalog.demoBundles, ['demo'], today)
+      : report?.resolved ?? null), [state.profile, mode, today, report]);
+
+  const value: Store = {
+    status, loadError, mode, state, now, today, view, setView, save, saveError, clearSaveError: () => setSaveError(''),
+    startDemo, exitDemo, resetAll, editor, openEditor, todayRoute, consumeTodayRoute: () => setTodayRoute(null), resolved, report,
+  };
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "schemaVersion": 1, "id": "demo-common", "dataVersion": "demo-1", "status": "demo", "scope": "common",
+    "applicability": { "homeCampus": "seoul", "cohortFrom": 2019, "cohortTo": 2026,
+      "entryTypes": ["freshman", "transferGeneral", "transferBachelor"], "primaryDepartmentIds": [],
+      "programTypes": ["single", "double", "minor", "intensive"] },
+    "totalRequiredUnits": 3000,
+    "requiredUnitsByArea": { "liberalArts": 800 },
+    "requiredCourseGroups": [],
+    "certifications": [],
+    "commonRequirements": [
+      { "id": "demo-common-1", "title": "예시 공통 요건 (가상)", "description": "데모 화면용 가상 항목이에요. 실제 학교 졸업요건이 아니에요.", "checkMethod": "studentConfirm", "sourceIds": ["src-demo"] }
+    ],
+    "sourceIds": ["src-demo"]
+  },
+  {
+    "schemaVersion": 1, "id": "demo-primary-malay", "dataVersion": "demo-1", "status": "demo", "scope": "primary",
+    "applicability": { "homeCampus": "seoul", "cohortFrom": 2019, "cohortTo": 2026,
+      "entryTypes": ["freshman", "transferGeneral", "transferBachelor"], "primaryDepartmentIds": ["seoul-malay-indonesian"],
+      "programTypes": ["double"] },
+    "totalRequiredUnits": null,
+    "requiredUnitsByArea": { "primary": 800 },
+    "requiredCourseGroups": [
+      { "id": "demo-req-a", "title": "예시 전공필수 A", "minCount": 1, "acceptableCourseCodes": ["T90001"], "sourceIds": ["src-demo"] },
+      { "id": "demo-req-b", "title": "예시 전공필수 B (택1)", "minCount": 1, "acceptableCourseCodes": ["T90010", "T90011"], "sourceIds": ["src-demo"] }
+    ],
+    "certifications": [
+      { "kind": "departmentExam", "id": "demo-exam-primary", "title": "예시 전공 졸업시험 (가상)", "passCriteria": "데모용 가상 기준이에요.",
+        "exemptions": ["예시: 지정 외부 인증 제출 시 면제 (가상)"], "alternatives": [], "sourceIds": ["src-demo"] }
+    ],
+    "commonRequirements": [],
+    "sourceIds": ["src-demo"]
+  },
+  {
+    "schemaVersion": 1, "id": "demo-secondary-business", "dataVersion": "demo-1", "status": "demo", "scope": "secondary",
+    "applicability": { "homeCampus": "seoul", "cohortFrom": 2019, "cohortTo": 2026,
+      "entryTypes": ["freshman", "transferGeneral", "transferBachelor"], "primaryDepartmentIds": [],
+      "secondaryDepartmentIds": ["seoul-business"], "programTypes": ["double"] },
+    "totalRequiredUnits": null,
+    "requiredUnitsByArea": { "double": 600 },
+    "requiredCourseGroups": [
+      { "id": "demo-req-c", "title": "예시 이중전공 필수", "minCount": 1, "acceptableCourseCodes": ["T90003"], "sourceIds": ["src-demo"] }
+    ],
+    "certifications": [
+      { "kind": "externalCertificate", "id": "demo-cert-secondary", "title": "예시 외부 인증 (가상)",
+        "acceptedTests": [{ "name": "예시 시험 A (가상)", "passCriteria": "데모용 가상 기준" }], "exemptions": [], "sourceIds": ["src-demo"] }
+    ],
+    "commonRequirements": [],
+    "sourceIds": ["src-demo"]
+  }
+]

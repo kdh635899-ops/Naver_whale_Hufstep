@@ -1,0 +1,13 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+
+# 개인 성적 데이터 (공개 저장소에 올리지 않음)
+tests/fixtures/malayTranscript.ts
+tests/unit/transcriptRequirements.test.ts
+tests/e2e/malay-transcript.spec.ts
+docs/verification/
+
+# 로컬 도구 작업 기록
+.shrimp/

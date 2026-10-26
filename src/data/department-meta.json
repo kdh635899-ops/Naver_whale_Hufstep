@@ -1,0 +1,3339 @@
+[
+ {
+  "id": "seoul-9603b1d647",
+  "kind": "department",
+  "status": "listed",
+  "college": "영어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2266",
+   "email": "hufs_elg@hufs.ac.kr",
+   "homepageUrl": "https://ellt.hufs.ac.kr/ellt/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-f29d119faa",
+  "kind": "department",
+  "status": "listed",
+  "college": "영어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2267",
+   "email": "hufseli@hufs.ac.kr",
+   "homepageUrl": "https://elc.hufs.ac.kr/hufselc/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-cfafcf03e2",
+  "kind": "department",
+  "status": "listed",
+  "college": "영어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-e306617133",
+  "kind": "division_or_major",
+  "status": "legacyListed",
+  "college": "영어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   },
+   {
+    "roles": [
+     "primary",
+     "dual",
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "영어학부: 2015학년도부터 영어학부를 3개 학과로 분리(일람 연혁). 2019~2026학번은 입학·편입·이중/부전공 선택 시점에 이 명칭의 단위가 없음. 조회는 scopeAudit의 변경 후 ID 또는 실제 승계 전공으로 함."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2266",
+   "email": null,
+   "homepageUrl": "https://ellt.hufs.ac.kr/ellt/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "영어학부는 ELLT학과로 개편되어 ELLT학과 연락처"
+  }
+ },
+ {
+  "id": "seoul-1bd24d6f87",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-german",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-78afe4e5e6",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-0af39281a5",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-c145dcfb72",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2286",
+   "email": "hufsitalia@nate.com",
+   "homepageUrl": "https://italiano.hufs.ac.kr/italiano/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-4345ef7d80",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2287",
+   "email": "hufs.portuguese@daum.net",
+   "homepageUrl": "https://portuguese.hufs.ac.kr/portuguese/index.do",
+   "graduationPageUrl": "https://portuguese.hufs.ac.kr/portuguese/4731/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-18dc6e0e6d",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2288",
+   "email": "hufs.nederland@gmail.com",
+   "homepageUrl": "https://neds.hufs.ac.kr/neds/index.do",
+   "graduationPageUrl": "https://neds.hufs.ac.kr/neds/m02_s04.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-82db5fdbab",
+  "kind": "department",
+  "status": "listed",
+  "college": "서양어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2289",
+   "email": "hufsscan@hufs.ac.kr",
+   "homepageUrl": "https://scan.hufs.ac.kr/hufsscan/index.do",
+   "graduationPageUrl": "https://scan.hufs.ac.kr/hufsscan/m02_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-malay-indonesian",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2298",
+   "email": "hufsmi@naver.com",
+   "homepageUrl": "https://hufsmain.hufs.ac.kr/malayindo/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-efa2c8a44a",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2304",
+   "email": "hufsarab@hufs.ac.kr",
+   "homepageUrl": "https://arab.hufs.ac.kr/arab/index.do",
+   "graduationPageUrl": "https://arab.hufs.ac.kr/arab/2546/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-cc643ab94a",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2299",
+   "email": "hufsthai@hufs.ac.kr",
+   "homepageUrl": "https://thai.hufs.ac.kr/thai/index.do",
+   "graduationPageUrl": "https://thai.hufs.ac.kr/thai/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-d3bb7a1b77",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2300",
+   "email": "vietnam.hufs@gmail.com",
+   "homepageUrl": "https://vietnamese.hufs.ac.kr/vietnamese/index.do",
+   "graduationPageUrl": "https://vietnamese.hufs.ac.kr/vietnamese/4695/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-df70041afa",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2301",
+   "email": "hufsindia71@gmail.com",
+   "homepageUrl": "https://india.hufs.ac.kr/india/index.do",
+   "graduationPageUrl": "https://india.hufs.ac.kr/india/m03_s04.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-1c979f06c8",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2302",
+   "email": "tuaz73@hufs.ac.kr",
+   "homepageUrl": "https://turkazeri.hufs.ac.kr/turkazeri/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-fbbf413afe",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2303",
+   "email": "hufsiran@gmail.com",
+   "homepageUrl": "https://iran.hufs.ac.kr/iran/index.do",
+   "graduationPageUrl": "https://iran.hufs.ac.kr/iran/4661/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-be51bdf857",
+  "kind": "department",
+  "status": "listed",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2415",
+   "email": "mgl@hufs.ac.kr",
+   "homepageUrl": "https://mongolian.hufs.ac.kr/mongolian/index.do",
+   "graduationPageUrl": "https://mongolian.hufs.ac.kr/mongolian/m03_s03.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-f94625560c",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "중국학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-e8ca705b05",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "중국학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2295",
+   "email": "chfc1689@hufs.ac.kr",
+   "homepageUrl": "https://chufs2.hufs.ac.kr/chufs2/index.do",
+   "graduationPageUrl": "https://chufs2.hufs.ac.kr/chufs2/m03_s01.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-japanese-language-culture",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "일본학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-27ed432048",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "일본학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-bb41508551",
+  "kind": "department",
+  "status": "listed",
+  "college": "사회과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2312",
+   "email": "hufspsd@gmail.com",
+   "homepageUrl": "https://hufspol.hufs.ac.kr/hufspol/index.do",
+   "graduationPageUrl": "https://hufspol.hufs.ac.kr/hufspol/12226/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-fdae1e8ebc",
+  "kind": "department",
+  "status": "listed",
+  "college": "사회과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2313",
+   "email": "hufs_pa@hufs.ac.kr",
+   "homepageUrl": "https://hufspa.hufs.ac.kr/hufspa/index.do",
+   "graduationPageUrl": "https://hufspa.hufs.ac.kr/hufspa/4963/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-7e902a654e",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "사회과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-a7b6c4d1d9",
+  "kind": "department",
+  "status": "listed",
+  "college": "상경대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2332",
+   "email": "hufsieloffice@gmail.com",
+   "homepageUrl": "https://iel.hufs.ac.kr/iel/index.do",
+   "graduationPageUrl": "https://iel.hufs.ac.kr/iel/6382/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-7f73c36939",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "상경대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-business",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "경영대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2334",
+   "email": "cob@hufs.ac.kr",
+   "homepageUrl": "https://biz.hufs.ac.kr/biz/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-6afe7a8073",
+  "kind": "department",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-2dbdbecdb5",
+  "kind": "department",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-aba9a4fbda",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-dcc4333239",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2344",
+   "email": "germanedu@hufs.ac.kr",
+   "homepageUrl": "https://germanedu.hufs.ac.kr/germanedu/index.do",
+   "graduationPageUrl": "https://germanedu.hufs.ac.kr/germanedu/4198/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-4f93f05c14",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-3236",
+   "email": "chinedu@hufs.ac.kr",
+   "homepageUrl": "https://cle.hufs.ac.kr/cle/index.do",
+   "graduationPageUrl": "https://cle.hufs.ac.kr/cle/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-5c9aa581f3",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2338",
+   "email": null,
+   "homepageUrl": "https://eduhufs.hufs.ac.kr/eduhufs/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "학과 전용 연락처가 없어 사범대학 대표번호"
+  }
+ },
+ {
+  "id": "seoul-75d7a6e191",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2338",
+   "email": null,
+   "homepageUrl": "https://eduhufs.hufs.ac.kr/eduhufs/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "학과 전용 연락처가 없어 사범대학 대표번호"
+  }
+ },
+ {
+  "id": "seoul-b8bca136d7",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "AI융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2278",
+   "email": "hufs_langai@hufs.ac.kr",
+   "homepageUrl": "https://langai.hufs.ac.kr/langai/index.do",
+   "graduationPageUrl": "https://langai.hufs.ac.kr/langai/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-e2ef6b4206",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "AI융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2769",
+   "email": "ssai@hufs.ac.kr",
+   "homepageUrl": "https://ssai.hufs.ac.kr/ssai/index.do",
+   "graduationPageUrl": "https://ssai.hufs.ac.kr/ssai/10868/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-a4bf0a9036",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "국제학부",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-3315",
+   "email": "hufsdista@hufs.ac.kr",
+   "homepageUrl": "https://hufsdis.hufs.ac.kr/hufsdis/index.do",
+   "graduationPageUrl": "https://hufsdis.hufs.ac.kr/hufsdis/14966/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-ba8cdb1563",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "Language & Diplomacy학부",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조② LD·LT 전공 부전공 이수 불가(최종 개정 2017.10.23). 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-0944ab17ae",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "Language & Trade학부",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조② LD·LT 전공 부전공 이수 불가(최종 개정 2017.10.23). 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-3350",
+   "email": "hufsdltta@hufs.ac.kr",
+   "homepageUrl": "https://lt.hufs.ac.kr/lt/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-2141b7d57c",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "KFL학부",
+  "parentId": "seoul-3c80ea2141",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-fd335bc600",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "KFL학부",
+  "parentId": "seoul-3c80ea2141",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-90f7b6eea3",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "자유전공학부-서울",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-3510",
+   "email": "somd@hufs.ac.kr",
+   "homepageUrl": "https://somd.hufs.ac.kr/somd/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-364b25f27a",
+  "kind": "department",
+  "status": "listed",
+  "college": "인문대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4282",
+   "email": "hufsphil@hufs.ac.kr",
+   "homepageUrl": "https://philosophy.hufs.ac.kr/philosophy/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-5a7a58cc1d",
+  "kind": "department",
+  "status": "listed",
+  "college": "인문대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4288",
+   "email": "hufshistory@hufs.ac.kr",
+   "homepageUrl": "https://history.hufs.ac.kr/history/index.do",
+   "graduationPageUrl": "https://history.hufs.ac.kr/history/6588/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-6cf78c9ee7",
+  "kind": "department",
+  "status": "listed",
+  "college": "인문대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-9df8e305bd",
+  "kind": "division_or_major",
+  "status": "recruitmentStopped",
+  "college": "인문대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": null,
+   "email": "kcon@hufs.ac.kr",
+   "homepageUrl": "https://jicon.hufs.ac.kr/",
+   "graduationPageUrl": "https://jicon.hufs.ac.kr/home/%ED%95%99%EC%82%AC%EC%95%88%EB%82%B4",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-b45097edaa",
+  "kind": "division_or_major",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-fc084c190e",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-dffd886be6",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4210",
+   "email": "hispanocorea@daum.net",
+   "homepageUrl": "https://hufsit.hufs.ac.kr/hufsit/index.do",
+   "graduationPageUrl": "https://hufsit.hufs.ac.kr/hufsit/8792/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-43747cb4c3",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4214",
+   "email": "hufsitalia@gmail.com",
+   "homepageUrl": "https://italia.hufs.ac.kr/italia/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-3b5bd778ef",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4232",
+   "email": "china@hufs.ac.kr",
+   "homepageUrl": "https://china.hufs.ac.kr/china/index.do",
+   "graduationPageUrl": "https://china.hufs.ac.kr/china/3442/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-edd0c709f8",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-884fcb21dd",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "신입생 모집이 중지된 학과이고 학과 사이트에서 연락처를 찾을 수 없어 학교 대표 연락처를 안내해요",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "global-8e51e423cf",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4238",
+   "email": "hufsmain@gmail.com",
+   "homepageUrl": "https://bahasa.hufs.ac.kr/bahasa/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-33bb573089",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4240",
+   "email": "hufsthaiglobal@gmail.com",
+   "homepageUrl": "https://hufsthai.hufs.ac.kr/hufsthai/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-d43d6dbe7f",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4216",
+   "email": "hufspoland@gmail.com",
+   "homepageUrl": "https://polski.hufs.ac.kr/polski/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-4437a1e91c",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-50eaf4306f",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4220",
+   "email": "hufsczsk@gmail.com",
+   "homepageUrl": "https://czechandslovak.hufs.ac.kr/czechandslovak/index.do",
+   "graduationPageUrl": "https://czechandslovak.hufs.ac.kr/czechandslovak/8121/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-e8873a7e20",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4222",
+   "email": "magyar.hufs@gmail.com",
+   "homepageUrl": "https://hungary.hufs.ac.kr/hungary/index.do",
+   "graduationPageUrl": "https://hungary.hufs.ac.kr/hungary/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-7f946c7b3b",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4224",
+   "email": "serbia-croatia@hufs.ac.kr",
+   "homepageUrl": "https://serbiacroatia.hufs.ac.kr/yugo/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-185d658519",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4715",
+   "email": "greecebulgaria1@gmail.com",
+   "homepageUrl": "https://gb.hufs.ac.kr/gb/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-e5485e89f5",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4716",
+   "email": "centralasia@hufs.ac.kr",
+   "homepageUrl": "https://centralasia.hufs.ac.kr/centralasia/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-4e887fa213",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-64e1fe4fa6",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4873",
+   "email": "ukraine@hufs.ac.kr",
+   "homepageUrl": "https://ukraine.hufs.ac.kr/ukraine/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-91950c0b8a",
+  "kind": "department",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4217",
+   "email": "koreanstudies@hufs.ac.kr",
+   "homepageUrl": "https://koreanstudies.hufs.ac.kr/koreanstudies/index.do",
+   "graduationPageUrl": "https://koreanstudies.hufs.ac.kr/koreanstudies/5218/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-4ac6d89e65",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "국제지역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-63230b5542",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "국제지역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "2023학년도부터 폐지된 학과라 학과 연락처 대신 학교 대표 연락처를 안내해요",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "global-816cbafbd7",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "국제지역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "2023학년도부터 폐지된 학과라 학과 연락처 대신 학교 대표 연락처를 안내해요",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "global-316ada6cab",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "국제지역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4208",
+   "email": "russianstudies@hufs.ac.kr",
+   "homepageUrl": "https://russianstudies.hufs.ac.kr/russianstudies/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-e6cc8bd564",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "경상대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4509",
+   "email": "gbt@hufs.ac.kr",
+   "homepageUrl": "https://gbt.hufs.ac.kr/gbt/index.do",
+   "graduationPageUrl": "https://gbt.hufs.ac.kr/gbt/20398/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-e9f259482f",
+  "kind": "department",
+  "status": "listed",
+  "college": "경상대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-0dc288c3fa",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "경상대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "개편으로 신입생 모집이 중지된 학과라 학교 대표 연락처를 안내해요",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "global-5ea25e968e",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "경상대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2333",
+   "email": "economics@hufs.ac.kr",
+   "homepageUrl": "https://econ.hufs.ac.kr/econ/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-2e27606eae",
+  "kind": "department",
+  "status": "recruitmentStopped",
+  "college": "경상대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "개편으로 신입생 모집이 중지된 학과라 학교 대표 연락처를 안내해요",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "global-7bca7222ac",
+  "kind": "department",
+  "status": "listed",
+  "college": "자연과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-dd521d15b1",
+  "kind": "department",
+  "status": "listed",
+  "college": "자연과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4278",
+   "email": "stat@hufs.ac.kr",
+   "homepageUrl": "https://stat.hufs.ac.kr/stat/index.do",
+   "graduationPageUrl": "https://stat.hufs.ac.kr/stat/2444/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-16a4cb54e3",
+  "kind": "department",
+  "status": "listed",
+  "college": "자연과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4264",
+   "email": "Dept_physics@hufs.ac.kr",
+   "homepageUrl": "https://physics.hufs.ac.kr/physics/index.do",
+   "graduationPageUrl": "https://physics.hufs.ac.kr/physics/m03_s03.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-b29ff47d19",
+  "kind": "department",
+  "status": "listed",
+  "college": "자연과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-5f4dac273a",
+  "kind": "department",
+  "status": "listed",
+  "college": "자연과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4279",
+   "email": "hufsbio@hufs.ac.kr",
+   "homepageUrl": "https://bio.hufs.ac.kr/bio/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-b8a8fa7fe5",
+  "kind": "department",
+  "status": "listed",
+  "college": "자연과학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4266",
+   "email": "chemistry@hufs.ac.kr",
+   "homepageUrl": "https://chemistry.hufs.ac.kr/chemistry/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-c5a7095468",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-9e8d6a6731",
+  "kind": "department",
+  "status": "listed",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4255",
+   "email": "ice@hufs.ac.kr",
+   "homepageUrl": "https://ice.hufs.ac.kr/ice/index.do",
+   "graduationPageUrl": "https://ice.hufs.ac.kr/ice/3697/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-673166b87b",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4094",
+   "email": "ece@hufs.ac.kr",
+   "homepageUrl": "https://semi.hufs.ac.kr/semi/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-5058503856",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-d3c5131643",
+  "kind": "department",
+  "status": "listed",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4093",
+   "email": "ime@hufs.ac.kr",
+   "homepageUrl": "https://ime.hufs.ac.kr/ime/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-f522bbacea",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2020,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조③ 비융합인재대학 학생은 융합인재학부 부전공 불가(신설 2021.02.04). 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-1635e40d33",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "Culture & Technology융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4524",
+   "email": "gsi@hufs.ac.kr",
+   "homepageUrl": "https://sport.hufs.ac.kr/sport/index.do",
+   "graduationPageUrl": "https://sport.hufs.ac.kr/sport/2386/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-d5111dd307",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "Culture & Technology융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4067",
+   "email": "dicon@hufs.ac.kr",
+   "homepageUrl": "https://dicon.hufs.ac.kr/dicon/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-211304a5fe",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "Culture & Technology융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4203",
+   "email": "tw@hufs.ac.kr",
+   "homepageUrl": "https://tw.hufs.ac.kr/tw/index.do",
+   "graduationPageUrl": "https://tw.hufs.ac.kr/tw/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-7a60390483",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "AI융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-fa6002e82f",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "AI융합대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-b0ccc3a6bc",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "바이오메디컬공학부",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4723",
+   "email": "bme@hufs.ac.kr",
+   "homepageUrl": "https://bme.hufs.ac.kr/bme/index.do",
+   "graduationPageUrl": "https://bme.hufs.ac.kr/bme/4316/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-a41e6c540b",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "기후변화융합학부",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4256",
+   "email": "cc@hufs.ac.kr",
+   "homepageUrl": "https://cc.hufs.ac.kr/cc/index.do",
+   "graduationPageUrl": "https://cc.hufs.ac.kr/cc/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-6dc1e43d75",
+  "kind": "division_or_major",
+  "status": "listed",
+  "college": "자유전공학부-글로벌",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4797",
+   "email": "gomd@hufs.ac.kr",
+   "homepageUrl": "https://gomd.hufs.ac.kr/gomd/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-513200fc8d",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-4c39d53206",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-a71a15521f",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-0a02a07bb4",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-31a71edf07",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2321",
+   "email": "nationalleader.seoul@hufs.ac.kr",
+   "homepageUrl": "https://hufsleader.hufs.ac.kr/hufsleader/index.do",
+   "graduationPageUrl": "https://hufsleader.hufs.ac.kr/hufsleader/19551/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-31a71edf07",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4435",
+   "email": "nationalleader.global@hufs.ac.kr",
+   "homepageUrl": "https://hufsleader.hufs.ac.kr/hufsleader/index.do",
+   "graduationPageUrl": "https://hufsleader.hufs.ac.kr/hufsleader/19551/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-dac344a769",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-dac344a769",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-70e965e731",
+  "kind": "convergence",
+  "status": "newApplicationsClosed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-fd2a9c97f6",
+  "kind": "convergence",
+  "status": "newApplicationsClosed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-fd2a9c97f6",
+  "kind": "convergence",
+  "status": "newApplicationsClosed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-e2620f44ce",
+  "kind": "convergence",
+  "status": "newApplicationsClosed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "신규신청이 중단된 융합전공으로 전공 사이트가 비어 있어 학교 대표 연락처",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "global-078e59b3c0",
+  "kind": "convergence",
+  "status": "newApplicationsClosed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4114",
+   "email": null,
+   "homepageUrl": "https://www.hufs.ac.kr/",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "신규신청이 중단된 융합전공으로 전용 사이트가 없어 학교 대표 연락처",
+   "schoolMain": true
+  }
+ },
+ {
+  "id": "seoul-ad6c8bb46f",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-345fe1810f",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "02-2173-2109",
+   "email": "bizai@hufs.ac.kr",
+   "homepageUrl": "https://www.hufs.ac.kr/hufs/15032/subview.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "전공 전용 사이트 없음: 수강편람의 공식 문의처(전공 이메일, 서울 학사종합지원센터)"
+  }
+ },
+ {
+  "id": "global-345fe1810f",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": null,
+   "email": "bizai@hufs.ac.kr",
+   "homepageUrl": "https://www.hufs.ac.kr/hufs/15032/subview.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25",
+   "note": "전공 전용 사이트 없음: 수강편람의 공식 문의처(전공 이메일)"
+  }
+ },
+ {
+  "id": "seoul-14e2c61205",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4255",
+   "email": "aic@hufs.ac.kr",
+   "homepageUrl": "https://sw.hufs.ac.kr/sw/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-14e2c61205",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4255",
+   "email": "aic@hufs.ac.kr",
+   "homepageUrl": "https://sw.hufs.ac.kr/sw/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-5392fba358",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-5392fba358",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-dbc8f79584",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-dbc8f79584",
+  "kind": "convergence",
+  "status": "listed",
+  "college": "융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2024,
+    "cohortTo": 2026,
+    "reason": "융합전공은 부전공으로 이수할 수 없음(국가리더·데이터사이언스 제외). 2025-2026 일람 기준이라 2025학년도 이후 선택(2024학번 이후)만 적용. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-cae3e01711",
+  "kind": "individualDesignFramework",
+  "status": "listed",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-cae3e01711",
+  "kind": "individualDesignFramework",
+  "status": "listed",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-1425b8a93b",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "영어대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   },
+   {
+    "roles": [
+     "primary",
+     "dual",
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "영어학과: 2018학년도부터 ELLT학과로 명칭 변경(일람 연혁). 2019~2026학번은 입학·편입·이중/부전공 선택 시점에 이 명칭의 단위가 없음. 조회는 scopeAudit의 변경 후 ID 또는 실제 승계 전공으로 함."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "renamedTo",
+    "relatedId": "seoul-9603b1d647"
+   }
+  ]
+ },
+ {
+  "id": "seoul-8c71399e19",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "renamedTo",
+    "relatedId": "seoul-cc643ab94a"
+   }
+  ],
+  "contact": {
+   "phone": "02-2173-2299",
+   "email": "hufsthai@hufs.ac.kr",
+   "homepageUrl": "https://thai.hufs.ac.kr/thai/index.do",
+   "graduationPageUrl": "https://thai.hufs.ac.kr/thai/m03_s02.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-1615797ab6",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "renamedTo",
+    "relatedId": "seoul-1c979f06c8"
+   }
+  ]
+ },
+ {
+  "id": "seoul-1ae01dc67c",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "아시아언어문화대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitCatalogLabel",
+    "relatedId": "seoul-fbbf413afe"
+   }
+  ]
+ },
+ {
+  "id": "seoul-ab82381425",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "중국학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-5f6617f421",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "중국학대학",
+  "parentId": "seoul-f94625560c",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-70ffe9c6dd",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "중국학대학",
+  "parentId": "seoul-f94625560c",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-eb9046ea06",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "중국학대학",
+  "parentId": "seoul-e8ca705b05",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "seoul-e8ca705b05"
+   }
+  ]
+ },
+ {
+  "id": "seoul-532206691c",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "일본학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   },
+   {
+    "roles": [
+     "primary",
+     "dual",
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "일본학부: 2014학년도 일본언어문화학부·융합일본지역학부로 개편(일람 연혁). 2019~2026학번은 입학·편입·이중/부전공 선택 시점에 이 명칭의 단위가 없음. 조회는 scopeAudit의 변경 후 ID 또는 실제 승계 전공으로 함."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-e2e6ddcb13",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "일본학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-4b074996e4",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "일본학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-422f909878",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "일본학대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "formerProgramDocumentedByCurrentDivision",
+    "relatedId": "seoul-27ed432048"
+   }
+  ]
+ },
+ {
+  "id": "seoul-f3f0815824",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "일본학대학",
+  "parentId": "seoul-japanese-language-culture",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "seoul-japanese-language-culture"
+   }
+  ]
+ },
+ {
+  "id": "seoul-134e00d983",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "일본학대학",
+  "parentId": "seoul-27ed432048",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "seoul-27ed432048"
+   }
+  ],
+  "contact": {
+   "phone": "02-2173-2442",
+   "email": "jpstudies@hufs.ac.kr",
+   "homepageUrl": "https://hufsjp.hufs.ac.kr/hufsjp2/index.do",
+   "graduationPageUrl": "https://hufsjp.hufs.ac.kr/hufsjp2/4630/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "seoul-9d16f68862",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "사회과학대학",
+  "parentId": "seoul-7e902a654e",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "seoul-7e902a654e"
+   }
+  ]
+ },
+ {
+  "id": "seoul-38cdb7c2a2",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "사회과학대학",
+  "parentId": "seoul-7e902a654e",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "seoul-7e902a654e"
+   }
+  ]
+ },
+ {
+  "id": "seoul-768ec435b7",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "사회과학대학",
+  "parentId": "seoul-7e902a654e",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "seoul-7e902a654e"
+   }
+  ]
+ },
+ {
+  "id": "seoul-2c740c8a1d",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "reorganizedInto",
+    "relatedId": "seoul-aba9a4fbda"
+   }
+  ]
+ },
+ {
+  "id": "seoul-76ec3f70ef",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "reorganizedInto",
+    "relatedId": "seoul-4f93f05c14"
+   }
+  ]
+ },
+ {
+  "id": "seoul-3c80ea2141",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "KFL학부",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-57171b81cf",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "KFL전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-ddfd7f9826",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "상담∙UX심리전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitCatalogLabel",
+    "relatedId": "seoul-ad6c8bb46f"
+   }
+  ]
+ },
+ {
+  "id": "seoul-55fc5aea05",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "언어와공학융합전공",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-ba3aa08c56",
+  "kind": "submajor",
+  "status": "listed",
+  "college": "서양어대학",
+  "parentId": "seoul-1bd24d6f87",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-3677089215",
+  "kind": "submajor",
+  "status": "listed",
+  "college": "서양어대학",
+  "parentId": "seoul-1bd24d6f87",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "seoul-8b34084f56",
+  "kind": "submajor",
+  "status": "listed",
+  "college": "서양어대학",
+  "parentId": "seoul-1bd24d6f87",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-4cb4661130",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-c2a8364bd5",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-72af36e2fe",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-2ab8cdae18",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-8756f4182d",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-bea5339c3c",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-2edef5805c",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-76b3f4191d",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-ea6656e0f3",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-2e1d12fd5b",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-d064fe39c6",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-984440e7e3",
+  "kind": "module",
+  "status": "cohortMappingUnresolved",
+  "college": "융합인재대학",
+  "parentId": "global-f522bbacea",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-1b7f2b54b1",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "통번역대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-70d776988c",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "통번역대학",
+  "parentId": "global-b45097edaa",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": []
+ },
+ {
+  "id": "global-e650497ca2",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "통번역대학",
+  "parentId": "global-b45097edaa",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-b45097edaa"
+   }
+  ]
+ },
+ {
+  "id": "global-fe7abf6bb7",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "통번역대학",
+  "parentId": "global-b45097edaa",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-b45097edaa"
+   }
+  ]
+ },
+ {
+  "id": "global-09d717c221",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "국가전략언어대학",
+  "parentId": "global-4e887fa213",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-4e887fa213"
+   }
+  ],
+  "contact": {
+   "phone": "031-330-4242",
+   "email": "hufs.africa@hufs.ac.kr",
+   "homepageUrl": "https://hufsafrica.hufs.ac.kr/africa/index.do",
+   "graduationPageUrl": "https://hufsafrica.hufs.ac.kr/africa/9043/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-232e50994b",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "국가전략언어대학",
+  "parentId": "global-4e887fa213",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-4e887fa213"
+   }
+  ],
+  "contact": {
+   "phone": "031-330-4242",
+   "email": "hufs.africa@hufs.ac.kr",
+   "homepageUrl": "https://hufsafrica.hufs.ac.kr/africa/index.do",
+   "graduationPageUrl": "https://hufsafrica.hufs.ac.kr/africa/9043/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-c9acfaaba0",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "국가전략언어대학",
+  "parentId": "global-4e887fa213",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-4e887fa213"
+   }
+  ],
+  "contact": {
+   "phone": "031-330-4242",
+   "email": "hufs.africa@hufs.ac.kr",
+   "homepageUrl": "https://hufsafrica.hufs.ac.kr/africa/index.do",
+   "graduationPageUrl": "https://hufsafrica.hufs.ac.kr/africa/9043/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-7fd0922a1d",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "경상대학",
+  "parentId": "global-e6cc8bd564",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-e6cc8bd564"
+   }
+  ],
+  "contact": {
+   "phone": "031-330-4509",
+   "email": "gbt@hufs.ac.kr",
+   "homepageUrl": "https://gbt.hufs.ac.kr/gbt/index.do",
+   "graduationPageUrl": "https://gbt.hufs.ac.kr/gbt/20398/subview.do",
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-615b0d7561",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "reorganizedInto",
+    "relatedId": "global-5058503856"
+   }
+  ]
+ },
+ {
+  "id": "global-94b8a9cfdc",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "공과대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "parentDivisionRenamedTo",
+    "relatedId": "global-c5a7095468"
+   }
+  ]
+ },
+ {
+  "id": "global-14b53335f0",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "공과대학",
+  "parentId": "global-c5a7095468",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-c5a7095468"
+   }
+  ]
+ },
+ {
+  "id": "global-7a517308a3",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "바이오메디컬공학부",
+  "parentId": "global-b0ccc3a6bc",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-b0ccc3a6bc"
+   }
+  ]
+ },
+ {
+  "id": "global-3bb6419a74",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitAlternateLabel",
+    "relatedId": "global-8756f4182d"
+   }
+  ]
+ },
+ {
+  "id": "global-cdbdc54f3b",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitAlternateLabel",
+    "relatedId": "global-2edef5805c"
+   }
+  ]
+ },
+ {
+  "id": "global-e572550d75",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitAlternateLabel",
+    "relatedId": "global-2ab8cdae18"
+   }
+  ]
+ },
+ {
+  "id": "global-99731ecbb1",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitAlternateLabel",
+    "relatedId": "global-bea5339c3c"
+   }
+  ]
+ },
+ {
+  "id": "global-5d1cfe0377",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitAlternateLabel",
+    "relatedId": "global-d064fe39c6"
+   }
+  ]
+ },
+ {
+  "id": "global-177e7c4404",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "융합인재대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "sameUnitAlternateLabel",
+    "relatedId": "global-984440e7e3"
+   }
+  ]
+ },
+ {
+  "id": "global-48a9df5484",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "AI융합대학",
+  "parentId": "global-7a60390483",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-7a60390483"
+   }
+  ]
+ },
+ {
+  "id": "global-ae815297dc",
+  "kind": "majorListedInCourseNotes",
+  "status": "currentOrLegacyUnresolved",
+  "college": "AI융합대학",
+  "parentId": "global-fa6002e82f",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "submajorOf",
+    "relatedId": "global-fa6002e82f"
+   }
+  ]
+ },
+ {
+  "id": "seoul-867c12be05",
+  "kind": "majorNamedInDepartmentRules",
+  "status": "currentOrLegacyUnresolved",
+  "college": "사범대학",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [
+   {
+    "relation": "reorganizedInto",
+    "relatedId": "seoul-dcc4333239"
+   }
+  ]
+ },
+ {
+  "id": "global-29c41fa983",
+  "kind": "submajorNamedInDepartmentGuide",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "parentId": "global-185d658519",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": [],
+  "contact": {
+   "phone": "031-330-4715",
+   "email": "greecebulgaria1@gmail.com",
+   "homepageUrl": "https://gb.hufs.ac.kr/gb/index.do",
+   "graduationPageUrl": null,
+   "checkedAt": "2026-10-25"
+  }
+ },
+ {
+  "id": "global-4edd73f351",
+  "kind": "submajorNamedInDepartmentGuide",
+  "status": "listed",
+  "college": "국가전략언어대학",
+  "parentId": "global-185d658519",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-1dffd7c1e9",
+  "kind": "submajorNamedInCollegeIntroduction",
+  "status": "legacyListed",
+  "college": "통번역대학",
+  "parentId": "global-b45097edaa",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   },
+   {
+    "roles": [
+     "primary",
+     "dual",
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "영미문학문화통번역전공: 2014학년도부터 영미문학문화통번역전공을 영미문학번역전공으로 변경(2018-03-04 영미문학･번역전공)(일람 연혁). 2019~2026학번은 입학·편입·이중/부전공 선택 시점에 이 명칭의 단위가 없음. 조회는 scopeAudit의 변경 후 ID 또는 실제 승계 전공으로 함."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "renamedTo",
+    "relatedId": "global-e650497ca2"
+   }
+  ]
+ },
+ {
+  "id": "global-0c29039c56",
+  "kind": "submajorNamedInCollegeIntroduction",
+  "status": "legacyListed",
+  "college": "통번역대학",
+  "parentId": "global-b45097edaa",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   },
+   {
+    "roles": [
+     "primary",
+     "dual",
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "영어학전공: 2014학년도부터 영어학전공을 TESOL영어학전공으로 변경(일람 연혁). 2019~2026학번은 입학·편입·이중/부전공 선택 시점에 이 명칭의 단위가 없음. 조회는 scopeAudit의 변경 후 ID 또는 실제 승계 전공으로 함."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "renamedTo",
+    "relatedId": "global-fe7abf6bb7"
+   }
+  ]
+ },
+ {
+  "id": "global-830b0303f4",
+  "kind": "submajorNamedInCollegeIntroduction",
+  "status": "legacyListed",
+  "college": "통번역대학",
+  "parentId": "global-b45097edaa",
+  "requirementsComplete": false,
+  "roleRestrictions": [
+   {
+    "roles": [
+     "dual",
+     "minor"
+    ],
+    "condition": "crossCampus",
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "이중전공시행규정 제5조④ 캠퍼스 간 이중전공 제한학과(최종 개정 2020.01.20). 다른 캠퍼스 소속 학생의 이중·부전공 불가. 이중·부전공은 2학년부터 시작(이중전공시행규정 제4조①)하므로 학번 N의 선택은 N+1학년도 이후."
+   },
+   {
+    "roles": [
+     "primary",
+     "dual",
+     "minor"
+    ],
+    "condition": null,
+    "cohortFrom": 2019,
+    "cohortTo": 2026,
+    "reason": "영어통번역심화전공: 2014학년도부터 영어통번역심화전공을 영어통번역학전공으로 변경(일람 연혁). 2019~2026학번은 입학·편입·이중/부전공 선택 시점에 이 명칭의 단위가 없음. 조회는 scopeAudit의 변경 후 ID 또는 실제 승계 전공으로 함."
+   }
+  ],
+  "reorganization": [
+   {
+    "relation": "renamedTo",
+    "relatedId": "global-1b7f2b54b1"
+   }
+  ]
+ },
+ {
+  "id": "global-sports-gsi",
+  "kind": "submajor",
+  "status": "currentOrLegacyUnresolved",
+  "college": "Culture & Technology융합대학",
+  "parentId": "global-1635e40d33",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ },
+ {
+  "id": "global-sports-gem",
+  "kind": "submajor",
+  "status": "currentOrLegacyUnresolved",
+  "college": "Culture & Technology융합대학",
+  "parentId": "global-1635e40d33",
+  "requirementsComplete": false,
+  "roleRestrictions": [],
+  "reorganization": []
+ }
+]
