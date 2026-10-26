@@ -160,10 +160,10 @@ test('학사현황: 기본값으로 결과 표시 → 공식 학점·필수과�
   await expect(defaults).not.toHaveAttribute('open');
   expect(JSON.parse(await readState()).profile.facts?.graduationTerm).toBeUndefined();
 
-  // 공식 코드·개설학과/이름으로 자동 대조하고, 같은 요건의 학생 연결보다 자동 대조를 우선한다.
+  // 공식 코드·개설학과/이름으로 자동 대조한다 (학생은 과목명이 맞을 때만 체크 하나로 연결한다).
   const rule = page.locator('details').filter({ hasText: '2022~2026학번 주전공 필수 11과목' });
   await expect(rule).toContainText('지역과지역학 (B03131)');
-  const addPast = async (name: string, code?: string, link?: RegExp) => {
+  const addPast = async (name: string, code?: string) => {
     await page.getByRole('button', { name: '과목 추가·수정' }).click();
     const dlg = page.getByRole('dialog', { name: '과목 추가' });
     await dlg.getByLabel(/^과목명/).fill(name);
@@ -172,11 +172,9 @@ test('학사현황: 기본값으로 결과 표시 → 공식 학점·필수과�
     await dlg.getByRole('spinbutton', { name: /^학점/ }).fill('3');
     await dlg.getByLabel('상태').selectOption({ label: '이수 완료' });
     await dlg.getByLabel('성적').first().selectOption('A0'); // '성적 방식'과 구분
-    if (code) await dlg.getByLabel(/공식 과목 코드/).fill(code);
-    if (link) {
-      const sel = dlg.getByLabel(/필수과목 요건에 직접 연결/);
-      const label = (await sel.locator('option').allTextContents()).find((t) => link.test(t))!;
-      await sel.selectOption({ label });
+    if (code) {
+      await dlg.getByText('추가 정보', { exact: true }).click();
+      await dlg.getByLabel(/공식 과목 코드/).fill(code);
     }
     await dlg.getByRole('button', { name: '저장', exact: true }).click();
     await expect(dlg).toBeHidden();
@@ -186,11 +184,148 @@ test('학사현황: 기본값으로 결과 표시 → 공식 학점·필수과�
   // 코드 없는 요건도 개설학과 정보가 없으면 주전공 이수구분과 이름으로 대조한다.
   await addPast('초급마.인어(1)');
   const elementary = rule.locator('li.req').filter({ has: page.locator('.name', { hasText: /^초급마\.인어\(1\)/ }) });
-  await expect(elementary).toContainText('이름 일치');
-  await addPast('마인어 기초 (직접 연결)', undefined, /^초급마\.인어\(1\)/);
-  await expect(elementary).toContainText('이름 일치');
+  // 이름으로 맞은 줄도 ✓ '이수'로만 적고, '내가 체크'는 붙이지 않는다
+  await expect(elementary).toContainText('이수');
+  await expect(elementary).not.toContainText('내가 체크');
+  await expect(elementary.locator('span[aria-hidden="true"]').first()).toHaveText('✓');
+  await expect(page.getByTestId('course-legend')).toHaveText('○ 미이수 · ✓ 이수');
+
+  // 전공필수 체크는 하나로 합쳐졌다: 이름이 맞으면 자동 연결, 맞는 게 없으면 안내만
+  await page.getByRole('button', { name: '과목 추가·수정' }).click();
+  const merged = page.getByRole('dialog', { name: '과목 추가' });
+  await expect(merged.getByLabel(/필수과목 요건에 직접 연결/)).toHaveCount(0);
+  await merged.getByLabel(/^과목명/).fill('초급마.인어(1)');
+  await merged.getByLabel('이 과목은 전공필수예요').check();
+  await expect(merged).toContainText('요건에 연결했어요');
+  await merged.getByLabel(/^과목명/).fill('목록에 없는 과목');
+  await expect(merged).toContainText('연결할 요건이 없어요');
+  await merged.getByRole('button', { name: '취소' }).click();
+  await expect(merged).toBeHidden();
+
   await expect(rule.locator('summary').first()).toContainText('미충족');
   await expect(coverage).toContainText('졸업 충족 여부는 확정하지 않아요');
+});
+
+test('전공필수 체크 저장·이름 변경·해제와 직접 확인이 실제 요건 및 이수 수에 반영된다', async () => {
+  test.setTimeout(45_000);
+  const rule = page.locator('details').filter({ hasText: '2022~2026학번 주전공 필수 11과목' });
+  const name = '인도네시아세계역사.문화:인도네시아,동티모르,필리핀';
+  const row = rule.locator('li.req').filter({ has: page.locator('.name', { hasText: name }) });
+  const leafId = 'core-malay-primary-2022-2026/r.0';
+  const countBefore = (await rule.locator('summary').first().innerText()).match(/\d+ \/ 11/)![0];
+  const before = JSON.parse(await readState());
+  await page.getByRole('button', { name: '과목 추가·수정' }).click();
+  let dlg = page.getByRole('dialog');
+  await dlg.getByLabel(/^과목명/).fill(name);
+  await dlg.getByLabel('학년도').fill('2025');
+  await dlg.getByRole('spinbutton', { name: /^학점/ }).fill('3');
+  await dlg.getByLabel('성적').first().selectOption('A0');
+  await dlg.getByLabel('이 과목은 전공필수예요').check();
+  await expect(dlg).toContainText(`${name} 요건에 연결했어요`);
+  for (const width of [320, 390, 590]) {
+    await page.setViewportSize({ width, height: 820 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    expect(await dlg.locator('.sheet-body').evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
+  }
+  await page.setViewportSize({ width: 390, height: 820 });
+  await dlg.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(dlg).toBeHidden();
+  await expect(row).toContainText('내가 체크');
+  await expect(row.locator('span[aria-hidden="true"]').first()).toHaveText('✓');
+  await expect(row.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+  const saved = JSON.parse(await readState()).courses.find((c: { name: string }) => c.name === name);
+  expect(saved.requirementLinks).toEqual([leafId]);
+  expect(saved.requiredClaim).toBe('studentMarked');
+  await expect(rule.locator('summary').first()).toContainText(`${Number(countBefore.split(' ')[0]) + 1} / 11`);
+
+  // 학사현황에서 다시 누르면 연결만 풀리고 성적·학점은 그대로 남는다.
+  await row.getByRole('button').click();
+  await expect(row.locator('span[aria-hidden="true"]').first()).toHaveText('○');
+  await expect(row).not.toContainText('내가 체크');
+  await expect(rule.locator('summary').first()).toContainText(countBefore);
+  const earnedBefore = await page.locator('.hero-num').innerText();
+  await row.getByRole('button').click();
+  await expect(row).toContainText('내가 체크');
+  expect(await page.locator('.hero-num').innerText()).toBe(earnedBefore);
+  await row.getByRole('button').click();
+  await expect(row.locator('span[aria-hidden="true"]').first()).toHaveText('○');
+
+  // 다시 연결하고 저장한 뒤 이름을 바꾸면 옛 연결이 새 이름에 남지 않는다.
+  const courseButton = page.getByRole('button').filter({ hasText: name }).filter({ has: page.locator('.name') });
+  await page.locator('section[aria-labelledby="mine-title"] details').first().locator('summary').click();
+  await courseButton.click();
+  dlg = page.getByRole('dialog');
+  await dlg.getByLabel('이 과목은 전공필수예요').check();
+  await dlg.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(dlg).toBeHidden();
+  await courseButton.click();
+  dlg = page.getByRole('dialog');
+  await expect(dlg.getByLabel('이 과목은 전공필수예요')).toBeChecked();
+  await dlg.getByLabel(/^과목명/).fill('연결할 요건이 없는 테스트 과목');
+  await expect(dlg).toContainText('연결할 요건이 없어요');
+  await dlg.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(dlg).toBeHidden();
+  const changed = JSON.parse(await readState()).courses.find((c: { id: string }) => c.id === saved.id);
+  expect(changed.requirementLinks).toBeUndefined();
+  expect(changed.requiredClaim).toBe('studentMarked');
+  expect(changed.creditUnits).toBe(saved.creditUnits);
+  expect(JSON.parse(await readState()).courses.length).toBe(before.courses.length + 1);
+
+  // 기존 재수강 입력도 저장·재열기·해제가 유지된다.
+  const renamed = page.locator('.course-row').filter({ hasText: changed.name });
+  await renamed.click();
+  dlg = page.getByRole('dialog');
+  await dlg.getByLabel('재수강 과목이에요').check();
+  const previous = dlg.getByLabel('대체하는 이전 기록');
+  const previousId = (await previous.locator('option').nth(1).getAttribute('value'))!;
+  await previous.selectOption(previousId);
+  await dlg.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(dlg).toBeHidden();
+  expect(JSON.parse(await readState()).courses.find((c: { id: string }) => c.id === saved.id).replacesCourseId).toBe(previousId);
+  await renamed.click();
+  dlg = page.getByRole('dialog');
+  await expect(dlg.getByLabel('재수강 과목이에요')).toBeChecked();
+  await expect(dlg.getByLabel('대체하는 이전 기록')).toHaveValue(previousId);
+  await dlg.getByLabel('재수강 과목이에요').uncheck();
+  await dlg.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(dlg).toBeHidden();
+  expect(JSON.parse(await readState()).courses.find((c: { id: string }) => c.id === saved.id).replacesCourseId).toBeUndefined();
+});
+
+test('학교 문의는 접혀 있고, 펼치면 전화·메일만 보이며 출처는 표시하지 않는다', async () => {
+  test.setTimeout(45_000);
+  await page.getByRole('button', { name: '조건 수정', exact: true }).click();
+  const profileDialog = page.getByRole('dialog', { name: '학생 조건 수정' });
+  await profileDialog.getByLabel(/^주전공/).selectOption({ label: '몽골어과' });
+  await profileDialog.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(profileDialog).toBeHidden();
+  const inquiry = page.locator('.inquiry').filter({ has: page.locator('.inquiry-why') }).first();
+  await expect(inquiry.locator('.inquiry-detail')).toHaveCount(0);
+  await inquiry.locator('.inquiry-why').click();
+  const contact = inquiry.locator('.inquiry-detail');
+  await expect(contact).toContainText('정확한 기준은 학과에 확인할 수 있어요');
+  await expect(contact.locator('a[href^="tel:"]')).toHaveCount(1);
+  await expect(contact.locator('a[href^="mailto:"]')).toHaveCount(1);
+  await expect(contact).not.toContainText(/2026-10|확인일|졸업요건 페이지/);
+  await expect(contact.locator('a[href^="http"]')).toHaveCount(0);
+  await expect(page.locator('main')).not.toContainText('이 화면의 기준 출처');
+  await expect(page.locator('main')).not.toContainText('출처:');
+  for (const width of [320, 390, 590]) {
+    await page.setViewportSize({ width, height: 820 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+  }
+  const pass = inquiry.locator('.self-check');
+  await pass.click();
+  await expect(pass).toHaveAttribute('aria-pressed', 'true');
+  await pass.click();
+  await expect(pass).toHaveAttribute('aria-pressed', 'false');
+  await inquiry.locator('.inquiry-why').click();
+  await expect(contact).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 820 });
+  await page.getByRole('button', { name: '조건 수정', exact: true }).click();
+  await profileDialog.getByLabel(/^주전공/).selectOption('seoul-malay-indonesian');
+  await profileDialog.getByRole('button', { name: '저장', exact: true }).click();
+  await expect(profileDialog).toBeHidden();
 });
 
 const MEMO = '준비물: 사전\n2026-11-20 퀴즈 (메모 속 날짜는 알림이 아님)';

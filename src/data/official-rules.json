@@ -7418,8 +7418,11 @@
      }
     ]
    },
-   "totalRequiredUnits": null,
-   "requiredUnitsByArea": {},
+   "totalRequiredUnits": 15000,
+   "requiredUnitsByArea": {
+    "primary": 11800,
+    "liberalArts": 3200
+   },
    "detail": {
     "type": "creditMinimums",
     "values": {
@@ -7479,6 +7482,11 @@
     "26학번 이전 체크리스트의 범위 밖 학번 및 학과 신설 전 학교 부여 학번의 적용 관계 확인 필요."
    ],
    "note": "26학번 이전 체크리스트의 범위 밖 학번 및 학과 신설 전 학교 부여 학번의 적용 관계 확인 필요.",
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q19"
+   },
    "sourceIds": [
     "src-27c8b2389edf",
     "src-76630b6a7693",
@@ -10152,6 +10160,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "minorScope",
+    "label": "학과 내규가 있을 수 있어요",
+    "inquiryId": "Q05"
+   },
    "sourceIds": [
     "src-0955781cc48c"
    ]
@@ -10242,6 +10255,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "minorScope",
+    "label": "학과 내규가 있을 수 있어요",
+    "inquiryId": "Q05"
+   },
    "sourceIds": [
     "src-0955781cc48c"
    ]
@@ -10621,6 +10639,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q12"
+   },
    "sourceIds": [
     "src-8d1e87874b8c"
    ]
@@ -10684,7 +10707,9 @@
     ]
    },
    "totalRequiredUnits": null,
-   "requiredUnitsByArea": {},
+   "requiredUnitsByArea": {
+    "double": 5700
+   },
    "detail": {
     "type": "conflictingCreditMinimums",
     "total": {
@@ -10716,6 +10741,11 @@
    "reasons": [
     "conflict"
    ],
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q14"
+   },
    "sourceIds": [
     "src-c236e1ffc1fa"
    ]
@@ -10808,6 +10838,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q01"
+   },
    "sourceIds": [
     "src-fda05da7c9c1"
    ]
@@ -10900,6 +10935,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q01"
+   },
    "sourceIds": [
     "src-fda05da7c9c1"
    ]
@@ -11084,6 +11124,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q18"
+   },
    "sourceIds": [
     "src-0165e036ca4b"
    ]
@@ -11268,6 +11313,11 @@
    "reasons": [
     "needsReview"
    ],
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q18"
+   },
    "sourceIds": [
     "src-0165e036ca4b"
    ]
@@ -14477,6 +14527,11 @@
     "2026-2 글로벌 전필 첨부표 345행(통계학개론 \"이중전공만 해당\", 학번 표기 없음=전체학번 원칙)과 학과 졸업요건표(이중 통계학개론 \"2024학번 이전\")가 2025~2026학번 이중전공에서 다름."
    ],
    "note": "2026-2 글로벌 전필 첨부표 345행(통계학개론 \"이중전공만 해당\", 학번 표기 없음=전체학번 원칙)과 학과 졸업요건표(이중 통계학개론 \"2024학번 이전\")가 2025~2026학번 이중전공에서 다름.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q25"
+   },
    "sourceIds": [
     "src-191caf89c1ef",
     "src-27c8b2389edf",
@@ -15159,6 +15214,19 @@
    },
    "totalRequiredUnits": null,
    "requiredUnitsByArea": {},
+   "courses": {
+    "op": "ALL",
+    "items": [
+     {
+      "op": "course",
+      "id": "global-xls-gbt-capstone-primary/r.0",
+      "code": "P05406",
+      "name": "졸업프로젝트실습(캡스톤디자인)",
+      "creditUnits": null,
+      "matching": "code"
+     }
+    ]
+   },
    "listCompleteness": "partial",
    "detail": {
     "type": "requiredCourses",
@@ -15219,6 +15287,11 @@
     "재조사(2026-10-14): 공개 강의시간표에서 2026-1·2026-2 모두 전공필수로 표시되어 학과 공지의 '2026-2부터 전공필수 제외'와 상충. 첨부표·시간표(필수 유지) 2건 대 학과 공지(해제) 1건으로 남아 있어 어느 쪽이 우선하는지 원문만으로 확정 불가"
    ],
    "note": "재조사(2026-10-14): 공개 강의시간표에서 2026-1·2026-2 모두 전공필수로 표시되어 학과 공지의 '2026-2부터 전공필수 제외'와 상충. 첨부표·시간표(필수 유지) 2건 대 학과 공지(해제) 1건으로 남아 있어 어느 쪽이 우선하는지 원문만으로 확정 불가",
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q02"
+   },
    "sourceIds": [
     "src-191caf89c1ef",
     "src-27c8b2389edf",
@@ -15311,6 +15384,11 @@
     "학과 원문은 Pass 판정 필요 및 이중전공 경로도 안내. 첨부표의 이수·주전공 수강 제한만으로 확정하지 않음."
    ],
    "note": "학과 원문은 Pass 판정 필요 및 이중전공 경로도 안내. 첨부표의 이수·주전공 수강 제한만으로 확정하지 않음.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q03"
+   },
    "sourceIds": [
     "src-191caf89c1ef",
     "src-3d2e731efa72",
@@ -17548,6 +17626,19 @@
    },
    "totalRequiredUnits": null,
    "requiredUnitsByArea": {},
+   "courses": {
+    "op": "ALL",
+    "items": [
+     {
+      "op": "course",
+      "id": "stage2-gbt-capstone-required-conflict/r.0",
+      "code": null,
+      "name": "졸업프로젝트(캡스톤디자인)",
+      "creditUnits": null,
+      "matching": "studentConfirmation"
+     }
+    ]
+   },
    "detail": {
     "type": "conflictingCourseRequirement",
     "courseName": "졸업프로젝트(캡스톤디자인)",
@@ -17622,6 +17713,11 @@
     "재조사(2026-10-14): 공개 강의시간표에서 2026-1·2026-2 모두 전공필수로 표시되어 학과 공지의 '2026-2부터 전공필수 제외'와 상충. 첨부표·시간표(필수 유지) 2건 대 학과 공지(해제) 1건으로 남아 있어 어느 쪽이 우선하는지 원문만으로 확정 불가"
    ],
    "note": "재조사(2026-10-14): 공개 강의시간표에서 2026-1·2026-2 모두 전공필수로 표시되어 학과 공지의 '2026-2부터 전공필수 제외'와 상충. 첨부표·시간표(필수 유지) 2건 대 학과 공지(해제) 1건으로 남아 있어 어느 쪽이 우선하는지 원문만으로 확정 불가",
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q02"
+   },
    "sourceIds": [
     "src-191caf89c1ef",
     "src-8e5d54a31149",
@@ -17703,6 +17799,11 @@
     "학과 공지(2026-04-17, 2026-07-17)는 2026-2부터 이중전공도 졸업프로젝트 Pass로 졸업시험 대체 가능하다고 하나, 같은 학기 수강유의 첨부표는 \"이중전공생 수강불가\". 학과 해제 공지와 같은 충돌 질문으로 관리."
    ],
    "note": "학과 공지(2026-04-17, 2026-07-17)는 2026-2부터 이중전공도 졸업프로젝트 Pass로 졸업시험 대체 가능하다고 하나, 같은 학기 수강유의 첨부표는 \"이중전공생 수강불가\". 학과 해제 공지와 같은 충돌 질문으로 관리.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q03"
+   },
    "sourceIds": [
     "src-191caf89c1ef",
     "src-3d2e731efa72",
@@ -18841,6 +18942,27 @@
    },
    "totalRequiredUnits": null,
    "requiredUnitsByArea": {},
+   "courses": {
+    "op": "ALL",
+    "items": [
+     {
+      "op": "course",
+      "id": "remaining-iran-courses-2025/r.0",
+      "code": "B09101",
+      "name": "페르시아어문법과읽기A1",
+      "creditUnits": null,
+      "matching": "code"
+     },
+     {
+      "op": "course",
+      "id": "remaining-iran-courses-2025/r.1",
+      "code": "B09102",
+      "name": "페르시아어문법과읽기A2",
+      "creditUnits": null,
+      "matching": "code"
+     }
+    ]
+   },
    "listCompleteness": "disputedSubsetOnly",
    "detail": {
     "type": "requiredCourses",
@@ -18959,6 +19081,11 @@
     "공식 자료 간 차이를 자료 수의 다수결로 해소할 수 없음. 개정·경과조치의 명시 근거 필요."
    ],
    "note": "공식 자료 간 차이를 자료 수의 다수결로 해소할 수 없음. 개정·경과조치의 명시 근거 필요.",
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q48"
+   },
    "sourceIds": [
     "src-a95801d86441",
     "src-ff95c611891c",
@@ -21383,6 +21510,11 @@
     "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함"
    ],
    "note": "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q46"
+   },
    "sourceIds": [
     "src-60659767ef8f"
    ]
@@ -21487,6 +21619,11 @@
     "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함"
    ],
    "note": "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q37"
+   },
    "sourceIds": [
     "src-34cef15ebac2"
    ]
@@ -21599,6 +21736,11 @@
     "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함"
    ],
    "note": "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q50"
+   },
    "sourceIds": [
     "src-2ade1e2a1aa4"
    ]
@@ -21716,6 +21858,11 @@
     "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함"
    ],
    "note": "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q40"
+   },
    "sourceIds": [
     "src-ccc80e7d72f4"
    ]
@@ -22118,6 +22265,11 @@
     "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함"
    ],
    "note": "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q09"
+   },
    "sourceIds": [
     "src-cc36cb794411"
    ]
@@ -22435,6 +22587,11 @@
     "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함"
    ],
    "note": "적용학번·시행일·예외 중 공개 원문에서 확정되지 않은 범위를 추가 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q20"
+   },
    "sourceIds": [
     "src-83dfb803a800"
    ]
@@ -22536,6 +22693,11 @@
    "reasons": [
     "conflict"
    ],
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q21"
+   },
    "sourceIds": [
     "src-191caf89c1ef",
     "src-6bd1745055b9"
@@ -25317,6 +25479,11 @@
     "공지의 \"1·2학년 개설 전공 전체\" 중 첨부표에 없는 과목의 포함 여부 미확정: N10211·N10212 폴란드어A2읽기(1)(2)(2025~2026 개설, 시간표 비고 \"전필\", 속성 \"–\"), N10130 초급폴란드어어휘연습(2)·N10133 폴란드학개론(1)(일람 1학년 수록, 2025-1~2026-2 미개설)."
    ],
    "note": "공지의 \"1·2학년 개설 전공 전체\" 중 첨부표에 없는 과목의 포함 여부 미확정: N10211·N10212 폴란드어A2읽기(1)(2)(2025~2026 개설, 시간표 비고 \"전필\", 속성 \"–\"), N10130 초급폴란드어어휘연습(2)·N10133 폴란드학개론(1)(일람 1학년 수록, 2025-1~2026-2 미개설).",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q29"
+   },
    "sourceIds": [
     "src-ef83c3b69b87",
     "src-hufs-yearbook-2025-2026",
@@ -29250,6 +29417,11 @@
     "학부 기준은 확인했으나 첨부표 구전공(융합일본지역전공)과 학부의 승계·적용 관계 미확정"
    ],
    "note": "학부 기준은 확인했으나 첨부표 구전공(융합일본지역전공)과 학부의 승계·적용 관계 미확정",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q44"
+   },
    "sourceIds": [
     "src-2487b9ac0417"
    ]
@@ -29350,6 +29522,11 @@
     "학부 기준은 확인했으나 첨부표 구전공(융합일본지역전공)과 학부의 승계·적용 관계 미확정"
    ],
    "note": "학부 기준은 확인했으나 첨부표 구전공(융합일본지역전공)과 학부의 승계·적용 관계 미확정",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q44"
+   },
    "sourceIds": [
     "src-2487b9ac0417"
    ]
@@ -29426,6 +29603,11 @@
     "시행·입학유형·특별전형 예외 또는 세부 기준이 미확정"
    ],
    "note": "시행·입학유형·특별전형 예외 또는 세부 기준이 미확정",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q23"
+   },
    "sourceIds": [
     "src-41044d2559ca",
     "src-9a3c5ba16e26",
@@ -29531,6 +29713,11 @@
     "시행·입학유형·특별전형 예외 또는 세부 기준이 미확정"
    ],
    "note": "시행·입학유형·특별전형 예외 또는 세부 기준이 미확정",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q33"
+   },
    "sourceIds": [
     "src-e1800d9037e6",
     "src-e9805ea33ee7"
@@ -29731,6 +29918,11 @@
    "reasons": [
     "conflict"
    ],
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q32"
+   },
    "sourceIds": [
     "src-0b1c76d6cd3d",
     "src-7f8c24b34223",
@@ -35782,6 +35974,11 @@
     "과거 개편·입학유형·예외·유효 시점의 미확정 조건 추가 확인 필요"
    ],
    "note": "과거 개편·입학유형·예외·유효 시점의 미확정 조건 추가 확인 필요",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q17"
+   },
    "sourceIds": [
     "src-a8703b229923"
    ]
@@ -35888,6 +36085,11 @@
     "과거 개편·입학유형·예외·유효 시점의 미확정 조건 추가 확인 필요"
    ],
    "note": "과거 개편·입학유형·예외·유효 시점의 미확정 조건 추가 확인 필요",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q17"
+   },
    "sourceIds": [
     "src-48c0071f4426"
    ]
@@ -37063,6 +37265,11 @@
     "과거 개편·입학유형·예외·유효 시점의 미확정 조건 추가 확인 필요"
    ],
    "note": "과거 개편·입학유형·예외·유효 시점의 미확정 조건 추가 확인 필요",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q27"
+   },
    "sourceIds": [
     "src-9db5e01f1d32"
    ]
@@ -37194,6 +37401,11 @@
     "2024학번 1학년 개설 전필(기후빅데이터프로그래밍및실습1·기후수학)이 현행 6과목 목록에 없음. 2024학번 전필 목록 미확정."
    ],
    "note": "2024학번 1학년 개설 전필(기후빅데이터프로그래밍및실습1·기후수학)이 현행 6과목 목록에 없음. 2024학번 전필 목록 미확정.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q10"
+   },
    "sourceIds": [
     "src-154fc832955c",
     "src-timetable-wis-2026",
@@ -38408,6 +38620,11 @@
     "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요"
    ],
    "note": "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q45"
+   },
    "sourceIds": [
     "src-36b0577e2cc4",
     "src-hufspol-notice-19968",
@@ -38920,6 +39137,11 @@
     "현재 교육과정 전필10과목/30학점 확보. 학번별 구·신 교육과정 대응, 이중21학점의 필수 선택방법과 구학과 승계 미확정."
    ],
    "note": "현재 교육과정 전필10과목/30학점 확보. 학번별 구·신 교육과정 대응, 이중21학점의 필수 선택방법과 구학과 승계 미확정.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q31"
+   },
    "sourceIds": [
     "src-ac8a12e5b7cb",
     "src-d1b5f2a75922",
@@ -39065,6 +39287,11 @@
     "현재 교육과정 전필10과목/30학점 확보. 학번별 구·신 교육과정 대응, 이중21학점의 필수 선택방법과 구학과 승계 미확정."
    ],
    "note": "현재 교육과정 전필10과목/30학점 확보. 학번별 구·신 교육과정 대응, 이중21학점의 필수 선택방법과 구학과 승계 미확정.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q31"
+   },
    "sourceIds": [
     "src-ac8a12e5b7cb",
     "src-d1b5f2a75922",
@@ -39335,6 +39562,11 @@
     "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요"
    ],
    "note": "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q30"
+   },
    "sourceIds": [
     "src-d1b5f2a75922"
    ]
@@ -39612,6 +39844,11 @@
     "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요"
    ],
    "note": "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q13"
+   },
    "sourceIds": [
     "src-6c14272fcb26"
    ]
@@ -39709,6 +39946,11 @@
     "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요"
    ],
    "note": "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q16"
+   },
    "sourceIds": [
     "src-6c14272fcb26"
    ]
@@ -39786,6 +40028,11 @@
     "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요"
    ],
    "note": "学번·개편·교류·특별전형 예외 또는 세부 시험 정보의 미확정 범위 추가 검토 필요",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q11"
+   },
    "sourceIds": [
     "src-6c14272fcb26"
    ]
@@ -45307,6 +45554,11 @@
     "동일·대체과목과 과거 학번의 적용 범위를 확인해야 함"
    ],
    "note": "동일·대체과목과 과거 학번의 적용 범위를 확인해야 함",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q08"
+   },
    "sourceIds": [
     "src-085bc1fb31e2",
     "src-191caf89c1ef",
@@ -45664,6 +45916,11 @@
     "최종 합격선 조정 및 접수 종료 연도 원문 확인 필요"
    ],
    "note": "최종 합격선 조정 및 접수 종료 연도 원문 확인 필요",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q06"
+   },
    "sourceIds": [
     "src-085bc1fb31e2",
     "src-1d2feb530ca9",
@@ -45759,6 +46016,11 @@
     "인정 최저등급·역할·유효기간 미확정. 개인 인증서 예시를 규정으로 사용하지 않음"
    ],
    "note": "인정 최저등급·역할·유효기간 미확정. 개인 인증서 예시를 규정으로 사용하지 않음",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q07"
+   },
    "sourceIds": [
     "src-085bc1fb31e2",
     "src-2b66dbcb8f5c"
@@ -52219,6 +52481,11 @@
     "적용 학번은 학교가 부여한 학번을 입력해야 한다. 편입 연도·학년으로 학번을 추정하지 않는다. 편입 인정학점은 학생별로 별도 차감해야 한다. 기초 6학점의 편입생 적용 여부는 미확인."
    ],
    "note": "적용 학번은 학교가 부여한 학번을 입력해야 한다. 편입 연도·학년으로 학번을 추정하지 않는다. 편입 인정학점은 학생별로 별도 차감해야 한다. 기초 6학점의 편입생 적용 여부는 미확인.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q51"
+   },
    "sourceIds": [
     "src-27c8b2389edf"
    ]
@@ -52583,6 +52850,11 @@
     "서울의 편입학년별 6/4회는 다른 캠퍼스의 비교 자료다. 글로벌 안내 8회 문구의 편입생 적용범위가 불명확하므로 글로벌 등록횟수는 null로 유지."
    ],
    "note": "서울의 편입학년별 6/4회는 다른 캠퍼스의 비교 자료다. 글로벌 안내 8회 문구의 편입생 적용범위가 불명확하므로 글로벌 등록횟수는 null로 유지.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q52"
+   },
    "sourceIds": [
     "src-4b10abc69878",
     "src-7d7c9a0b4468"
@@ -53606,6 +53878,11 @@
     "부전공 통과기준 원문 없음"
    ],
    "note": "부전공 통과기준 원문 없음",
+   "displayReason": {
+    "key": "minorScope",
+    "label": "학과 내규가 있을 수 있어요",
+    "inquiryId": "Q22"
+   },
    "sourceIds": [
     "src-82197e202875"
    ]
@@ -53825,6 +54102,11 @@
     "학과 본문은 1전공 논문·이중 시험을 명시. 부전공은 명시되지 않음."
    ],
    "note": "학과 본문은 1전공 논문·이중 시험을 명시. 부전공은 명시되지 않음.",
+   "displayReason": {
+    "key": "minorScope",
+    "label": "학과 내규가 있을 수 있어요",
+    "inquiryId": "Q24"
+   },
    "sourceIds": [
     "src-1d866635a0b3",
     "src-c1a72c354f1c"
@@ -53943,6 +54225,11 @@
     "두 기준의 선후관계 미명시"
    ],
    "note": "두 기준의 선후관계 미명시",
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q43"
+   },
    "sourceIds": [
     "src-26cc428ff853",
     "src-dept-317e89190713",
@@ -54665,6 +54952,11 @@
     "부전공 적용 여부 원문 없음"
    ],
    "note": "부전공 적용 여부 원문 없음",
+   "displayReason": {
+    "key": "minorScope",
+    "label": "학과 내규가 있을 수 있어요",
+    "inquiryId": "Q35"
+   },
    "sourceIds": [
     "src-89ea266743dd"
    ]
@@ -55464,6 +55756,11 @@
     "글로벌 경제학과 전용 원문 미발견"
    ],
    "note": "글로벌 경제학과 전용 원문 미발견",
+   "displayReason": {
+    "key": "threshold",
+    "label": "합격 기준은 학과 확인 필요",
+    "inquiryId": "Q04"
+   },
    "sourceIds": [
     "src-a5f11ab1f98a"
    ]
@@ -62656,6 +62953,11 @@
     "학과 페이지에 적용 학번·시행 시점 표기가 없음. 현재 안내를 2019~2026학번 전체에 자동 적용하지 않음."
    ],
    "note": "학과 페이지에 적용 학번·시행 시점 표기가 없음. 현재 안내를 2019~2026학번 전체에 자동 적용하지 않음.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q41"
+   },
    "sourceIds": [
     "src-eef4690c047c"
    ]
@@ -70183,6 +70485,19 @@
    },
    "totalRequiredUnits": null,
    "requiredUnitsByArea": {},
+   "courses": {
+    "op": "ALL",
+    "items": [
+     {
+      "op": "course",
+      "id": "core-malay-regional-2021-scope-conflict/r.0",
+      "code": null,
+      "name": "지역과지역학",
+      "creditUnits": null,
+      "matching": "studentConfirmation"
+     }
+    ]
+   },
    "detail": {
     "type": "conflictingRequiredCourseScope",
     "courseName": "지역과지역학",
@@ -70201,6 +70516,11 @@
     "동일 과목에 대한 학과 공지와 학교 첨부표의 시작 학번 차이.2021학번 한 과목만 미확정."
    ],
    "note": "동일 과목에 대한 학과 공지와 학교 첨부표의 시작 학번 차이.2021학번 한 과목만 미확정.",
+   "displayReason": {
+    "key": "conflict",
+    "label": "자료마다 달라서 필수로 계산했어요",
+    "inquiryId": "Q38"
+   },
    "sourceIds": [
     "src-core-60444f849fc7",
     "src-ff95c611891c"
@@ -75461,6 +75781,11 @@
     "현재 안내를 2019~2026학번 전체에 적용할 근거 부족"
    ],
    "note": "현재 안내를 2019~2026학번 전체에 적용할 근거 부족",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q36"
+   },
    "sourceIds": [
     "src-a42-217ce00907c1"
    ]
@@ -92253,6 +92578,11 @@
     "학과 페이지에 적용 학번·역할 표기가 없음. 현재 안내를 2019~2026학번 전체에 자동 적용하지 않음."
    ],
    "note": "학과 페이지에 적용 학번·역할 표기가 없음. 현재 안내를 2019~2026학번 전체에 자동 적용하지 않음.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q47"
+   },
    "sourceIds": [
     "src-7d7c9a0b4468",
     "src-df98f684a5b3"
@@ -92344,6 +92674,11 @@
     "학과 FAQ·공지에 적용 학번 표기가 없음."
    ],
    "note": "학과 FAQ·공지에 적용 학번 표기가 없음.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q15"
+   },
    "sourceIds": [
     "src-4b10abc69878",
     "src-6def94adac6c",
@@ -92427,6 +92762,11 @@
     "교육과정 표에 적용 학번 표기가 없고 \"캡스톤 디자인 등\"의 범위가 불명확."
    ],
    "note": "교육과정 표에 적용 학번 표기가 없고 \"캡스톤 디자인 등\"의 범위가 불명확.",
+   "displayReason": {
+    "key": "cohort",
+    "label": "학번별 기준이 확실하지 않아요",
+    "inquiryId": "Q34"
+   },
    "sourceIds": [
     "src-0bebdae6940e",
     "src-7d7c9a0b4468"

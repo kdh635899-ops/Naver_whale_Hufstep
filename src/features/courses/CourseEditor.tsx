@@ -1,12 +1,13 @@
 // 공유 과목 편집기 (§3.5). 학사현황·학점계산·평가일정이 모두 이 편집기와 같은 Course ID를 쓴다.
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog, departmentName } from '../../data';
 import { deriveInclusion, LETTER_GRADES } from '../../domain/grades';
 import { dropCourseRefs, MERGE_FIELDS } from '../../domain/merge/mergeImport';
-import { linkableLeaves } from '../../domain/requirements/officialRules';
+import { autoLinkTargets, linkableLeaves } from '../../domain/requirements/officialRules';
+import { initialReplacesCourseId, retakeCandidates } from '../../domain/retake';
 import { newId } from '../../domain/state';
-import { formatUnits, toUnits } from '../../domain/terms';
+import { formatUnits, termLabel, toUnits } from '../../domain/terms';
 import type { Course, CourseStatus, CreditArea, Grade, Term } from '../../domain/types';
 import { courseSchema, firstIssue } from '../../domain/validation/schemas';
 import { AREA_LABEL, ConfirmButton, ConsentGate, Sheet, STATUS_LABEL } from '../common';
@@ -26,10 +27,27 @@ export function CourseEditor() {
   const [status, setStatus] = useState<CourseStatus>(init.status ?? 'inProgress');
   const [grade, setGrade] = useState<Grade>(init.grade ?? null);
   const [mode, setMode] = useState<Course['gradingMode']>(init.gradingMode ?? 'graded');
-  const [required, setRequired] = useState(init.requiredClaim === 'studentMarked');
+  const [required, setRequired] = useState(init.requiredClaim === 'studentMarked' || !!init.requirementLinks?.length);
   const [code, setCode] = useState(init.officialCode ?? '');
   const [link, setLink] = useState(init.requirementLinks?.[0] ?? '');
-  const leaves = linkableLeaves(report, departmentName);
+  // 성적표에 '재수강' 표시만 있는 과목은 체크를 켠 채로 열고 같은 이름의 이전 기록을 미리 골라 둔다 (저장은 학생이 누를 때만)
+  const [replaces, setReplaces] = useState(() => initialReplacesCourseId(state.courses, state.snapshots, {
+    id: existing?.id,
+    name: init.name ?? '',
+    term: init.term ?? { academicYear: Number(year), semester: sem },
+    sourceRowKey: init.sourceRowKey,
+    replacesCourseId: init.replacesCourseId,
+  }) ?? '');
+  const [isRetake, setIsRetake] = useState(!!replaces);
+  // 체크 한 번으로 끝내기 위해, 과목명과 이름이 맞는 요건(leaf)을 그때그때 찾는다
+  const matches = useMemo(() => autoLinkTargets(report, name, departmentName), [report, name]);
+  // 과목명을 바꾸면 이전 이름에 연결했던 요건을 저장하지 않는다.
+  const autoLinkId = matches.length === 1 ? matches[0].leaf.id : '';
+  const effectiveLink = required ? (matches.some((m) => m.leaf.id === link) ? link : autoLinkId) : '';
+  const linkedName = useMemo(() => (effectiveLink
+    ? linkableLeaves(report, departmentName).find((l) => l.leaf.id === effectiveLink)?.leaf.name
+    : undefined), [report, effectiveLink]);
+  const candidates = retakeCandidates(state.courses, { id: existing?.id, name, term: { academicYear: Number(year), semester: sem } });
   const [error, setError] = useState('');
   const close = () => openEditor(null);
 
@@ -41,6 +59,7 @@ export function CourseEditor() {
     if (recordKind === 'course' && toUnits(c) > catalog.policy.maxCreditUnitsPerCourse) {
       return setError(`한 과목 학점은 ${catalog.policy.maxCreditUnitsPerCourse / 100}학점 이하로 입력해 주세요`);
     }
+    if (isRetake && !replaces) return setError('대체하는 이전 기록을 골라 주세요');
     const g = status === 'completed' || status === 'notEarned' ? grade : null;
     const draft: Course = {
       id: existing?.id ?? newId('course'),
@@ -54,8 +73,9 @@ export function CourseEditor() {
       recognizedDepartmentId: existing?.recognizedDepartmentId,
       origin: existing?.origin ?? 'manual',
       requiredClaim: existing?.requiredClaim === 'officialMatched' ? 'officialMatched' : required ? 'studentMarked' : 'none',
-      ...(link && { requirementLinks: [link] }), // 학생 확인으로만 표시되고 공식 기준·학점은 바뀌지 않는다
-      replacesCourseId: existing?.replacesCourseId,
+      requirementLinks: existing?.requiredClaim === 'officialMatched' ? existing.requirementLinks
+        : effectiveLink ? [effectiveLink] : undefined,
+      replacesCourseId: isRetake ? replaces : undefined, // 체크를 풀면 지운다
       sourceSnapshotId: existing?.sourceSnapshotId,
       sourceRowKey: existing?.sourceRowKey,
       overriddenFields: existing?.overriddenFields ?? [],
@@ -93,7 +113,7 @@ export function CourseEditor() {
     <Sheet title={existing ? '과목 수정' : '과목 추가'} onClose={close}>
       <ConsentGate>
         <form className="form" onSubmit={submit} noValidate>
-          <label>과목명 <span className="req">필수</span>
+          <label>과목명
             <input value={name} maxLength={120} onChange={(e) => setName(e.target.value)} required />
           </label>
           <div className="row2">
@@ -107,7 +127,7 @@ export function CourseEditor() {
             </label>
           </div>
           <div className="row2">
-            <label>학점 <span className="req">필수</span>
+            <label>학점
               <input type="number" inputMode="decimal" step="0.5" min={0} value={credits} onChange={(e) => setCredits(e.target.value)} />
             </label>
             <label>학점 반영 영역
@@ -137,29 +157,59 @@ export function CourseEditor() {
             </div>
           )}
           {!showGrade && <p className="muted small">수강 예정·수강 중 과목은 취득학점에 더하지 않아요. 학기가 끝나면 ‘이수 완료’로 바꾸거나 새 성적을 붙여넣어 주세요.</p>}
-          <label>공식 과목 코드 (선택)
-            <input value={code} maxLength={30} onChange={(e) => setCode(e.target.value)} placeholder="모르면 비워 두세요" />
+          <label className="check">
+            <input type="checkbox" checked={isRetake} onChange={(e) => { setIsRetake(e.target.checked); if (!e.target.checked) setReplaces(''); }} />
+            재수강 과목이에요
           </label>
+          {isRetake && (
+            <label>대체하는 이전 기록
+              <select value={replaces} onChange={(e) => setReplaces(e.target.value)}>
+                <option value="">고르지 않음</option>
+                {replaces && !candidates.some((c) => c.id === replaces) && <option value={replaces}>현재 조건에 없는 기록 (선택 유지)</option>}
+                {candidates.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name} ({termLabel(c.term)} {c.grade ?? '성적 모름'})</option>
+                ))}
+              </select>
+              <span className="muted small">
+                {candidates.length === 0
+                  ? '고를 수 있는 이전 기록이 없어요. 이 과목보다 이전 학기의 이수 완료 과목만 고를 수 있어요.'
+                  : '이전 기록의 학점·점수는 평점과 취득학점에서 빠져요. 이미 다른 과목이 대체한 기록은 목록에 없어요.'}
+              </span>
+            </label>
+          )}
+          <details>
+            <summary>추가 정보</summary>
+            <label>공식 과목 코드 (선택)
+              <input value={code} maxLength={30} readOnly={!!existing?.sourceRowKey}
+                onChange={(e) => setCode(e.target.value)} placeholder="모르면 비워 두세요" />
+              {existing?.sourceRowKey && <span className="muted small">성적표에서 가져온 코드라 여기서는 고칠 수 없어요.</span>}
+            </label>
+          </details>
           {existing?.requiredClaim === 'officialMatched'
             ? <p className="muted small">공식 규칙으로 필수과목에 매칭된 과목이에요.</p>
             : (
-              <label className="check">
-                <input type="checkbox" checked={required} onChange={(e) => setRequired(e.target.checked)} />
-                전공필수로 표시 (학생 확인 · 학점이 따로 더해지지 않아요)
-              </label>
+              <>
+                <label className="check">
+                  <input type="checkbox" checked={required}
+                    onChange={(e) => { setRequired(e.target.checked); if (!e.target.checked) setLink(''); }} />
+                  이 과목은 전공필수예요
+                </label>
+                {required && (matches.length > 1 ? (
+                  // 이름이 맞는 요건이 여러 개일 때만 고르게 한다
+                  <label>어느 요건인가요?
+                    <select value={effectiveLink} onChange={(e) => setLink(e.target.value)}>
+                      <option value="">고르지 않음</option>
+                      {matches.map(({ leaf, ruleTitle }) => (
+                        <option key={leaf.id} value={leaf.id}>{leaf.name}{leaf.code ? ` (${leaf.code})` : ''} — {ruleTitle.slice(0, 40)}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : effectiveLink && linkedName
+                  ? <p className="muted small">{linkedName} 요건에 연결했어요</p>
+                  : <p className="muted small">연결할 요건이 없어요</p>
+                )}
+              </>
             )}
-          {(leaves.length > 0 || link) && (
-            <label>필수과목 요건에 직접 연결 (선택 · 학생 확인)
-              <select value={link} onChange={(e) => setLink(e.target.value)}>
-                <option value="">연결 안 함</option>
-                {link && !leaves.some((l) => l.leaf.id === link) && <option value={link}>현재 조건에 없는 요건 (연결 유지)</option>}
-                {leaves.map(({ leaf, ruleTitle }) => (
-                  <option key={leaf.id} value={leaf.id}>{leaf.name}{leaf.code ? ` (${leaf.code})` : ''} — {ruleTitle.slice(0, 40)}</option>
-                ))}
-              </select>
-              <span className="muted small">과목 코드가 맞으면 자동으로 매칭돼요. 코드가 없거나 다를 때만 직접 연결하고, 화면에는 ‘학생 연결’로 따로 표시돼요.</span>
-            </label>
-          )}
           {existing?.sourceRowKey && <p className="muted small">종정시에서 가져온 과목이에요. 직접 고친 항목은 다음 붙여넣기 때 덮어쓰기 전에 확인해요.</p>}
           {error && <p className="error" role="alert">{error}</p>}
           <div className="row">

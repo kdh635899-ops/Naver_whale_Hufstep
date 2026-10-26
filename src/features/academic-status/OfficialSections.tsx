@@ -2,11 +2,11 @@
 // 확정·학생 입력 필요·조사 미확정·앱 미지원·요건 없음 명시를 서로 다른 상태로 보여준다.
 import { useState } from 'react';
 import { useStore } from '../../app/store';
-import { departmentMetaById, departmentName, sourceById } from '../../data';
+import { departmentById, departmentMetaById, departmentName, sourceById } from '../../data';
 import { ASKABLE_FIELDS, type Scalar } from '../../domain/requirements/conditions';
-import { normalizeCourseName, ruleTitle, type CoverageRow, type CourseRuleProgress, type NodeProgress, type NoteKind, type Question, type RuleEval } from '../../domain/requirements/officialRules';
+import { leafDisplay, linkableLeaves, normalizeCourseName, noteFrom, ruleTitle, type CoreCategory, type CoverageNote, type CoverageRow, type CourseRuleProgress, type NodeProgress, type NoteKind, type Question, type RuleEval } from '../../domain/requirements/officialRules';
 import { profileSchema } from '../../domain/validation/schemas';
-import type { CourseExpr, Course } from '../../domain/types';
+import type { CampusId, CourseExpr, Course } from '../../domain/types';
 import { SafeLink } from '../common';
 
 const CORE_LABEL: Record<CoverageRow['category'], string> = {
@@ -16,10 +16,16 @@ const NOTE_LABEL: Record<NoteKind, string> = {
   needsInput: '추가 입력 필요', unconfirmed: '학교 확인 필요', conflict: '근거 충돌', gap: '자료 미지원', unsupported: '앱 미지원', partialList: '일부 목록만 확인', schoolDefault: '학교 기준상 없음 · 학과 확인 필요', schoolCommonOnly: '학교 기준: 시험 또는 논문 필요 · 학과 세부 기준 미제공',
 };
 
+/** 학교 확인이 필요한 줄은 배지를 쓰지 않는다 (줄마다 아래에 이유를 한 줄로 적는다). */
+const isInquiry = (n: CoverageNote) => n.kind !== 'needsInput';
+
 function rowState(r: CoverageRow): string {
   if (r.determinable) return r.basis === 'none' ? '원문에 요건 없음' : '확인됨';
-  if (!r.notes.length) return '제공되는 자료 없음';
-  return [...new Set(r.notes.map((n) => NOTE_LABEL[n.kind]))].join(' · ');
+  // 학교 공통 기준이 '요건 없음'이면(예: 전공필수는 부전공 제외) 학과 확인이 남아도 해당 없음으로 둔다
+  if (r.basis === 'none') return '해당 없음';
+  if (r.notes.some((n) => n.kind === 'needsInput')) return NOTE_LABEL.needsInput;
+  if (r.notes.length) return '';
+  return '제공되는 자료 없음';
 }
 
 export function Sources({ ids, label = '출처' }: { ids: string[]; label?: string }) {
@@ -32,15 +38,69 @@ export function Sources({ ids, label = '출처' }: { ids: string[]; label?: stri
   );
 }
 
-/** 확인이 필요한 줄에 학과 공개 연락처. 확인일은 핵심 정보와 구분되게 흐린 작은 글씨로 */
-export function DepartmentContact({ id }: { id: string }) {
-  const c = departmentMetaById(id)?.contact;
-  if (!c) return null;
-  const page = c.graduationPageUrl ?? c.homepageUrl;
-  const parts = [c.phone && `📞 ${c.phone}`, c.email && `✉ ${c.email}`].filter(Boolean).join(' · ');
+/** 학과 사무실 연락처가 없을 때만 쓰는 학교 대표 번호 (개인 연락처는 쓰지 않는다) */
+const SCHOOL_MAIN_PHONE: Record<CampusId, string> = { seoul: '02-2173-2114', global: '031-330-4114' };
+
+/**
+ * 학교 확인이 필요한 줄을 펼쳤을 때 보여 주는 문의처.
+ * 설명 문장·문의 날짜·확인일·홈페이지 링크는 넣지 않는다. 전화·메일만 한 줄씩 둔다.
+ */
+export function InquiryContact({ departmentId }: { departmentId?: string }) {
+  const { state } = useStore();
+  const contact = departmentId ? departmentMetaById(departmentId)?.contact : undefined;
+  const campus: CampusId = (departmentId && departmentById(departmentId)?.campus) || state.profile?.homeCampus || 'seoul';
+  const phone = contact?.phone ?? SCHOOL_MAIN_PHONE[campus];
+  // 학과 전용 번호가 없으면 학교 대표 번호임을 밝힌다
+  const schoolMain = !contact?.phone || contact.schoolMain === true;
   return (
-    <p className="small contact-line">{c.schoolMain ? '학교에 문의하세요' : '학과에 확인하세요'}: {parts}{page && <>{parts ? ' · ' : ''}<SafeLink href={page}>{c.graduationPageUrl ? '졸업요건 페이지' : c.schoolMain ? '학교 홈페이지' : '학과 홈페이지'} ↗</SafeLink></>}
-      <span className="contact-checked"> 확인 {c.checkedAt}{c.note ? ` · ${c.note}` : ''}</span></p>
+    <div className="inquiry-detail">
+      <p className="small">정확한 기준은 학과에 확인할 수 있어요</p>
+      <p className="small">문의 전화 <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{phone}</a>{schoolMain && ' (학교 대표)'}</p>
+      {contact?.email && <p className="small">문의 메일 <a href={`mailto:${contact.email}`}>{contact.email}</a></p>}
+    </div>
+  );
+}
+
+/** 넘기기 버튼 글씨: 시험·인증은 '통과했어요', 학점·과목은 '이수했어요' */
+const PASS_LABEL: Record<CoreCategory, string> = {
+  credits: '이수했어요', requiredCourses: '이수했어요', departmentAssessment: '통과했어요', languageCertification: '통과했어요',
+};
+
+/**
+ * 학교 확인이 필요한 요건 한 줄.
+ * 접힌 상태는 '요건 제목 + 넘기기 버튼 + 회색 한 줄 이유 ›'. 누르면 문의처만 펼친다.
+ * 자료가 없는 것이지 학생이 못 한 것이 아니므로 빨간색·'미충족'을 쓰지 않는다.
+ */
+function InquiryNote({ note, category, departmentId }: { note: CoverageNote; category: CoreCategory; departmentId?: string }) {
+  const { state, save, now, report } = useStore();
+  const [open, setOpen] = useState(false);
+  const passed = state.certConfirmations.some((c) => c.requirementId === note.id);
+  const ids = [note.id, ...linkableLeaves(report ? { ...report,
+    courseRules: report.courseRules.filter((e) => note.ruleIds.includes(e.rule.id)),
+  } : null).map(({ leaf }) => leaf.id)];
+  // 졸업인증 '통과 확인'과 같은 저장소를 쓴다 (다시 누르면 해제)
+  const toggle = () => void save((sv) => ({
+    ...sv,
+    certConfirmations: passed ? sv.certConfirmations.filter((c) => !ids.includes(c.requirementId))
+      : [...sv.certConfirmations.filter((c) => !ids.includes(c.requirementId)),
+        ...ids.map((id) => ({ requirementId: id, confirmedAt: now.toISOString() }))],
+  }));
+  // 학교 공통 기준상 '요건 없음'인 줄은 미이수(○)로 보이지 않게 한다 (해당 없음)
+  const notApplicable = note.notApplicable || note.kind === 'schoolDefault';
+  return (
+    <li className={`req inquiry ${passed ? 'met' : ''}`}>
+      <span aria-hidden="true">{passed ? '✓' : '○'}</span>
+      <span className="name">{note.title ?? note.text}
+        {notApplicable && !passed && <span className="contact-checked"> 해당 없음</span>}</span>
+      <button type="button" className="btn small self-check" aria-pressed={passed}
+        aria-label={`${note.title ?? note.text} ${PASS_LABEL[category]}`} onClick={toggle}>{PASS_LABEL[category]}</button>
+      {note.displayReason && (
+        <button type="button" className="link inquiry-why" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {notApplicable ? '학과 내규가 있을 수 있어요' : note.displayReason} <span aria-hidden="true">›</span>
+        </button>
+      )}
+      {open && <InquiryContact departmentId={departmentId} />}
+    </li>
   );
 }
 
@@ -49,6 +109,8 @@ export function CoverageCard() {
   const { report } = useStore();
   if (!report) return null;
   const rowTitle = (r: CoverageRow) => `${CORE_LABEL[r.category]}${r.departmentId ? ` · ${departmentName(r.departmentId)}` : ' · 학교 공통'}`;
+  const shownIds = new Set(report.coverage.flatMap((r) => r.notes.flatMap((n) => n.ruleIds)));
+  const otherInquiries = report.evals.filter((e) => e.cls !== 'confirmed' && e.cls !== 'needsInput' && !shownIds.has(e.rule.id));
   return (
     <section className="card" aria-labelledby="coverage-title">
       <h2 id="coverage-title" className="h3">졸업요건 판정 범위</h2>
@@ -62,20 +124,30 @@ export function CoverageCard() {
         {report.coverage.map((r) => (
           <li key={`${r.category}-${r.scope}`} className="req-block">
             <p className="row-between"><span>{rowTitle(r)}</span><span className={`small ${r.determinable ? 'met' : ''}`}>{rowState(r)}</span></p>
-            {r.notes.length > 0 && (
+            {r.notes.filter((n) => !isInquiry(n)).length > 0 && (
               <details>
-                <summary className="small">이유 {r.notes.length}건 보기</summary>
+                <summary className="small">이유 {r.notes.filter((n) => !isInquiry(n)).length}건 보기</summary>
                 <ul className="plain small">
-                  {r.notes.map((n, i) => (
-                    <li key={i}><b>{NOTE_LABEL[n.kind]}</b> {n.text}<Sources ids={n.sourceIds} /></li>
+                  {r.notes.filter((n) => !isInquiry(n)).map((n, i) => (
+                    <li key={i}><b>{NOTE_LABEL[n.kind]}</b> {n.text}</li>
                   ))}
                 </ul>
               </details>
             )}
-            {!r.determinable && r.departmentId && <DepartmentContact id={r.departmentId} />}
+            {r.notes.some(isInquiry) && (
+              <ul className="plain">
+                {r.notes.filter(isInquiry).map((n) => (
+                  <InquiryNote key={n.id} note={n} category={r.category} departmentId={r.departmentId} />
+                ))}
+              </ul>
+            )}
           </li>
         ))}
       </ul>
+      {otherInquiries.length > 0 && <ul className="plain">
+        {otherInquiries.map((e) => <InquiryNote key={e.rule.id} note={noteFrom(e, departmentName)}
+          category="requiredCourses" departmentId={e.rule.departmentId ?? undefined} />)}
+      </ul>}
     </section>
   );
 }
@@ -179,53 +251,58 @@ export function QuestionsCard({ defaults = false }: { defaults?: boolean }) {
 
 // ---- 필수과목 식 ----
 
+// 학생에게는 '들었다'가 하나의 뜻이라 어떤 방식으로 맞았든 '이수'로 적는다 (내부 상태값은 그대로 둔다)
 const LEAF_TEXT = {
-  met: '이수', substituted: '대체 과목 이수', nameMatched: '이름 일치 (개설학과·과목명)', waived: '면제 규정 적용',
+  met: '이수', substituted: '대체 과목 이수', nameMatched: '이수', waived: '면제 규정 적용',
   studentLinked: '이수', selfConfirmed: '이수', unmet: '미이수',
 } as const;
 const RULE_STATUS = { met: '충족', studentConfirmed: '충족 (직접 확인 포함)', unmet: '미충족', insufficient: '판단 자료 부족' } as const;
 
-/** 이수한 요건은 모두 ✓. 코드 일치(✓)와 이름 일치(=)만 기호로 구분하고, 학생 확인은 옆의 작은 글씨로 알린다. */
-const leafMark = (p: NodeProgress) =>
-  (p.level === 0 ? (p.skipped ? '·' : '○') : p.state === 'nameMatched' ? '=' : '✓');
+interface NodeProps { p: NodeProgress; byId: Map<string, Course>; onToggle: (leafId: string, checked: boolean) => void }
 
-interface NodeProps { p: NodeProgress; byId: Map<string, Course>; confirmed: Set<string>; onToggle: (leafId: string) => void }
-
-function NodeView({ p, byId, confirmed, onToggle }: NodeProps) {
+function NodeView({ p, byId, onToggle }: NodeProps) {
   const n = p.node as CourseExpr;
   if (n.op === 'course') {
     // 공식·이름으로 채워지지 않은 요건만 학생이 직접 체크할 수 있다 (연결된 과목이 있으면 그 과목 학점만 반영)
-    const canConfirm = !p.skipped && p.level < 2 && p.state !== 'studentLinked';
+    const canConfirm = !p.skipped && p.level < 2;
     // 연결된 과목 이름은 요건 이름과 다를 때만 (영문명·구분점 차이는 같은 이름으로 보고 한 번만 적는다)
     const taken = p.courseId ? byId.get(p.courseId)?.name : undefined;
     const alsoKnownAs = taken && normalizeCourseName(taken) !== normalizeCourseName(n.name) ? taken : undefined;
+    const { mark, selfChecked } = leafDisplay(p);
     return (
       <li className={`req ${p.level > 0 ? 'met' : ''}`}>
-        <span aria-hidden="true">{leafMark(p)}</span>
-        <span className="name">{n.name}{n.code ? ` (${n.code})` : ''}
-          {p.level === 1 && <span className="contact-checked"> 직접 확인</span>}</span>
+        <span aria-hidden="true">{mark}</span>
+        <span className="name">{n.name}{n.code ? ` (${n.code})` : ''}</span>
         {canConfirm && (
-          <button type="button" className="btn small self-check" aria-pressed={confirmed.has(n.id)}
-            aria-label={`${n.name} 직접 체크`} onClick={() => onToggle(n.id)}>직접 체크</button>
+          <button type="button" className="btn small self-check" aria-pressed={selfChecked}
+            aria-label={`${n.name} 직접 체크`} onClick={() => onToggle(n.id, selfChecked)}>직접 체크</button>
         )}
-        <span className="small">{p.skipped ? '다른 선택으로 충족' : LEAF_TEXT[p.state ?? 'unmet']}{alsoKnownAs && ` · ${alsoKnownAs}`}</span>
+        <span className="small">{p.skipped ? '다른 선택으로 충족' : LEAF_TEXT[p.state ?? 'unmet']}
+          {/* 학생이 직접 체크한 줄만 표시한다. 코드·이름으로 맞은 줄에는 붙이지 않는다 */}
+          {selfChecked && <span className="contact-checked"> · 내가 체크</span>}
+          {alsoKnownAs && ` · ${alsoKnownAs}`}</span>
       </li>
     );
   }
   const head = n.op === 'AT_LEAST' ? `다음 중 ${n.count}과목 이상` : n.op === 'OR' ? '다음 중 1과목' : null;
-  const inner = <ul className="plain">{(p.children ?? []).map((c, i) => <NodeView key={i} p={c} byId={byId} confirmed={confirmed} onToggle={onToggle} />)}</ul>;
+  const inner = <ul className="plain">{(p.children ?? []).map((c, i) => <NodeView key={i} p={c} byId={byId} onToggle={onToggle} />)}</ul>;
   return head ? <li><span className="small"><b>{head}</b> {p.level > 0 ? '— 충족' : ''}</span>{inner}</li> : <li>{inner}</li>;
 }
 
 export function CourseRulesBlock({ progress, courses }: { progress: CourseRuleProgress[]; courses: Course[] }) {
-  const { state, save, now } = useStore();
+  const { save, now } = useStore();
   if (!progress.length) return null;
   const byId = new Map(courses.map((c) => [c.id, c]));
-  const confirmed = new Set(state.certConfirmations.map((c) => c.requirementId));
   // 졸업인증 '통과 확인'과 같은 저장소를 쓴다 (요건 ID 하나당 한 건, 언제든 해제 가능)
-  const onToggle = (leafId: string) => void save((sv) => ({
+  const onToggle = (leafId: string, checked: boolean) => void save((sv) => ({
     ...sv,
-    certConfirmations: confirmed.has(leafId) ? sv.certConfirmations.filter((c) => c.requirementId !== leafId)
+    courses: sv.courses.map((c) => {
+      if (!checked || !c.requirementLinks?.includes(leafId)) return c;
+      const requirementLinks = c.requirementLinks.filter((id) => id !== leafId);
+      return { ...c, requirementLinks, requiredClaim: requirementLinks.length || c.requiredClaim !== 'studentMarked' ? c.requiredClaim : 'none' };
+    }),
+    certConfirmations: checked
+      ? sv.certConfirmations.filter((c) => c.requirementId !== leafId)
       : [...sv.certConfirmations, { requirementId: leafId, confirmedAt: now.toISOString() }],
   }));
   const scopeTitle = (e: RuleEval) => (e.rule.departmentId ? departmentName(e.rule.departmentId) : '학교 공통');
@@ -244,12 +321,11 @@ export function CourseRulesBlock({ progress, courses }: { progress: CourseRulePr
     <div className="req-block">
       {progress.map((p) => (
         <details key={p.eval.rule.id} open={p.status !== 'met'}>
-          <summary className="row-between"><span><span className="chip">{scopeTitle(p.eval)}</span> {title(p.eval)}</span><span className="small">{countText(p.root)}{RULE_STATUS[p.status]}</span></summary>
-          <ul className="plain"><NodeView p={p.root} byId={byId} confirmed={confirmed} onToggle={onToggle} /></ul>
-          <Sources ids={p.eval.rule.sourceIds} />
+          <summary className="row-between"><span><span className="chip">{scopeTitle(p.eval)}</span> {title(p.eval)}</span><span className="small">{countText(p.root)}{p.eval.rule.status === 'conflict' && p.root.level === 0 ? '확인 전' : RULE_STATUS[p.status]}</span></summary>
+          <ul className="plain"><NodeView p={p.root} byId={byId} onToggle={onToggle} /></ul>
         </details>
       ))}
-      <p className="muted small" data-testid="course-legend">○ 미이수 · ✓ 코드·대체 · = 이름 일치<br />직접 확인: 학생 체크 · 학점 추가 없음</p>
+      <p className="muted small" data-testid="course-legend">○ 미이수 · ✓ 이수</p>
     </div>
   );
 }
@@ -344,7 +420,6 @@ export function RuleItemsCard() {
                   {CONFIRMABLE.has(e.rule.category) && !e.rule.none && (
                     <label className="check"><input type="checkbox" checked={confirmed.has(e.rule.id)} onChange={() => void toggle(e.rule.id)} /> 통과했다고 직접 확인 (학생 확인 · 규정 확인을 대신하지 않아요)</label>
                   )}
-                  <Sources ids={e.rule.sourceIds} />
                 </li>
               );
             })}

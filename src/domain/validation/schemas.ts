@@ -281,6 +281,11 @@ export const officialRuleSchema: z.ZodType<OfficialRule> = z.object({
   termSpecific: z.object({ term: z.string().regex(/^\d{4}-[12]$/), fields: z.record(z.unknown()) }).strict().optional(),
   reasons: z.array(z.string().max(400)),
   note: z.string().max(600).optional(),
+  displayReason: z.object({
+    key: z.enum(['conflict', 'minorScope', 'threshold', 'cohort']),
+    label: z.string().min(1).max(60),
+    inquiryId: z.string().max(20).optional(),
+  }).strict().optional(),
   sourceIds,
 }).strict()
   .refine((r) => r.state === 'compatible' ? !!r.bundleIds?.length : r.condition !== null, '조건 처리 규칙에는 조건식이, 호환 규칙에는 묶음 ID가 필요해요')

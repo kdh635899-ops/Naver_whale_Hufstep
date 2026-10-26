@@ -67,6 +67,35 @@ function convertExpr(e, ruleId, path = 'r') {
   };
 }
 
+/** 충돌 원문은 보존하고, 앱에는 이수가 필요한 쪽의 과목·최소학점을 별도로 투영한다. */
+function conservativeConflict(req, ruleId) {
+  if (!req) return {};
+  let expression = req.expression;
+  if (expression?.op === 'UNRESOLVED') expression = { ...expression, op: 'ALL' };
+  if (!expression && ['conflictingCourseRequirement', 'conflictingRequiredCourseScope'].includes(req.type) && req.courseName) {
+    expression = { op: 'ALL', items: [{ type: 'course', courseName: req.courseName }] };
+  }
+  const result = {};
+  if (expression) result.courses = convertExpr(expression, ruleId);
+  if (req.type === 'creditMinimums') {
+    const maximum = (v) => {
+      const values = [v?.value, ...(v?.claims ?? []).map((c) => c.value)].filter((v) => typeof v === 'number');
+      return values.length ? Math.max(...values) * 100 : undefined;
+    };
+    const total = maximum(req.values?.totalCredits);
+    if (total !== undefined) result.totalRequiredUnits = total;
+    result.requiredUnitsByArea = {};
+    for (const [key, area] of [['primaryCredits', 'primary'], ['liberalArtsCredits', 'liberalArts']]) {
+      const units = maximum(req.values?.[key]);
+      if (units !== undefined) result.requiredUnitsByArea[area] = units;
+    }
+  }
+  if (req.type === 'conflictingCreditMinimums' && typeof req.componentSum === 'number') {
+    result.requiredUnitsByArea = { double: Math.max(req.total?.value ?? 0, req.componentSum) * 100 };
+  }
+  return result;
+}
+
 /** 원문에 '요건 없음/적용 제외'가 명시된 범주. 빈 배열·누락은 여기서 만들지 않는다. */
 function noneFor(req) {
   if (!req) return undefined;
@@ -136,6 +165,7 @@ for (const rec of manifest.records) {
     requiredUnitsByArea: isCompat ? {} : sp.requiredUnitsByArea ?? {},
     ...(areaNotes.length && !isCompat && { areaNotes }),
     ...(!isCompat && sp.requiredCourseExpression?.items?.length && { courses: convertExpr(sp.requiredCourseExpression, rec.ruleId) }),
+    ...(rec.researchVerificationStatus === 'conflict' && conservativeConflict(req, rec.ruleId)),
     ...(req?.listCompleteness && { listCompleteness: req.listCompleteness }),
     ...(noneFor(req) && { none: noneFor(req) }),
     ...(substitutionsFor(req) && { substitutions: substitutionsFor(req) }),
@@ -143,6 +173,8 @@ for (const rec of manifest.records) {
     ...(scoped?.termSpecific && { termSpecific: scoped.termSpecific }),
     reasons: isCompat ? rec.reasons : scoped.reasons,
     ...(o.unknownReason && { note: o.unknownReason }),
+    // 학교 확인이 필요한 규칙의 화면용 분류 (조사 폴더 inquiries.json → 전달본)
+    ...(rec.displayReason && { displayReason: rec.displayReason }),
     sourceIds: [...collectSourceIds([rec.sourceRefs, o])].sort(),
   });
 }

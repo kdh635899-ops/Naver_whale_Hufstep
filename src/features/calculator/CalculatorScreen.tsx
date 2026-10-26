@@ -80,6 +80,7 @@ export function CalculatorScreen() {
           {currentCourses.map((c) => {
             const e = entry(c.id);
             const usedElsewhere = new Set(scenario?.entries.filter((x) => x.courseId !== c.id && x.replacesCourseId).map((x) => x.replacesCourseId));
+            const picked = e?.replacesCourseId ?? c.replacesCourseId ?? '';
             return (
               <li key={c.id}>
                 <div className="row-between">
@@ -94,8 +95,12 @@ export function CalculatorScreen() {
                     </select>
                   </label>
                   <label>재수강이면 기존 기록
-                    <select value={e?.replacesCourseId ?? ''} onChange={(x) => setEntry(c.id, { replacesCourseId: x.target.value || undefined })}>
+                    <select value={picked} onChange={(x) => setEntry(c.id, { replacesCourseId: x.target.value || undefined })}>
                       <option value="">재수강 아님</option>
+                      {/* 과목 수정에서 지정한 기록은 이미 계산에서 빠져 목록에 없으므로 따로 보여 준다 */}
+                      {picked && !retakeTargets.some((t) => t.id === picked) && (
+                        <option value={picked}>{state.courses.find((t) => t.id === picked)?.name ?? '이전 기록'} (과목 수정에서 지정)</option>
+                      )}
                       {retakeTargets.filter((t) => !usedElsewhere.has(t.id)).map((t) => (
                         <option key={t.id} value={t.id}>{t.name} ({termLabel(t.term)} {t.grade ?? '?'})</option>
                       ))}

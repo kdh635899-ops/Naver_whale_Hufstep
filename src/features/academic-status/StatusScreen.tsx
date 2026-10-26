@@ -10,7 +10,7 @@ import { compareTerms, formatUnits, termKey, termLabel } from '../../domain/term
 import type { BundleScope, CertificationRequirement, Course } from '../../domain/types';
 import { ProfileForm } from '../profile/ProfileForm';
 import { AREA_LABEL, Bar, CAMPUS_LABEL, ENTRY_LABEL, PROGRAM_LABEL, Sheet, STATUS_LABEL } from '../common';
-import { CourseRulesBlock, CoverageCard, QuestionsCard, RuleItemsCard, Sources } from './OfficialSections';
+import { CourseRulesBlock, CoverageCard, QuestionsCard, RuleItemsCard } from './OfficialSections';
 
 const STATUS_TEXT: Record<ReqStatus, string> = { met: '충족', unmet: '미충족', insufficient: '판단 자료 부족', notApplicable: '기준 없음' };
 const SCOPE_TITLE: Record<BundleScope, string> = { common: '학교 공통', program: '전공 구성', primary: '주전공', secondary: '두 번째 전공' };
@@ -32,6 +32,8 @@ export function StatusScreen() {
     : []), [report, state.courses, snap, resolved, progress, state.certConfirmations]);
   const confirmed = new Set(state.certConfirmations.map((c) => c.requirementId));
   const byId = new Map(state.courses.map((c) => [c.id, c]));
+  const inquiryAreas = new Set(report?.evals.filter((e) => e.rule.status === 'conflict' && e.applies === true)
+    .flatMap((e) => Object.keys(e.rule.requiredUnitsByArea)));
 
   const toggleConfirm = (id: string) => save((s) => ({
     ...s,
@@ -101,7 +103,9 @@ export function StatusScreen() {
                   <span>{formatUnits(a.earned)}{a.required !== undefined && ` / ${formatUnits(a.required)}`}학점</span>
                 </div>
                 {a.required !== undefined && <Bar value={a.earned} max={a.required} label={`${AREA_LABEL[a.area]} 진행률`} />}
-                {a.required !== undefined && <p className={`small ${a.status}`}>{a.status === 'met' ? '충족' : `${formatUnits(a.shortfall!)}학점 부족`}</p>}
+                {a.required !== undefined && <p className={`small ${inquiryAreas.has(a.area) ? 'muted' : a.status}`}>
+                  {inquiryAreas.has(a.area) ? `확인 중인 기준 ${formatUnits(a.required)}학점` : a.status === 'met' ? '충족' : `${formatUnits(a.shortfall!)}학점 부족`}
+                </p>}
               </li>
             ))}
           </ul>
@@ -114,26 +118,35 @@ export function StatusScreen() {
         {(['primary', 'secondary', 'program', 'common'] as BundleScope[]).map((scope) => {
           const groups = progress.groups.filter((g) => g.scope === scope);
           if (!groups.length) return null;
-          const met = groups.filter((g) => g.status === 'met');
+          // 공식 매칭과 학생이 직접 체크한 줄을 함께 '이수(✓)'로 센다. 학점은 공식 매칭분만 더한다.
+          const isDone = (g: typeof groups[number]) => g.status === 'met' || confirmed.has(g.group.id);
+          const met = groups.filter(isDone);
           return (
             <div key={scope} className="req-block">
-              <p className="row-between"><b>{scopeName(scope)}</b><span className="small">{met.length} / {groups.length} 충족 · {formatUnits(met.reduce((s, g) => s + g.matchedUnits, 0))}학점</span></p>
+              <p className="row-between"><b>{scopeName(scope)}</b><span className="small">{met.length} / {groups.length} 충족 · {formatUnits(groups.filter((g) => g.status === 'met').reduce((s, g) => s + g.matchedUnits, 0))}학점</span></p>
               <ul className="plain">
-                {groups.map((g) => (
-                  <li key={g.group.id} className={`req ${g.status}`}>
-                    <span aria-hidden="true">{g.status === 'met' ? '✓' : g.status === 'insufficient' ? '?' : '○'}</span>
-                    <span className="name">{g.group.title}</span>
-                    <span className="small">{STATUS_TEXT[g.status]}{g.matchedCourseIds.length > 0 && ` · ${g.matchedCourseIds.map((id) => byId.get(id)?.name).join(', ')}`}</span>
-                  </li>
-                ))}
+                {groups.map((g) => {
+                  const done = isDone(g);
+                  const selfChecked = g.status !== 'met' && confirmed.has(g.group.id);
+                  return (
+                    <li key={g.group.id} className={`req ${done ? 'met' : ''}`}>
+                      <span aria-hidden="true">{done ? '✓' : '○'}</span>
+                      <span className="name">{g.group.title}</span>
+                      {g.status !== 'met' && (
+                        <button type="button" className="btn small self-check" aria-pressed={selfChecked}
+                          aria-label={`${g.group.title} 직접 체크`} onClick={() => toggleConfirm(g.group.id)}>직접 체크</button>
+                      )}
+                      <span className="small">{done ? '이수' : STATUS_TEXT[g.status]}
+                        {selfChecked && <span className="contact-checked"> · 내가 체크</span>}
+                        {g.matchedCourseIds.length > 0 && ` · ${g.matchedCourseIds.map((id) => byId.get(id)?.name).join(', ')}`}</span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           );
         })}
         <CourseRulesBlock progress={courseProgress} courses={state.courses} />
-        {progress.studentMarkedCourseIds.length > 0 && (
-          <p className="muted small">내가 필수로 표시한 과목 {progress.studentMarkedCourseIds.length}개 (공식 매칭 아님 · 학점은 따로 더하지 않아요): {progress.studentMarkedCourseIds.map((id) => byId.get(id)?.name).join(', ')}</p>
-        )}
         <button type="button" className="btn ghost block" onClick={() => openEditor({ preset: { status: 'completed', term: profile.currentTerm } })}>과목 추가·수정</button>
       </section>
 
@@ -161,7 +174,6 @@ export function StatusScreen() {
                 ) : r.checkMethod === 'studentConfirm' && (
                   <label className="check"><input type="checkbox" checked={confirmed.has(r.id)} onChange={() => toggleConfirm(r.id)} /> 충족했다고 직접 확인 (학생 확인)</label>
                 )}
-                <Sources ids={r.sourceIds} />
               </li>
             ))}
           </ul>
@@ -171,7 +183,6 @@ export function StatusScreen() {
       <QuestionsCard defaults />
       <MyCourses courses={state.courses} />
 
-      {resolved && <Sources ids={resolved.sourceIds} label="이 화면의 기준 출처" />}
       {mode === 'demo' && <p className="muted small">가상 데이터의 수치는 예시이며 공식 학교 기준이 아니에요.</p>}
       <button type="button" className="btn primary block" onClick={() => setView('calculator')}>학점계산으로 이동 →</button>
 
@@ -221,7 +232,6 @@ function CertCard({ scope, cert, confirmed, onToggle }: { scope: string; cert: C
       {cert.kind === 'other' && <p className="small">{cert.description}</p>}
       {cert.kind !== 'other' && cert.exemptions.length > 0 && <p className="small">면제: {cert.exemptions.join(' / ')}</p>}
       <label className="check"><input type="checkbox" checked={confirmed} onChange={onToggle} /> 통과했다고 직접 확인</label>
-      <Sources ids={cert.sourceIds} />
     </div>
   );
 }

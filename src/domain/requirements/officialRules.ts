@@ -1,5 +1,5 @@
 // 조건식이 붙은 공식 규칙(official-rules.json)의 선택 → 학점 결합 → 필수과목 식 평가 → 핵심 항목별 판정 가능 범위.
-// 원칙: 명시된 기본값이 없는 미입력 조건은 '입력 필요/미지원', 조사 미확정·충돌 규칙은 확정 계산에 쓰지 않는다.
+// 원칙: 미확정 상태는 유지하며, 자료 충돌은 조건이 맞을 때 엄격한 쪽으로 계산한다.
 import { effectiveCourses } from '../gpa/gpa';
 import { compareTerms, termKey } from '../terms';
 import type {
@@ -167,7 +167,40 @@ const coreOf = (r: OfficialRule): CoreCategory | undefined => {
 const noneCore = (cat: string): CoreCategory | undefined => (cat === 'commonLanguageCertification' ? 'languageCertification' : CORE_OF[cat]);
 
 export type NoteKind = 'needsInput' | 'unconfirmed' | 'unsupported' | 'gap' | 'partialList' | 'conflict' | 'schoolDefault' | 'schoolCommonOnly';
-export interface CoverageNote { kind: NoteKind; text: string; ruleIds: string[]; sourceIds: string[] }
+
+/** 학생에게 보여 줄 네 가지 한 줄 분류. 규칙에 분류가 실려 오지 않으면 이유 종류로 정한다. */
+export const DISPLAY_REASON_LABEL = {
+  conflict: '자료마다 달라서 필수로 계산했어요',
+  minorScope: '학과 내규가 있을 수 있어요',
+  threshold: '합격 기준은 학과 확인 필요',
+  cohort: '학번별 기준이 확실하지 않아요',
+} as const;
+export type DisplayReasonKey = keyof typeof DISPLAY_REASON_LABEL;
+
+const REASON_OF_KIND: Record<Exclude<NoteKind, 'needsInput'>, DisplayReasonKey> = {
+  conflict: 'conflict', schoolDefault: 'minorScope', schoolCommonOnly: 'threshold',
+  unconfirmed: 'cohort', unsupported: 'cohort', gap: 'cohort', partialList: 'cohort',
+};
+
+/** 규칙에 실려 온 분류를 먼저 쓰고, 없으면 이유 종류로 정한다. 추가 입력 필요는 성격이 달라 분류하지 않는다. */
+export function displayReasonFor(kind: NoteKind, rule?: OfficialRule): string | undefined {
+  if (kind === 'needsInput') return undefined;
+  return rule?.displayReason?.label ?? DISPLAY_REASON_LABEL[REASON_OF_KIND[kind]];
+}
+
+export interface CoverageNote {
+  notApplicable?: boolean;
+  kind: NoteKind;
+  /** 학생이 '통과했어요'로 넘긴 기록을 저장할 안정적인 ID */
+  id: string;
+  /** 요건 줄에 보여 줄 짧은 제목 (없으면 text를 쓴다) */
+  title?: string;
+  /** 학교 확인이 필요한 줄 아래 한 줄로 보여 줄 분류 (needsInput에는 없다) */
+  displayReason?: string;
+  text: string;
+  ruleIds: string[];
+  sourceIds: string[];
+}
 export interface CoverageRow {
   category: CoreCategory;
   scope: RuleScope;
@@ -210,15 +243,20 @@ export const ruleTitle = (r: OfficialRule, departmentName?: string): string =>
   r.title ? koreanRoles(r.title).replace(/^20\d{2}\s+/, '')
     : [departmentName ?? (r.departmentId ? '' : '학교 공통'), CATEGORY_TITLE[r.category] ?? '졸업 관련 규정'].filter(Boolean).join(' ');
 
-function noteFrom(e: RuleEval, deptName: (id: string) => string | undefined): CoverageNote {
-  const title = ruleTitle(e.rule, e.rule.departmentId ? deptName(e.rule.departmentId) : undefined);
+export function noteFrom(e: RuleEval, deptName: (id: string) => string | undefined): CoverageNote {
+  const title = e.rule.type === 'conflictingLanguageCoursePolicy'
+    ? '제2외국어 1~6단계 순차 이수 · 언어 변경 사전 승인'
+    : ruleTitle(e.rule, e.rule.departmentId ? deptName(e.rule.departmentId) : undefined);
   const kind: NoteKind = e.cls === 'needsInput' ? 'needsInput' : e.cls === 'unsupported' ? 'unsupported' : 'unconfirmed';
   const why = kind === 'needsInput'
     ? `추가 입력 필요: ${e.askFields.map((f) => ASKABLE_FIELDS[f].label).join(', ')}`
     : kind === 'unsupported'
       ? [e.blockers.length ? `원문 미확정 조건: ${e.blockers.join(' / ')}` : '', e.unaskableFields.length ? `앱이 아직 입력받지 못하는 조건: ${e.unaskableFields.join(', ')}` : ''].filter(Boolean).join(' · ')
       : `${e.rule.status === 'conflict' ? '근거 충돌' : '조사 미확정'}: ${e.rule.reasons.join(' / ') || e.rule.note || '학교 확인 필요'}`;
-  return { kind, text: `${title} — ${why}`, ruleIds: [e.rule.id], sourceIds: e.rule.sourceIds };
+  return {
+    kind, id: e.rule.id, title, displayReason: displayReasonFor(kind, e.rule),
+    text: `${title} — ${why}`, ruleIds: [e.rule.id], sourceIds: e.rule.sourceIds,
+  };
 }
 
 export interface ReportInput {
@@ -237,6 +275,9 @@ export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept
   const deptName = (id: string) => dept(id)?.name;
   const titleOf = (r: OfficialRule) => ruleTitle(r, r.departmentId ? deptName(r.departmentId) : undefined);
   const confirmed = evals.filter((e) => e.cls === 'confirmed');
+  // 학교 공통의 '부전공 전필 제외'를 우선하며, 조건을 모르는 충돌 규칙은 소급 적용하지 않는다.
+  const conservative = evals.filter((e) => e.rule.status === 'conflict' && e.applies === true
+    && !(e.role === 'minor' && e.rule.category === 'requiredCourses'));
   // 졸업 예정 학기 때문에 빠진 규칙을 찾기 위한 비교 평가 (그 답만 지운 상태)
   const grad = profile.facts?.graduationTerm;
   const withoutGrad = typeof grad === 'string'
@@ -246,12 +287,23 @@ export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept
   const matchedBundles = selectBundles(profile, bundles, ['verified'], today);
 
   // 학점: 호환 묶음 + 확정된 학점 규칙을 같은 방식으로 결합 (다른 값이면 충돌로 남기고 비움)
-  const creditParts: CombinablePart[] = confirmed.filter((e) => isCreditRule(e.rule)).map((e) => ({
+  const creditParts: CombinablePart[] = [...confirmed, ...conservative].filter((e) => isCreditRule(e.rule)).map((e) => ({
     id: e.rule.id, status: 'verified', scope: e.scope, totalRequiredUnits: e.rule.totalRequiredUnits,
     requiredUnitsByArea: e.rule.requiredUnitsByArea, requiredCourseGroups: [], certifications: [], commonRequirements: [],
     sourceIds: e.rule.sourceIds,
   }));
-  const resolved = combineParts(profile, [...matchedBundles, ...creditParts]);
+  const parts = [...matchedBundles, ...creditParts].map((p) => ({ ...p, requiredUnitsByArea: { ...p.requiredUnitsByArea } }));
+  for (const { rule } of conservative.filter((e) => isCreditRule(e.rule))) {
+    if (rule.totalRequiredUnits !== null) {
+      const maximum = Math.max(...parts.map((p) => p.totalRequiredUnits ?? 0));
+      for (const p of parts) if (p.totalRequiredUnits !== null) p.totalRequiredUnits = maximum;
+    }
+    for (const [area, units] of Object.entries(rule.requiredUnitsByArea) as [CreditArea, number][]) {
+      const maximum = Math.max(units, ...parts.map((p) => p.requiredUnitsByArea[area] ?? 0));
+      for (const p of parts) if (p.requiredUnitsByArea[area] !== undefined) p.requiredUnitsByArea[area] = maximum;
+    }
+  }
+  const resolved = combineParts(profile, parts);
 
   // 호환 묶음이 어떤 범주를 덮는지 (원래 규칙 기록으로 추적)
   const compatByBundle = new Map<string, OfficialRule>();
@@ -281,35 +333,45 @@ export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept
     if (category === 'credits') basis = resolved?.totalRequiredUnits != null ? 'confirmed' : 'missing';
     else if (okRules.some((r) => !noneApplies(r, category))) basis = 'confirmed';
     else if (okRules.some((r) => noneApplies(r, category))) basis = 'none';
+    if (category === 'requiredCourses' && ctx?.role === 'minor'
+      && !okRules.some((r) => r.departmentId && !noneApplies(r, category))) basis = 'none';
 
     const notes = rowEvals.filter((e) => e.cls !== 'confirmed').map((e) => noteFrom(e, deptName));
+    if (basis === 'none') for (const note of notes) note.notApplicable = true;
     // 학과 기준이 없을 때 학교 공통 '졸업시험 또는 논문 통과 필요'를 학과 줄에도 알린다 (세부 기준은 학과 확인)
     if (category === 'departmentAssessment' && basis === 'missing' && departmentId) {
       const common = evals.filter((e) => e.scope === 'common' && e.role === ctx?.role && e.cls === 'confirmed' && e.rule.type === 'assessmentRequired');
-      if (common.length) notes.push({ kind: 'schoolCommonOnly', text: '학교 기준상 졸업시험 또는 졸업논문을 통과해야 해요. 학과별 시험 과목·점수·대체 경로는 아직 제공되지 않아 학과 공지를 확인하세요.',
+      if (common.length) notes.push({ kind: 'schoolCommonOnly', id: `${category}:${scope}:schoolCommonOnly`,
+        title: '학과 졸업시험 또는 졸업논문 통과', displayReason: displayReasonFor('schoolCommonOnly'),
+        text: '학교 기준상 졸업시험 또는 졸업논문을 통과해야 해요. 학과별 시험 과목·점수·대체 경로는 아직 제공되지 않아 학과 공지를 확인하세요.',
         ruleIds: common.map((e) => e.rule.id), sourceIds: [...new Set(common.flatMap((e) => e.rule.sourceIds))] });
     }
     // 학교 기본값으로만 '없음'이면 확정으로 끝내지 않고 학과 확인 안내를 붙인다 (학과가 명시한 '없음'이 있으면 생략)
     if (basis === 'none') {
       const noneRules = okRules.filter((r) => noneApplies(r, category));
       if (noneRules.every((r) => r.none?.departmentMayImpose)) {
-        notes.push({ kind: 'schoolDefault', text: '학교 편람상 졸업시험·논문 의무는 1전공·이중전공에만 있어요. 학과가 부전공에도 부과할 수 있으니 학과 공지를 확인하세요.',
+        notes.push({ kind: 'schoolDefault', id: `${category}:${scope}:schoolDefault`,
+          title: '학과 졸업시험·논문 부과 여부', displayReason: displayReasonFor('schoolDefault', noneRules[0]),
+          text: '학교 편람상 졸업시험·논문 의무는 1전공·이중전공에만 있어요. 학과가 부전공에도 부과할 수 있으니 학과 공지를 확인하세요.',
           ruleIds: noneRules.map((r) => r.id), sourceIds: [...new Set(noneRules.flatMap((r) => r.sourceIds))] });
       }
     }
     if (basis === 'missing') {
       for (const e of gradOnly) {
         const terms = [...condValues(e.rule.condition!, 'graduationTerm')].join(', ');
-        notes.push({ kind: 'gap', text: `${titleOf(e.rule)} — 공개된 기준은 ${terms} 졸업에만 명시돼 있어, 입력한 졸업 예정 학기(${grad})에는 적용 근거가 아직 없어요`, ruleIds: [e.rule.id], sourceIds: e.rule.sourceIds });
+        notes.push({ kind: 'gap', id: e.rule.id, title: titleOf(e.rule), displayReason: displayReasonFor('gap', e.rule),
+          text: `${titleOf(e.rule)} — 공개된 기준은 ${terms} 졸업에만 명시돼 있어, 입력한 졸업 예정 학기(${grad})에는 적용 근거가 아직 없어요`, ruleIds: [e.rule.id], sourceIds: e.rule.sourceIds });
       }
     }
     if (category === 'credits') {
-      for (const c of resolved?.conflicts ?? []) notes.push({ kind: 'conflict', text: `규정 값이 서로 달라 보류: ${c}`, ruleIds: [], sourceIds: [] });
+      for (const c of resolved?.conflicts ?? []) notes.push({ kind: 'conflict', id: `${category}:${scope}:conflict:${c}`,
+        title: c, displayReason: displayReasonFor('conflict'), text: `규정 값이 서로 달라 보류: ${c}`, ruleIds: [], sourceIds: [] });
     }
     if (category === 'requiredCourses') {
       for (const r of okRules) {
         if (r.courses && r.listCompleteness !== 'completeForStatedScope') {
-          notes.push({ kind: 'partialList', text: `${titleOf(r)} — 원문 목록이 전체 목록인지 확인되지 않음 (${r.listCompleteness ?? '완전성 미표기'})`, ruleIds: [r.id], sourceIds: r.sourceIds });
+          notes.push({ kind: 'partialList', id: `${r.id}:partialList`, title: titleOf(r), displayReason: displayReasonFor('partialList', r),
+            text: `${titleOf(r)} — 원문 목록이 전체 목록인지 확인되지 않음 (${r.listCompleteness ?? '완전성 미표기'})`, ruleIds: [r.id], sourceIds: r.sourceIds });
         }
       }
     }
@@ -318,7 +380,8 @@ export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept
         if (g.departmentId !== departmentId || g.category !== category) continue;
         if (g.entryTypes && !g.entryTypes.includes(profile.entryType)) continue;
         if (g.majorRoles && !g.majorRoles.includes(ctx?.role ?? '')) continue;
-        notes.push({ kind: 'gap', text: g.reason, ruleIds: [], sourceIds: [] });
+        notes.push({ kind: 'gap', id: `gap:${departmentId}:${category}:${notes.length}`, title: g.reason,
+          displayReason: displayReasonFor('gap'), text: g.reason, ruleIds: [], sourceIds: [] });
       }
     }
     rows.push({ category, scope, departmentId, basis, notes, determinable: basis !== 'missing' && notes.length === 0 });
@@ -336,7 +399,7 @@ export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept
     evals,
     questions: buildQuestions(evals, rules, usedDefaults),
     resolved,
-    courseRules: confirmed.filter((e) => !!e.rule.courses),
+    courseRules: [...confirmed, ...conservative].filter((e) => !!e.rule.courses),
     items: confirmed.filter((e) => !e.rule.courses && !isCreditRule(e.rule)
       && e.rule.type !== 'requiredCoursePolicy'
       && !(e.scope === 'common' && e.rule.type === 'assessmentRequired'
@@ -387,6 +450,19 @@ export interface CourseRuleProgress {
   status: 'met' | 'studentConfirmed' | 'unmet' | 'insufficient';
 }
 
+/** 학생이 직접 연결·확인해서 충족된 상태 (내부 값은 그대로 두고 화면에서만 ✓로 합친다) */
+const SELF_CHECKED: ReadonlySet<LeafState> = new Set<LeafState>(['studentLinked', 'selfConfirmed']);
+
+/**
+ * 요건 한 줄의 화면 표시. 기호는 두 가지만 쓴다.
+ * - ○ 미이수 / ✓ 이수 (코드·대체·이름 일치·학생 확인을 모두 ✓로 합친다)
+ * selfChecked = 학생이 직접 체크한 줄 (✓ 뒤에 '· 내가 체크'를 붙인다)
+ */
+export function leafDisplay(p: NodeProgress): { mark: '○' | '✓'; selfChecked: boolean } {
+  if (p.level === 0) return { mark: '○', selfChecked: false };
+  return { mark: '✓', selfChecked: !!p.state && SELF_CHECKED.has(p.state) };
+}
+
 const parseTerm = (s: string): Term => ({ academicYear: Number(s.slice(0, 4)), semester: s.slice(5) as Term['semester'] });
 
 export interface CourseMatchContext {
@@ -403,7 +479,7 @@ export interface CourseMatchContext {
  * - 코드가 있는 요건: 공식 코드 또는 조건이 맞는 대체 관계로만 충족 (✓).
  * - 코드가 없는 요건(matching: studentConfirmation): 성적의 개설학과가 그 전필의 학과와 같고
  *   정규화한 과목명이 같으면 자동 이수 (이름 일치). 이름만 비슷한 과목은 쓰지 않는다.
- * - 그래도 미이수면 학생이 직접 연결(studentLinked)하거나 '이수함'만 체크(selfConfirmed)할 수 있다 (△).
+ * - 그래도 미이수면 학생이 직접 연결(studentLinked)하거나 '이수함'만 체크(selfConfirmed)할 수 있다 (✓).
  */
 export function evaluateCourseRules(
   report: OfficialReport, courses: Course[], snapshot: AcademicSnapshot | null, ctx: CourseMatchContext = {},
@@ -498,6 +574,26 @@ export function linkableLeaves(report: OfficialReport | null, deptName?: (id: st
   };
   for (const e of report?.courseRules ?? []) walk(e.rule.courses!, ruleTitle(e.rule, e.rule.departmentId ? deptName?.(e.rule.departmentId) : undefined));
   return out;
+}
+
+/**
+ * 과목명으로 연결할 수 있는 필수과목 요건을 찾는다 (과목 편집기의 '전공필수예요' 체크에 쓴다).
+ * 대조 기준은 normalizeCourseName 하나뿐이다. 이름이 비슷한 과목은 찾지 않는다.
+ * 정확히 하나면 자동 연결, 여럿이면 학생이 고르고, 없으면 연결하지 않는다.
+ */
+export function autoLinkTargets(
+  report: OfficialReport | null, courseName: string, deptName?: (id: string) => string,
+): { leaf: CourseLeaf; ruleTitle: string }[] {
+  const key = normalizeCourseName(courseName.trim());
+  if (!key) return [];
+  const seen = new Set<string>();
+  return linkableLeaves(report, deptName).filter(({ leaf }) => {
+    if (seen.has(leaf.id)) return false;
+    const names = [leaf.name, ...(leaf.identicalNames ?? [])].map(normalizeCourseName);
+    if (!names.includes(key)) return false;
+    seen.add(leaf.id);
+    return true;
+  });
 }
 
 // ---- 규칙별 앱 지원 분류 (학생과 무관한 정적 분류, 보고·검사용) ----

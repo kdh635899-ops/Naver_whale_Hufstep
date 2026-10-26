@@ -3,6 +3,7 @@ import { applyMerge, planMerge, type MergeDecisions } from '../../src/domain/mer
 import { parseTranscript } from '../../src/domain/parser/parseTranscript';
 import { evaluateProgress } from '../../src/domain/requirements/resolve';
 import { latestSnapshot, type AppState } from '../../src/domain/state';
+import { compareTerms } from '../../src/domain/terms';
 import { course, stateWith, TRANSCRIPT_FIXTURE, T21_1 } from '../fixtures';
 
 const NO: MergeDecisions = { link: {}, conflictChoice: {}, removeMissing: false };
@@ -18,6 +19,17 @@ describe('재붙여넣기 병합', () => {
     expect(twice.courses).toHaveLength(6);
     expect(twice.courses.map((c) => c.id).sort()).toEqual(once.courses.map((c) => c.id).sort());
     expect(evaluateProgress(null, twice.courses, latestSnapshot(twice)).total.earned).toBe(2000);
+  });
+
+  it('학생이 지정한 재수강 대체(replacesCourseId)는 재붙여넣기 뒤에도 남는다', () => {
+    const once = merge(stateWith(), TRANSCRIPT_FIXTURE);
+    const [older, newer] = [...once.courses].sort((a, b) => compareTerms(a.term, b.term));
+    const marked = {
+      ...once,
+      courses: once.courses.map((c) => (c.id === newer.id ? { ...c, replacesCourseId: older.id } : c)),
+    };
+    const twice = merge(marked, TRANSCRIPT_FIXTURE);
+    expect(twice.courses.find((c) => c.id === newer.id)!.replacesCourseId).toBe(older.id);
   });
 
   it('수동 수강 과목과 새 성적을 연결하면 한 번만 집계되고 평가 ID·메모가 유지된다', () => {

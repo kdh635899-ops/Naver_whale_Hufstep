@@ -279,12 +279,17 @@ describe('실제 규칙 선택 (캠퍼스·학번·역할·입학유형)', () =>
     }
     expect(ruleTitle({ ...rule('core-malay-flex-primary'), title: undefined }, '말레이·인도네시아어과')).toBe('말레이·인도네시아어과 졸업 인증 기준');
   });
-  it('조사 미확정·충돌 규칙은 확정 계산에 쓰지 않고 이유와 함께 표시 (말레이 2021 지역과지역학)', () => {
+  it('충돌 상태는 유지하면서 이수가 필요한 쪽으로 계산 (말레이 2021 지역과지역학)', () => {
     const p: StudentProfile = { ...base, primaryDepartmentId: 'seoul-malay-indonesian', cohortYear: 2021, facts: { ...ANSWERS, foreignLanguageSpecialAdmission: false, approvedRequiredCourseWaiver: false, graduationTerm: '2026-2' } };
     const r = report(p);
     const conflict = r.evals.find((e) => e.rule.id === 'core-malay-regional-2021-scope-conflict')!;
     expect(conflict.cls).toBe('unconfirmed');
-    expect(r.courseRules.map((e) => e.rule.id)).not.toContain(conflict.rule.id);
+    expect(r.courseRules.map((e) => e.rule.id)).toContain(conflict.rule.id);
+    const required = evaluateCourseRules(r, [], null).find((e) => e.eval.rule.id === conflict.rule.id)!;
+    expect(required.root.children![0]).toMatchObject({ level: 0, node: { name: '지역과지역학' } });
+    const checked = evaluateCourseRules(r, [], null, { confirmedLeafIds: [required.root.children![0].node.op === 'course' ? required.root.children![0].node.id : ''] })
+      .find((e) => e.eval.rule.id === conflict.rule.id)!;
+    expect(checked.status).toBe('studentConfirmed');
     const row = r.coverage.find((x) => x.category === 'requiredCourses' && x.scope === 'primary')!;
     expect(row.determinable).toBe(false);
     expect(row.notes.find((n) => n.ruleIds.includes(conflict.rule.id))?.text).toMatch(/근거 충돌/);
@@ -535,11 +540,11 @@ describe('필수과목 식 평가', () => {
     expect(evaluateCourseRules(r, [taken(2025)], null)[0].status).toBe('met');
     expect(evaluateCourseRules(r, [course({ officialCode: 'U72155', grade: 'A0', term: { academicYear: 2026, semester: '1' } })], null)[0].status).toBe('unmet');
   });
-  it('조사 미확정 대체·필수 규칙은 매칭에 쓰지 않는다', () => {
+  it('미확정 대체는 쓰지 않고, 충돌한 필수 규칙은 조건에 맞으면 엄격하게 적용한다', () => {
     const req = synth({ courses: { op: 'ALL', items: [leaf('h', 'H01106')] } });
     const sub = synth({ id: 'sub', status: 'unverified', state: 'unconfirmed', courses: undefined, substitutions: [{ from: ['H01106'], to: ['U72155'] }] });
     expect(run([req, sub], [course({ officialCode: 'U72155', grade: 'A0' })]).status).toBe('unmet');
-    expect(report(german, [synth({ status: 'conflict', state: 'unconfirmed', courses: expr })]).courseRules).toEqual([]);
+    expect(report(german, [synth({ status: 'conflict', state: 'unconfirmed', courses: expr })]).courseRules).toHaveLength(1);
   });
   it('면제 규칙이 적용되면 그 과목만 면제', () => {
     const req = synth({ courses: { op: 'ALL', items: [{ ...leaf('s', 'F10106'), waiverRuleIds: ['w'] }, leaf('t', 'T1')] } });

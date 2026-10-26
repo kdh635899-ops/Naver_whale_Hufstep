@@ -302,6 +302,11 @@ export interface OfficialRule {
   termSpecific?: { term: string; fields: Record<string, unknown> };
   reasons: string[];
   note?: string;
+  /**
+   * 학교 확인이 필요한 규칙에 붙는 화면용 분류. 학생에게는 이 한 줄만 보여 준다.
+   * (조사 폴더의 inquiries.json에서 전달된다. 판정·학점 계산에는 쓰지 않는다.)
+   */
+  displayReason?: { key: 'conflict' | 'minorScope' | 'threshold' | 'cohort'; label: string; inquiryId?: string };
   sourceIds: string[];
 }
 

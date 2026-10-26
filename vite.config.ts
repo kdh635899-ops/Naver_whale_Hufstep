@@ -18,5 +18,5 @@ export default defineConfig({
     },
   },
   worker: { format: 'es' },
-  test: { environment: 'node', env: { TZ: 'Asia/Seoul' }, include: ['tests/unit/**/*.test.ts'] },
+  test: { environment: 'node', env: { TZ: 'Asia/Seoul' }, include: ['tests/unit/**/*.test.{ts,tsx}'] },
 } as never);

@@ -106,7 +106,6 @@ legend { font-size: 13px; font-weight: 700; margin-bottom: 6px; padding: 0; }
 .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .check { flex-direction: row; align-items: flex-start; gap: 8px; font-weight: 400; }
 .check input { width: 18px; height: 18px; min-height: 0; margin-top: 2px; flex: none; }
-.req { color: var(--danger); font-size: 11px; font-weight: 600; }
 .error { color: var(--danger); font-size: 13px; }
 .ok { color: var(--ok); font-size: 13px; }
 .seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: #eef2f8; border-radius: 12px; padding: 4px; }
@@ -222,3 +221,25 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 /* 학과 문의처: 확인일은 핵심 정보보다 흐리고 작게 */
 .contact-line { margin-top: 4px; }
 .contact-checked { color: var(--muted); opacity: 0.7; font-size: 0.85em; margin-left: 4px; }
+
+/* 학교 확인이 필요한 요건 줄: 회색 작은 글씨 한 줄 + ›, 누르면 문의처만 펼친다.
+   자료가 없는 것이지 학생이 못 한 것이 아니므로 경고색을 쓰지 않는다. */
+.inquiry-why {
+  color: var(--muted);
+  font-size: 12px;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.inquiry-why:hover { text-decoration: underline; }
+.req .inquiry-why, .req .inquiry-detail { grid-column: 2 / -1; }
+/* 320px에서도 전화·메일이 잘리지 않도록 한 줄씩 쌓고 긴 주소는 줄바꿈한다 */
+.inquiry-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-left: 8px;
+  border-left: 2px solid #eef2f7;
+}
+.inquiry-detail p { margin: 0; overflow-wrap: anywhere; }
+.inquiry-detail a { color: var(--blue-600); overflow-wrap: anywhere; }
