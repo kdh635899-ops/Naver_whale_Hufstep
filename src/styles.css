@@ -1,6 +1,29 @@
-/* HUFStep 사이드바 스타일 — 팀 피그마의 네이비·파랑/청록 계열, 390px 기준 (320~590px 대응) */
+/* HUFStep 사이드바 스타일 — 팀 피그마(와이어프레임)의 네이비·슬레이트 계열, 390px 기준 (320~590px 대응) */
+/* Pretendard Variable (SIL OFL 1.1, 라이선스: ./fonts/Pretendard-LICENSE.txt). 외부 글꼴은 CSP로 막혀 파일로 포함한다. */
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: local('Pretendard Variable'), local('Pretendard'), url('./fonts/PretendardVariable.woff2') format('woff2');
+}
 :root {
-  --navy-900: #0b2a5b;
+  /* 피그마 디자인 토큰 (디자인 시스템 프레임 기준) */
+  --navy-900: #062b62;
+  --navy-950: #052653; /* 헤더 그라데이션 시작 */
+  --slate: #7a899b; /* 입력 테두리·비활성 글자 */
+  --label: #213b59; /* 입력 라벨 */
+  --panel: #f5f7fa; /* 안내 카드·알약 탭 바 배경 */
+  --track: #dbe4ee; /* 단계 연결선 */
+  --line-soft: #d8e2ec; /* 마이페이지·학기 카드 테두리 */
+  --head-tint: rgba(232, 237, 243, 0.48); /* 학기 카드 머리·꼬리 */
+  --done: #00aeb5; /* 이수·응시 완료 */
+  --todo: #c67819; /* 미이수·미응시 */
+  --r-input: 10px;
+  --r-button: 11px;
+  --r-chip: 15px;
+  --r-card: 20px;
+  --r-pill: 30px;
   --blue-600: #1a4f8f;
   --teal-600: #0f8b8d;
   --teal-50: #e8f6f6;
