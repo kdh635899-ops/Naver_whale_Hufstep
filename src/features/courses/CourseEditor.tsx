@@ -1,4 +1,4 @@
-// 공유 과목 편집기 (§3.5). 학사현황·학점계산·시간표이 모두 이 편집기와 같은 Course ID를 쓴다.
+// 공유 과목 편집기 (§3.5). 학사현황·학점계산·시간표가 모두 이 편집기와 같은 Course ID를 쓴다.
 import { useMemo, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog, departmentName } from '../../data';

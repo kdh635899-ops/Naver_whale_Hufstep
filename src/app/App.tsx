@@ -1,10 +1,10 @@
 // 사이드바 앱 뼈대: 헤더 · 5개 메뉴 · 화면 · 공유 과목 편집기.
 // 메뉴 순서(§2.2): 종정시 입력 → 학사 현황 → 시간표 → 학점 계산 → 마이페이지
-import { useState } from 'react';
+import { useEffect } from 'react';
 import type { View } from '../domain/state';
 import { AssessmentsScreen } from '../features/assessments/AssessmentsScreen';
 import { CalculatorScreen } from '../features/calculator/CalculatorScreen';
-import { ConfirmButton, PrivacySummary } from '../features/common';
+import { ConfirmButton } from '../features/common';
 import { CourseEditor } from '../features/courses/CourseEditor';
 import { ProfileForm } from '../features/profile/ProfileForm';
 import { RecordsScreen } from '../features/records/RecordsScreen';
@@ -35,6 +35,12 @@ function Header() {
 
 export function App() {
   const s = useStore();
+  // 화면에는 가상 데이터 진입 버튼이 없다(Figma에 없음). 개발·점검용으로 주소 뒤에 ?demo를 붙이면 가상 데이터로 연다.
+  const { status, mode, startDemo } = s;
+  const noProfile = !s.state.profile;
+  useEffect(() => {
+    if (status === 'ready' && mode === 'real' && noProfile && new URLSearchParams(window.location.search).has('demo')) startDemo();
+  }, [status, mode, noProfile, startDemo]);
   if (s.status === 'loading') return <div className="loading" role="status">불러오는 중…</div>;
   if (s.status === 'error') return <LoadError />;
   if (!s.state.profile) return <Start />;
@@ -49,12 +55,6 @@ export function App() {
           </button>
         ))}
       </nav>
-      {s.mode === 'demo' && (
-        <div className="demo-banner" role="note">
-          <span>가상 데이터로 보는 시안이에요 · 실제 기록과 섞이지 않고 저장되지 않아요</span>
-          <button type="button" className="btn small light" onClick={s.exitDemo}>나가기</button>
-        </div>
-      )}
       {s.saveError && (
         <div className="error-banner" role="alert">
           <span>{s.saveError}</span>
@@ -73,35 +73,16 @@ export function App() {
   );
 }
 
-/** 첫 실행: 학생 조건 선택 → (성적 입력 또는 건너뛰기) → 학사현황 */
+/** 첫 실행: Figma 개인정보 입력 화면 (헤더·탭 없음) → 저장하면 종정시 입력으로 */
 function Start() {
-  const { startDemo, setView } = useStore();
-  const [step, setStep] = useState<'welcome' | 'form'>('welcome');
+  const { setView } = useStore();
   return (
     <div className="app">
-      <Header />
-      <main className="screen">
-        {step === 'welcome' ? (
-          <>
-            <p className="eyebrow">나에게 맞는 졸업요건</p>
-            <h1>이수학점과 시간표을<br />한곳에서 관리해요</h1>
-            <p className="lead">내 조건에 맞는 졸업요건과 앞으로 채워야 할 학점, 이번 학기 시험 일정과 예상 평점을 확인해요.</p>
-            <section className="card">
-              <h2 className="h3">시작 전에 알아 두세요</h2>
-              <PrivacySummary />
-            </section>
-            <button type="button" className="btn primary block" onClick={() => setStep('form')}>내 조건 입력하고 시작하기 →</button>
-            <button type="button" className="btn ghost block" onClick={startDemo}>가상 데이터로 둘러보기</button>
-          </>
-        ) : (
-          <>
-            <p className="eyebrow">나에게 맞는 졸업요건</p>
-            <h1>어떤 전공을<br />공부하고 있나요?</h1>
-            <p className="lead">내 조건에 맞는 졸업요건과 앞으로 채워야 할 학점을 확인해요.</p>
-            <ProfileForm submitLabel="다음: 성적 입력 →" onDone={() => setView('records')} />
-            <button type="button" className="btn ghost block" onClick={() => setStep('welcome')}>뒤로</button>
-          </>
-        )}
+      <main className="start">
+        <div className="logo-lg" aria-hidden="true">W</div>
+        <h1 className="fig-title">학사정보를 입력하고<br />HUFStep을 이용해보세요!</h1>
+        <p className="fig-lead">내 학사현황과 학점 시뮬레이션으로<br />편하게 학기 운용 계획을 세울 수 있어요.</p>
+        <ProfileForm submitLabel="학사정보 저장" onDone={() => setView('records')} />
       </main>
     </div>
   );

@@ -66,7 +66,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand-sub { font-size: 11px; line-height: 1.5; color: #c8d8eb; }
 
 /* 탭: Figma 78×60, 아이콘 17px + 라벨 10px, 선택은 남색 1px 밑줄. 아이콘은 SVG 마스크라 글자색을 따른다 */
-.tabs { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #fff; border-bottom: 1px solid var(--line-soft); }
+.tabs { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #fff; }
 .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 60px; padding: 0; letter-spacing: -0.4px; overflow: hidden; border: 0; background: none; color: var(--slate); cursor: pointer; border-bottom: 1px solid transparent; min-width: 0; }
 .tab span { white-space: nowrap; font-size: 10px; font-weight: 600; line-height: 15px; }
 .tab[aria-current='page'] { color: var(--navy-900); border-bottom-color: var(--navy-900); }
@@ -99,9 +99,7 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.3
 .card.empty { text-align: center; }
 
 .notice { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 12px; padding: 12px; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
-.demo-banner, .error-banner { display: flex; align-items: center; gap: 8px; justify-content: space-between; padding: 8px 16px; font-size: 12px; }
-.demo-banner { background: var(--teal-600); color: #fff; }
-.demo-banner .btn { flex: none; white-space: nowrap; }
+.error-banner { display: flex; align-items: center; gap: 8px; justify-content: space-between; padding: 8px 16px; font-size: 12px; }
 .error-banner { background: #fde8e6; color: var(--danger); }
 .loading { padding: 40px 16px; text-align: center; color: var(--muted); }
 
@@ -158,6 +156,14 @@ label.field { gap: 9px; font-size: 18px; font-weight: 600; line-height: 1.1; col
 .opt-chips label.on { background: var(--navy-900); border-color: var(--navy-900); color: #fff; }
 .opt-chips input { position: absolute; opacity: 0; width: 1px; height: 1px; min-height: 0; }
 .opt-chips label:focus-within { box-shadow: var(--focus); }
+/* Figma 개인정보 입력(첫 실행) 화면: 로고 80px · 제목 28px · 설명 15px · 폼 */
+.start { padding: 38px 25px 48px; display: flex; flex-direction: column; background: #fff; min-height: 100vh; }
+.logo-lg { width: 80px; height: 80px; border-radius: 25px; border: 1px solid #365f91; background: linear-gradient(145deg, #093b7e 6%, #061f49 94%); box-shadow: 0 18px 25px rgba(18, 60, 113, 0.22); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 40px; line-height: 60px; letter-spacing: -2px; flex: none; }
+.fig-title { margin-top: 44px; font-size: 28px; font-weight: 600; line-height: 43.5px; letter-spacing: -1.7px; color: var(--navy-900); }
+.fig-lead { margin: 14px 0 46px; font-size: 15px; line-height: 27px; color: #000; }
+.fig-form { gap: 30px; }
+.fig-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.field-legend { padding: 0; margin-bottom: 15px; font-size: 18px; font-weight: 600; line-height: 1.1; color: var(--label); }
 /* 알약 탭 바 (학사 현황 3구간 / 학점 계산 학년) */
 .pill-tabs { display: flex; gap: 10px; align-items: center; justify-content: center; min-height: 54px; padding: 7px; background: var(--panel); border-radius: var(--r-pill); }
 .pill-tabs > button { flex: 1 1 0; min-width: 0; height: 40px; padding: 0 4px; border: 0; border-radius: 20px; background: none; color: var(--slate); font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
@@ -258,6 +264,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
   .screen { padding: 16px 12px 20px; }
   .tab span { font-size: 9px; letter-spacing: -0.6px; }
   .opt-chips label { font-size: 13px; }
+  .fig-title { font-size: 25px; line-height: 38px; letter-spacing: -1.4px; }
   .opt-chips { gap: 6px; }
   .tt-name { font-size: 13px; }
   .tt-block { padding-left: 3px; padding-right: 3px; }

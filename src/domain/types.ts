@@ -21,6 +21,8 @@ export interface Term {
 
 export interface StudentProfile {
   schemaVersion: number;
+  /** 이름·닉네임 (선택, 이 브라우저에만 저장). 전체 학번·연락처는 받지 않는다 */
+  name?: string;
   homeCampus: CampusId;
   cohortYear: number; // 2019..2026 (기준 연도만, 전체 학번 아님)
   entryType: EntryType;

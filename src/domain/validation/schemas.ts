@@ -35,6 +35,7 @@ export const termSchema: z.ZodType<Term> = z.object({
 
 export const profileSchema: z.ZodType<StudentProfile> = z.object({
   schemaVersion: z.number().int(),
+  name: z.string().trim().min(1).max(20, '이름은 20자까지예요').optional(),
   homeCampus: campus,
   cohortYear: z.number().int().min(2019).max(2026),
   entryType,

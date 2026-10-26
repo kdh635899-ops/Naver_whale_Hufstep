@@ -98,12 +98,12 @@ test('웨일 API: whale.alarms / notifications / sidebarAction 이 서비스 워
 });
 
 test('첫 실행 → 조건 입력 → 동의 → 붙여넣기 분석 → 확인하고 반영 (원문 미저장)', async () => {
-  await page.getByRole('button', { name: /내 조건 입력하고 시작하기/ }).click();
+  await page.getByLabel('이름 / 닉네임').fill('김웨이');
   await page.getByLabel(/^주전공/).selectOption({ label: '말레이·인도네시아어과' });
   await page.getByRole('radio', { name: '이중전공' }).check();
-  await page.getByLabel(/^이중전공 학과/).selectOption({ label: '경영학부 (서울캠퍼스)' });
+  await page.getByRole('combobox', { name: /^이중전공/ }).selectOption({ label: '경영학부 (서울캠퍼스)' });
   await page.getByLabel(/^학번/).selectOption('2024');
-  await page.getByRole('button', { name: /다음: 성적 입력/ }).click();
+  await page.getByRole('button', { name: '학사정보 저장' }).click();
 
   await expect(page.getByRole('heading', { name: '종정시 입력' })).toBeVisible();
   await page.getByRole('checkbox', { name: /동의해요/ }).check();
@@ -561,20 +561,21 @@ test('전체 초기화: 기록·예약이 남지 않는다', async () => {
   await tab('마이페이지').click();
   await page.getByRole('button', { name: '전체 초기화' }).click();
   await page.getByRole('group', { name: '전체 초기화' }).getByRole('button', { name: '전체 초기화' }).click();
-  await expect(page.getByRole('button', { name: /내 조건 입력하고 시작하기/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: '학사정보 저장' })).toBeVisible();
   expect(await readState()).toBe('null');
   await expect.poll(ourAlarms, { timeout: 20_000 }).toEqual([]);
 });
 
 test('가상 데이터 둘러보기: 실제 기록과 섞이지 않는다', async () => {
-  await page.getByRole('button', { name: '가상 데이터로 둘러보기' }).click();
-  await expect(page.locator('.demo-banner')).toBeVisible();
+  // 화면에는 진입 버튼이 없다(Figma에 없음) → 주소 뒤 ?demo로 연다. 새로 열면 가상 데이터는 사라진다.
+  const base = page.url().split('?')[0].split('#')[0];
+  await page.goto(`${base}?demo`);
   await tab('시간표').click();
   await expect(page.locator('.today-line')).toContainText('오늘 시험 2개 · 제출 1개');
   await expect(page.locator('.tt-col .tt-block')).toHaveCount(7); // 가상 과목 5개, 그중 2개는 주 2회
   await expect(page.locator('.tt-pending .tt-block')).toHaveCount(1); // 수업 시간 없는 가상 과목
-  await page.getByRole('button', { name: '나가기' }).click();
-  await expect(page.getByRole('button', { name: /내 조건 입력하고 시작하기/ })).toBeVisible();
+  await page.goto(base);
+  await expect(page.getByRole('button', { name: '학사정보 저장' })).toBeVisible();
   expect(await readState()).toBe('null');
 });
 
