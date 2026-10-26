@@ -30,12 +30,6 @@ const readState = () => page.evaluate(() => new Promise<string>((res) => {
   const r = indexedDB.open('hufstep');
   r.onsuccess = () => { const g = r.result.transaction('kv').objectStore('kv').get('appState'); g.onsuccess = () => { res(JSON.stringify(g.result ?? null)); r.result.close(); }; };
 }));
-const swCall = <T,>(fn: 'alarms' | 'notifications') => sw!.evaluate((f) => new Promise<unknown>((res) => {
-  const api = (globalThis as unknown as { whale: typeof chrome }).whale;
-  if (f === 'alarms') api.alarms.getAll(res); else api.notifications.getAll(res);
-}), fn) as Promise<T>;
-const ourAlarms = async () => (await swCall<chrome.alarms.Alarm[]>('alarms')).map((a) => a.name).filter((n) => n.startsWith('hufstep:'));
-const shownIds = async () => Object.keys(await swCall<Record<string, boolean>>('notifications'));
 const tab = (name: string) => page.getByRole('navigation', { name: '주 메뉴' }).getByRole('button', { name });
 
 test.describe.configure({ mode: 'serial' });
@@ -205,6 +199,12 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   const exam = page.locator('#st-exams .sc').first();
   await exam.locator('.sc-row').click();
   const box = exam.locator('.cbx').first();
+  const size = (await box.boundingBox())!;
+  expect(size.width).toBeLessThanOrEqual(22); // 작은 네모 체크박스
+  expect(Math.abs(size.width - size.height)).toBeLessThan(1);
+  // 졸업시험·요건 제목은 20자까지만 보이고 뒤는 …로 줄인다
+  const rowTitle = (await exam.locator('.sc-row span').first().innerText()).replace(/\s*외 \d+건$/, '');
+  expect([...rowTitle].length).toBeLessThanOrEqual(21);
   await expect(box).toHaveAttribute('aria-checked', 'false');
   await box.click();
   await expect(box).toHaveAttribute('aria-checked', 'true');
@@ -318,36 +318,12 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
   await expect(page.getByRole('link', { name: 'hufswavoo123@gmail.com' })).toHaveAttribute('href', 'mailto:hufswavoo123@gmail.com');
   await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
   const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
+  for (const gone of ['기타 설정', '알림', '동의 철회', '전체 초기화', '현재 학기']) await expect(dlg).not.toContainText(gone);
   await dlg.getByLabel('이름 / 닉네임').fill('웨이');
   await dlg.getByRole('button', { name: '저장', exact: true }).click();
   await expect(dlg).toBeHidden();
   await expect(page.getByRole('heading', { name: /안녕하세요,\s*웨이님/ })).toBeVisible();
   expect(JSON.parse(await readState()).profile.name).toBe('웨이');
-});
-
-test('알림: 동의·켜기 → 실제 whale.alarms 예약 → 알람 실행 시 whale.notifications 생성 → 끄면 정리', async () => {
-  const minutes = await page.evaluate(() => new Date().getHours() * 60 + new Date().getMinutes());
-  test.skip(minutes >= 23 * 60 + 50, '자정 직전에는 당일 알림 검사를 건너뜀');
-  test.setTimeout(360_000); // 웨일 알람은 최소 1분 간격이라 실제 알림이 뜰 때까지 기다린다
-  const t = await today();
-  await tab('마이페이지').click();
-  await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
-  const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
-  await dlg.getByText('기타 설정 (현재 학기 · 알림 · 데이터 관리)').click();
-  await dlg.getByRole('button', { name: '알림 받기에 동의하고 켜기' }).click();
-  // 오늘 예약 시각(00:00)이 이미 지났고 남은 일정(23:59 시험)이 있으면 1분 뒤 한 번 알린다
-  await dlg.getByLabel('알림 시각').fill('00:00');
-  await expect.poll(async () => (await ourAlarms()).some((n) => n.startsWith(`hufstep:sameDay:${t}:`)), { timeout: 20_000 }).toBe(true);
-  const id = `hufstep-n:sameDay:${t}`;
-  await expect.poll(shownIds, { timeout: 150_000, intervals: [5000] }).toContain(id);
-
-  // 끄면 예약·표시 중인 알림 정리
-  const toggle = dlg.getByRole('checkbox', { name: '알림 켜기' });
-  await toggle.click(); // 저장(IndexedDB)이 끝난 뒤 상태가 바뀐다
-  await expect(toggle).not.toBeChecked();
-  await expect.poll(ourAlarms, { timeout: 20_000 }).toEqual([]);
-  await expect.poll(shownIds, { timeout: 20_000 }).not.toContain(id);
-  await page.keyboard.press('Escape');
 });
 
 test('보안: 과목명에 넣은 HTML은 실행되지 않고 글자로 보인다', async () => {
@@ -408,21 +384,11 @@ test('다시 열어도 저장된 기록·메모·수업 시간이 복원된다',
   await page.keyboard.press('Escape');
 });
 
-test('전체 초기화: 기록·예약이 남지 않는다', async () => {
-  await tab('마이페이지').click();
-  await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
-  const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
-  await dlg.getByText('기타 설정 (현재 학기 · 알림 · 데이터 관리)').click();
-  await dlg.getByRole('button', { name: '전체 초기화' }).click();
-  await dlg.getByRole('group', { name: '전체 초기화' }).getByRole('button', { name: '전체 초기화' }).click();
-  await expect(page.getByRole('button', { name: '학사정보 저장' })).toBeVisible();
-  expect(await readState()).toBe('null');
-  await expect.poll(ourAlarms, { timeout: 20_000 }).toEqual([]);
-});
-
 test('가상 데이터 둘러보기(?demo): 실제 기록과 섞이지 않는다', async () => {
   // 화면에는 진입 버튼이 없다(Figma에 없음) → 주소 뒤 ?demo로 연다. 새로 열면 가상 데이터는 사라진다.
   const base = page.url().split('?')[0].split('#')[0];
+  // 저장된 프로필이 없을 때만 열리므로 저장소를 비운다 (열려 있는 연결은 이 페이지를 떠날 때 닫히며 삭제가 끝난다)
+  await page.evaluate(() => { indexedDB.deleteDatabase('hufstep'); });
   await page.goto(`${base}?demo`);
   await expect(page.getByRole('heading', { name: '내 학사현황' })).toBeVisible();
   await tab('시간표').click();
@@ -430,7 +396,7 @@ test('가상 데이터 둘러보기(?demo): 실제 기록과 섞이지 않는다
   await expect(page.locator('.tt-extra .pill').filter({ hasNotText: '+ 과목 추가' })).toHaveCount(1); // 수업 시간 없는 가상 과목
   await page.goto(base);
   await expect(page.getByRole('button', { name: '학사정보 저장' })).toBeVisible();
-  expect(await readState()).toBe('null');
+  expect(await readState()).toBe('null'); // 가상 데이터는 저장되지 않는다
 });
 
 test('외부 네트워크 요청·콘솔 오류 없음', async () => {

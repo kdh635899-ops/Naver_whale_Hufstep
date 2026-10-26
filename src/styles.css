@@ -468,7 +468,7 @@ button.sc-state { cursor: pointer; }
 /* 학사 현황: 필수과목 줄의 '이수 완료', 졸업시험 체크박스 */
 .sc-done { display: inline-flex; align-items: center; gap: 2px; flex: none; color: var(--done); font-size: 14px; font-weight: 600; line-height: 27px; }
 .sc-done .ic-check { width: 20px; height: 20px; }
-.cbx { display: grid; place-items: center; flex: none; width: 24px; height: 24px; padding: 0; border: 2px solid var(--done); border-radius: 6px; background: #fff; color: #fff; cursor: pointer; }
+.cbx { display: grid; place-items: center; flex: none; width: 18px; height: 18px; padding: 0; border: 2px solid var(--done); border-radius: 3px; background: #fff; color: #fff; cursor: pointer; }
 .cbx[aria-checked='true'] { background: var(--done); }
-.cbx .ic-check { width: 18px; height: 18px; }
+.cbx .ic-check { width: 14px; height: 14px; }
 .cbx:focus-visible { box-shadow: var(--focus); }

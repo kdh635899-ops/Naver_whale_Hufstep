@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { catalog, departmentFacts, departmentMetaById } from '../data';
 import { buildDemoState } from '../data/demo';
-import type { Scalar } from '../domain/requirements/conditions';
+import { assumeAnswers } from '../domain/requirements/assumptions';
 import { buildOfficialReport, type OfficialReport } from '../domain/requirements/officialRules';
 import { resolveRequirements } from '../domain/requirements/resolve';
 import { emptyState, type AppState, type View } from '../domain/state';
@@ -164,15 +164,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!state.profile || mode !== 'real') return null;
     const input = { bundles: catalog.bundles, rules: catalog.officialRules, supportGaps: catalog.supportGaps, dept: departmentFacts, meta: departmentMetaById, today };
     const first = buildOfficialReport({ profile: state.profile, ...input });
-    // 추가 질문 화면은 Figma에 없다 → 학생이 답하지 않은 '꼭 필요한' 질문(특별전형·영어 전공 분류·인증 언어 등)은
-    // '아니요 / 해당 없음'으로 가정해 계산한다. profile.facts에 직접 저장된 답이 있으면 그 답이 우선이다.
-    // 해당하는 학생은 결과가 다를 수 있다 (해당 규칙은 학교 공지로 확인해야 한다).
-    const assumed: Record<string, Scalar> = {};
-    for (const q of first.questions) {
-      if (q.optional) continue;
-      const no = q.options.find((o) => o.value === false) ?? q.options.find((o) => o.value === null);
-      if (no) assumed[q.field] = no.value;
-    }
+    // 추가 질문 화면은 Figma에 없다 → 학생이 답하지 않은 '꼭 필요한' 질문은 전공에서 정하거나('영어 전공인가', '인증 언어' 등)
+    // 나머지는 '아니요 / 해당 없음'으로 가정해 계산한다. profile.facts에 직접 저장된 답이 있으면 그 답이 우선이다.
+    // 특별전형 등에 해당하는 학생은 결과가 다를 수 있다 (해당 규칙은 학교 공지로 확인해야 한다).
+    const major = departmentFacts(state.profile.primaryDepartmentId);
+    const assumed = assumeAnswers(first.questions, { name: major?.name, college: major?.college });
     if (!Object.keys(assumed).length) return first;
     return buildOfficialReport({ profile: { ...state.profile, facts: { ...assumed, ...(state.profile.facts ?? {}) } }, ...input });
   }, [state.profile, mode, today]);

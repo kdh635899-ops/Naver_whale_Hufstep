@@ -15,6 +15,9 @@ import { useProgress } from './useProgress';
 type Section = 'credits' | 'courses' | 'exams';
 const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '01 이수학점' }, { key: 'courses', label: '02 필수과목' }, { key: 'exams', label: '03 졸업시험' }];
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
+/** 졸업시험·요건 제목은 이 글자 수까지만 보이고 뒤는 …로 줄인다 (예: ‘말레이·인도네시아어과 졸업 인증 기준’ 길이). 전체 글은 마우스를 올리면 보인다. */
+const TITLE_MAX = 20;
+const clip = (s: string) => ([...s].length > TITLE_MAX ? `${[...s].slice(0, TITLE_MAX).join('').trimEnd()}…` : s);
 
 interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
@@ -212,13 +215,13 @@ export function StatusScreen() {
                     </div>
                   </div>
                   <button type="button" className={`sc-row${done ? '' : ' todo'}${open[k] ? ' open' : ''}`} aria-expanded={!!open[k]} onClick={() => flip(k)}>
-                    <span>{c.items[0].title}{c.items.length > 1 ? ` 외 ${c.items.length - 1}건` : ''}</span><i className="icon ic-chevron" aria-hidden="true" />
+                    <span title={c.items[0].title}>{clip(c.items[0].title)}{c.items.length > 1 ? ` 외 ${c.items.length - 1}건` : ''}</span><i className="icon ic-chevron" aria-hidden="true" />
                   </button>
                   {open[k] && (
                     <ul className="sc-list-in">
                       {c.items.map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <span className="tx">{it.title}{it.detail && <span className="sub">{it.detail}</span>}</span>
+                          <span className="tx" title={it.title}>{clip(it.title)}{it.detail && <span className="sub">{it.detail}</span>}</span>
                           <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.title} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
                             {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
                           </button>
