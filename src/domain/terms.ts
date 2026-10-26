@@ -20,6 +20,16 @@ export function suggestTerm(today: Date): Term {
   return { academicYear: y, semester: m <= 8 ? '1' : '2' };
 }
 
+/**
+ * 저장된 '현재 학기'가 오늘 날짜 기준 학기보다 이전이면 오늘 기준 학기를, 아니면 null(그대로 둠).
+ * 학교 사이트를 읽는 게 아니라 달력으로 정한다: 3~8월 1학기, 9월~다음해 2월 2학기(방학은 직전 학기로 본다).
+ * 앞서 있는 값(계절학기 등)은 되돌리지 않는다.
+ */
+export function advancedTerm(current: Term, today: Date): Term | null {
+  const next = suggestTerm(today);
+  return compareTerms(next, current) > 0 ? next : null;
+}
+
 /** 로컬 날짜 키 YYYY-MM-DD. toISOString()은 UTC라 한국 새벽에 전날이 되므로 쓰지 않는다. */
 export function dateKey(d: Date): string {
   const p = (n: number) => String(n).padStart(2, '0');

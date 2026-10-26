@@ -6,6 +6,7 @@ import { useStore } from '../../app/store';
 import { catalog } from '../../data';
 import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
 import { parseTranscript, type ParseResult } from '../../domain/parser/parseTranscript';
+import guideImg from '../../assets/guide-grades.png';
 import { ConsentGate } from '../common';
 
 const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
@@ -69,16 +70,29 @@ export function RecordsScreen() {
 
 function Guide() {
   const [help, setHelp] = useState(false);
+  // 말풍선은 ? 버튼으로 열고, X 버튼이나 Esc로 닫는다
+  useEffect(() => {
+    if (!help) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setHelp(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [help]);
   return (
-    <div>
+    <div className="guide">
       <ol className="guide-card plain" style={{ margin: 0, listStyle: 'none' }}>
         <li className="guide-step"><b aria-hidden="true">1</b><span>종합정보시스템에서 성적취득현황 메뉴 열기</span></li>
         <li className="guide-step"><b aria-hidden="true">2</b><span>전체 영역을 드래그해 복사하기</span></li>
         <li className="guide-step"><b aria-hidden="true">3</b><span>아래 입력창에 붙여넣고 분석하기</span>
-          <button type="button" className="help-btn" aria-label="붙여넣기 도움말" aria-expanded={help} onClick={() => setHelp((v) => !v)}>?</button>
+          <button type="button" className="help-btn" aria-label="붙여넣기 도움말" aria-expanded={help} aria-controls="guide-bubble" onClick={() => setHelp((v) => !v)}>?</button>
         </li>
       </ol>
-      {help && <p className="help-text" role="note">붙여넣은 내용은 이 기기 안에서만 분석하고, 저장 전에는 보관하지 않아요. 맨 아래 ‘이수구분별 취득학점 계’ 줄까지 함께 복사해야 저장할 수 있어요.</p>}
+      {help && (
+        <div id="guide-bubble" className="bubble" role="dialog" aria-label="성적취득현황 복사 방법">
+          <button type="button" className="bubble-x" aria-label="말풍선 닫기" onClick={() => setHelp(false)}>✕</button>
+          <img src={guideImg} alt="종합정보시스템 성적취득현황 화면 예시" />
+          <p>해당 영역의 위에서 아래까지 모두 드래그해주세요!</p>
+        </div>
+      )}
     </div>
   );
 }

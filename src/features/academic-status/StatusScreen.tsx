@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useStore } from '../../app/store';
 import { departmentName } from '../../data';
+import { shortTitle } from '../../domain/requirements/displayTitle';
 import { ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
 import { formatUnits } from '../../domain/terms';
 import type { BundleScope, CertificationRequirement, CourseExpr } from '../../domain/types';
@@ -15,13 +16,10 @@ import { useProgress } from './useProgress';
 type Section = 'credits' | 'courses' | 'exams';
 const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '01 이수학점' }, { key: 'courses', label: '02 필수과목' }, { key: 'exams', label: '03 졸업시험' }];
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
-/** 졸업시험·요건 제목은 이 글자 수까지만 보이고 뒤는 …로 줄인다 (예: ‘말레이·인도네시아어과 졸업 인증 기준’ 길이). 전체 글은 마우스를 올리면 보인다. */
-const TITLE_MAX = 20;
-const clip = (s: string) => ([...s].length > TITLE_MAX ? `${[...s].slice(0, TITLE_MAX).join('').trimEnd()}…` : s);
-
 interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
-interface ExamItem { id: string; title: string; detail: string; confirmed: boolean }
+/** title = 한 줄에 보이는 짧은 제목, full = 마우스를 올리면 보이는 전체 제목 */
+interface ExamItem { id: string; title: string; full: string; detail: string; confirmed: boolean }
 interface ExamCard { key: string; who: string; dept: string; items: ExamItem[] }
 
 /** [이수한 수, 필요한 수]: 택일(OR)은 1, AT_LEAST는 count로 센다 (택일 후보를 모두 필수처럼 세지 않는다) */
@@ -96,14 +94,16 @@ export function StatusScreen() {
   const certDetail = (c: CertificationRequirement) => c.kind === 'departmentExam' ? `통과 기준: ${c.passCriteria}`
     : c.kind === 'externalCertificate' ? c.acceptedTests.map((t) => `${t.name}: ${t.passCriteria}`).join(' / ') : c.description;
   for (const { scope, cert } of resolved?.certifications ?? []) {
-    examCards[cardKeyOf(null, scope)].items.push({ id: cert.id, title: cert.title, detail: certDetail(cert), confirmed: confirmed.has(cert.id) });
+    const st = shortTitle(cert.title);
+    examCards[cardKeyOf(null, scope)].items.push({ id: cert.id, title: st.short, full: st.full, detail: certDetail(cert) || st.rest, confirmed: confirmed.has(cert.id) });
   }
   for (const e of report?.items ?? []) {
     if (!CONFIRMABLE.has(e.rule.category) || e.rule.none) continue;
     const dept = e.rule.departmentId;
+    const st = shortTitle(ruleTitle(e.rule, dept ? departmentName(dept) : undefined));
     examCards[cardKeyOf(dept)].items.push({
-      id: e.rule.id, title: ruleTitle(e.rule, dept ? departmentName(dept) : undefined),
-      detail: assessmentCriteria(e.rule.detail as Record<string, unknown> | null | undefined), confirmed: confirmed.has(e.rule.id),
+      id: e.rule.id, title: st.short, full: st.full,
+      detail: assessmentCriteria(e.rule.detail as Record<string, unknown> | null | undefined) || st.rest, confirmed: confirmed.has(e.rule.id),
     });
   }
   const examList = [examCards.primary, ...(secondary ? [examCards.secondary] : []), examCards.common].filter((c) => c.items.length);
@@ -215,14 +215,14 @@ export function StatusScreen() {
                     </div>
                   </div>
                   <button type="button" className={`sc-row${done ? '' : ' todo'}${open[k] ? ' open' : ''}`} aria-expanded={!!open[k]} onClick={() => flip(k)}>
-                    <span title={c.items[0].title}>{clip(c.items[0].title)}{c.items.length > 1 ? ` 외 ${c.items.length - 1}건` : ''}</span><i className="icon ic-chevron" aria-hidden="true" />
+                    <span title={c.items[0].full}>{c.items[0].title}{c.items.length > 1 ? ` 외 ${c.items.length - 1}건` : ''}</span><i className="icon ic-chevron" aria-hidden="true" />
                   </button>
                   {open[k] && (
                     <ul className="sc-list-in">
                       {c.items.map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <span className="tx" title={it.title}>{clip(it.title)}{it.detail && <span className="sub">{it.detail}</span>}</span>
-                          <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.title} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
+                          <span className="tx" title={it.full}>{it.title}{it.detail && <span className="sub">{it.detail}</span>}</span>
+                          <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.full} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
                             {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
                           </button>
                         </li>

@@ -7,7 +7,7 @@ import { assumeAnswers } from '../domain/requirements/assumptions';
 import { buildOfficialReport, type OfficialReport } from '../domain/requirements/officialRules';
 import { resolveRequirements } from '../domain/requirements/resolve';
 import { emptyState, type AppState, type View } from '../domain/state';
-import { dateKey } from '../domain/terms';
+import { dateKey, advancedTerm } from '../domain/terms';
 import type { Course } from '../domain/types';
 import { notifyBackground } from '../platform/browser';
 import { clearEverything, KEYS, kvDelete, kvGet, loadState, saveState, type PendingRoute } from '../storage/repository';
@@ -123,6 +123,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return false;
     }
   }, [mode]);
+
+  // 현재 학기는 달력으로 자동 갱신한다 (화면에서 고르는 곳이 없다). 새 학기 성적·수강 과목은 종정시 입력(초기화 → 저장)으로 가져온다.
+  const curYear = state.profile?.currentTerm.academicYear;
+  const curSem = state.profile?.currentTerm.semester;
+  const dayKey = dateKey(now);
+  useEffect(() => {
+    if (status !== 'ready' || mode !== 'real' || curYear === undefined || curSem === undefined) return;
+    const next = advancedTerm({ academicYear: curYear, semester: curSem }, new Date());
+    if (next) void save((s) => (s.profile ? { ...s, profile: { ...s.profile, currentTerm: next } } : s));
+  }, [status, mode, curYear, curSem, dayKey, save]);
 
   const setView = useCallback((v: View) => {
     setViewState(v);

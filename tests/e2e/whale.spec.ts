@@ -114,6 +114,18 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   await expect(link).toHaveAttribute('target', '_blank');
 
+  // ? 를 누르면 말풍선이 튀어나와 방법을 보여 주고, X 또는 Esc로 닫힌다
+  const bubble = page.getByRole('dialog', { name: '성적취득현황 복사 방법' });
+  await page.getByRole('button', { name: '붙여넣기 도움말' }).click();
+  await expect(bubble).toBeVisible();
+  await expect(bubble).toContainText('해당 영역의 위에서 아래까지 모두 드래그해주세요!');
+  expect(await bubble.locator('img').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0); // 사진이 실제로 로드됨
+  await page.getByRole('button', { name: '말풍선 닫기' }).click();
+  await expect(bubble).toBeHidden();
+  await page.getByRole('button', { name: '붙여넣기 도움말' }).click();
+  await page.keyboard.press('Escape');
+  await expect(bubble).toBeHidden();
+
   const box = page.getByLabel('종정시 정보 붙여넣기');
   const save = page.getByRole('button', { name: '종정시 정보 저장' });
   await expect(page.getByRole('button', { name: /초기화/ })).toHaveCount(0); // 처음에는 저장 버튼 하나만
