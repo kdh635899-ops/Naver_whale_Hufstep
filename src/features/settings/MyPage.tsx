@@ -51,7 +51,11 @@ export function MyPage() {
         <div className="info-row"><dt>입학 유형</dt><dd>{ENTRY_LABEL[p.entryType]}</dd></div>
       </dl>
 
-      <p className="mp-foot"><span>오류 신고•수정 요청</span><span>개발자 이메일 주소</span></p>
+      <p className="mp-foot">
+        <span className="mp-ask"><i className="icon ic-mail" aria-hidden="true" />오류 신고 및 문의</span>
+        <span className="mp-bar" aria-hidden="true">|</span>
+        <a className="mp-mail" href="mailto:hufswavoo123@gmail.com">hufswavoo123@gmail.com</a>
+      </p>
 
       {edit && (
         <Sheet title="내 정보 수정" onClose={() => setEdit(false)}>

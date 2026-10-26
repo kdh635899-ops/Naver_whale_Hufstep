@@ -1,10 +1,10 @@
 // 종정시 입력 (Figma, §3.3, §6). 학생이 직접 복사해 붙여넣은 text/plain만 이 기기에서 분석한다.
 // '종정시 정보 저장' 한 번으로: 분석 → 빠졌거나 애매한 것이 있으면 빨간 글씨로 알리고 저장을 막음 → 이상 없으면 저장하고 학사 현황으로.
 // 반영 기본값(사람이 고르던 선택): 직접 추가한 같은 과목은 연결, 내가 고친 값은 유지, 이번에 없는 과목은 지우지 않는다.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog } from '../../data';
-import { applyMerge, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
+import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
 import { parseTranscript, type ParseResult } from '../../domain/parser/parseTranscript';
 import { ConsentGate } from '../common';
 
@@ -49,6 +49,8 @@ const cleanMessage = (m: string) => m.replace(/ 학점 반영 영역을 골라 �
 export function RecordsScreen() {
   return (
     <div className="page">
+      {/* 안내 사진이 들어올 자리(Figma 330×106). 사진이 들어오면 아래 내용이 그만큼 밀려 내려간다. */}
+      <div className="photo-slot records" aria-hidden="true" />
       <h1 className="page-title">종정시 정보를 입력하고<br />맞춤형 서비스를 이용해보세요!</h1>
       <p className="page-lead">종합정보시스템의 ‘성적취득현황’ 정보를 가져오면<br />자동으로 학사현황과 학점계산 페이지가 완성돼요.</p>
 
@@ -88,6 +90,23 @@ function PasteSave() {
   const [checked, setChecked] = useState(false);
   const [found, setFound] = useState<Record<PartKey, boolean>>({ byArea: false, majors: false, summary: false });
   const [problems, setProblems] = useState<string[]>([]);
+  // 이미 저장한 종정시 정보가 있으면 새로 붙여넣기 전에 '초기화'부터 해야 한다 (처음에는 '종정시 정보 저장' 버튼만 보인다)
+  const hasSaved = state.snapshots.length > 0 || state.courses.some((c) => c.origin === 'paste');
+  const [armed, setArmed] = useState(false); // 초기화는 두 번 눌러야 실행 (실수로 지우지 않게)
+  useEffect(() => {
+    if (!armed) return;
+    const timer = window.setTimeout(() => setArmed(false), 4000);
+    return () => window.clearTimeout(timer);
+  }, [armed]);
+
+  async function onReset() {
+    if (!armed) { setArmed(true); return; }
+    setArmed(false);
+    // 종정시에서 가져온 과목·요약만 지운다. 직접 추가한 과목과 그 시간표·메모는 남긴다.
+    const gone = new Set(state.courses.filter((c) => c.origin === 'paste').map((c) => c.id));
+    const ok = await save((s) => ({ ...s, courses: s.courses.filter((c) => !gone.has(c.id)), snapshots: [], ...dropCourseRefs(s, gone) }));
+    if (ok) { setText(''); setChecked(false); setProblems([]); }
+  }
 
   async function onSave() {
     setChecked(true);
@@ -135,23 +154,31 @@ function PasteSave() {
     }
   }
 
-  const partClass = (key: PartKey, required: boolean) => `part${checked && found[key] ? ' found' : ''}${checked && !found[key] && required ? ' missing' : ''}`;
+  // 확인한 뒤: 있는 부분은 검정, 없는 부분은 빨강 (아무것도 붙이지 않았으면 세 개 모두 빨강)
+  const partClass = (key: PartKey) => `part${checked && found[key] ? ' found' : ''}${checked && !found[key] ? ' missing' : ''}`;
 
   return (
     <div>
       <label htmlFor="paste" className="fig-label" style={{ display: 'block' }}>종정시 정보 붙여넣기</label>
-      <textarea id="paste" className="paste" value={text} spellCheck={false}
+      <textarea id="paste" className="paste" value={text} spellCheck={false} disabled={hasSaved}
         placeholder="종정시에서 복사한 성적 정보를 여기에 붙여 넣어주세요."
         onChange={(e) => setText(e.target.value)} />
       <p className="parts">
-        {PARTS.map((p) => <span key={p.key} className={partClass(p.key, p.required)}>{p.label}</span>)}
+        {PARTS.map((p) => <span key={p.key} className={partClass(p.key)}>{p.label}</span>)}
       </p>
       {problems.length > 0 && (
         <ul className="red-list" role="alert">{problems.map((m, i) => <li key={i}>{m}</li>)}</ul>
       )}
-      <button type="button" className="btn cta" style={{ marginTop: 22 }} disabled={busy} onClick={() => void onSave()}>
-        {busy ? '확인하는 중…' : '종정시 정보 저장'}
-      </button>
+      <div className="cta-row">
+        <button type="button" className="btn cta" disabled={busy || hasSaved} onClick={() => void onSave()}>
+          {busy ? '확인하는 중…' : '종정시 정보 저장'}
+        </button>
+        {hasSaved && (
+          <button type="button" className="btn cta-reset" aria-label={armed ? '한 번 더 누르면 저장된 종정시 정보를 지워요' : '저장된 종정시 정보 초기화'} onClick={() => void onReset()}>
+            {armed ? '한 번 더' : '초기화'}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

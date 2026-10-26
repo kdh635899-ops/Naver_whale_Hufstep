@@ -122,15 +122,18 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
 
   const box = page.getByLabel('종정시 정보 붙여넣기');
   const save = page.getByRole('button', { name: '종정시 정보 저장' });
-  // 아무것도 안 붙이면 반려
+  await expect(page.getByRole('button', { name: /초기화/ })).toHaveCount(0); // 처음에는 저장 버튼 하나만
+  // 아무것도 안 붙이면 반려 + 세 부분 모두 빨간색
+  await expect(page.locator('.part.missing')).toHaveCount(0);
   await save.click();
   await expect(page.locator('.red-list')).toContainText('붙여넣은 내용이 없어요');
+  await expect(page.locator('.part.missing')).toHaveText(['영역별 취득학점', '이수중인 전공', '이수구분별 취득학점 계']);
   // 필수 줄(이수구분별 취득학점 계)이 빠지면 빨간 글씨로 알리고 저장하지 않는다
   const noSummary = DEMO_TRANSCRIPT.slice(0, DEMO_TRANSCRIPT.indexOf('이수구분별 취득학점 계'));
   await box.fill(noSummary);
   await save.click();
   await expect(page.locator('.red-list')).toContainText('이수구분별 취득학점 계');
-  await expect(page.locator('.part.missing')).toHaveText('이수구분별 취득학점 계');
+  await expect(page.locator('.part.missing')).toHaveText(['영역별 취득학점', '이수중인 전공', '이수구분별 취득학점 계']); // DEMO 자료에는 세 부분 중 있는 것이 없다
   expect(JSON.parse(await readState()).courses).toHaveLength(0);
 
   // 이상 없으면 저장하고 학사 현황으로 넘어간다
@@ -141,8 +144,18 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   expect(JSON.parse(saved).courses).toHaveLength(6);
   expect(saved).not.toContain('이수구분별 취득학점 계'); // 원문은 저장하지 않는다
 
-  // 같은 자료를 다시 저장해도 과목 수가 늘지 않는다
+  // 저장된 정보가 있으면 붙여넣기·저장은 잠기고 '초기화'가 나타난다. 초기화(두 번 눌러 확인) 후에만 다시 저장할 수 있다.
   await tab('종정시 입력').click();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeDisabled();
+  await expect(page.getByRole('button', { name: '종정시 정보 저장' })).toBeDisabled();
+  const reset = page.getByRole('button', { name: '저장된 종정시 정보 초기화' });
+  await reset.click(); // 첫 번째 누름은 확인만
+  expect(JSON.parse(await readState()).courses).toHaveLength(6);
+  await page.getByRole('button', { name: /한 번 더 누르면/ }).click();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeEnabled();
+  await expect(page.getByRole('button', { name: /초기화/ })).toHaveCount(0);
+  expect(JSON.parse(await readState()).courses).toHaveLength(0);
+  expect(JSON.parse(await readState()).snapshots).toHaveLength(0);
   await page.getByLabel('종정시 정보 붙여넣기').fill(DEMO_TRANSCRIPT);
   await page.getByRole('button', { name: '종정시 정보 저장' }).click();
   await expect(page.getByRole('heading', { name: '내 학사현황' })).toBeVisible();
@@ -157,16 +170,9 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   expect(await page.locator('.area-row').count()).toBeGreaterThan(0);
   await page.getByRole('button', { name: '03 졸업시험' }).click();
 
-  // 규칙을 고르려면 답해야 하는 질문(특별전형·영어 전공 분류·인증 언어 등)은 필요할 때만 나타난다. 답하면 사라지고 규칙이 계산된다.
-  const questions = page.locator('section[aria-labelledby="questions-title"]');
-  for (let i = 0; i < 5 && await questions.count(); i++) {
-    const select = questions.locator('li select').first();
-    const label = (await select.getAttribute('aria-label'))!;
-    const options = await select.locator('option').allTextContents();
-    await select.selectOption({ label: options.includes('아니요') ? '아니요' : '목록에 없음 / 해당 없음' });
-    await expect(questions.getByLabel(label, { exact: true })).toHaveCount(0);
-  }
-  await expect(questions).toHaveCount(0);
+  // 추가 입력 카드는 없다 (필요한 질문은 '아니요/해당 없음'으로 가정해 계산한다)
+  await expect(page.locator('section[aria-labelledby="questions-title"]')).toHaveCount(0);
+  await expect(page.getByText('추가 입력 필요')).toHaveCount(0);
 
   // 필수과목 카드: 행을 누르면 필수과목 목록이 펼쳐진다
   const primary = page.locator('.sc').filter({ hasText: '주전공' }).first();
@@ -174,7 +180,8 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(row).toBeVisible();
   await row.click();
   const item = primary.locator('.sc-item').filter({ hasText: '지역과지역학' });
-  await expect(item).toContainText('미이수');
+  await expect(item).not.toContainText('이수 완료'); // 이수하지 않은 줄에는 아무 표시도 없다
+  await expect(primary.locator('.tg')).toHaveCount(0); // 필수과목에는 학생이 체크하는 칸이 없다
 
   // 과목을 추가하면(공식 코드로 대조) 이수로 바뀐다
   await tab('학점 계산').click();
@@ -192,16 +199,19 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(dlg).toBeHidden();
   await tab('학사 현황').click();
   await primary.getByRole('button', { name: /^\d+\/11과목/ }).click();
-  await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' })).toContainText('이수');
+  await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' })).toContainText('이수 완료');
 
-  // 직접 체크: 켜면 이수에 들어가고, 다시 누르면 풀린다
-  const label = (await primary.locator('.sc-item:not(.met) .tg').first().getAttribute('aria-label'))!;
-  const toggle = primary.getByRole('button', { name: label }); // 체크하면 줄이 이수로 바뀌므로 이름으로 고정한다
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  // 졸업 시험 및 요건: 정해진 목록에서 학생이 초록 체크박스로 직접 체크한다 (필수과목과 달리)
+  const exam = page.locator('#st-exams .sc').first();
+  await exam.locator('.sc-row').click();
+  const box = exam.locator('.cbx').first();
+  await expect(box).toHaveAttribute('aria-checked', 'false');
+  await box.click();
+  await expect(box).toHaveAttribute('aria-checked', 'true');
+  await expect(box.locator('.ic-check')).toBeVisible();
   expect(JSON.parse(await readState()).certConfirmations.length).toBe(1);
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await box.click();
+  await expect(box).toHaveAttribute('aria-checked', 'false');
   expect(JSON.parse(await readState()).certConfirmations.length).toBe(0);
 });
 
@@ -304,6 +314,8 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
   await expect(page.locator('.info-table')).toContainText('경영학부');
   await expect(page.locator('.info-table')).toContainText('신입학');
   await expect(page.getByText('정보 관리')).toHaveCount(0); // 보류 중인 항목은 만들지 않았다
+  await expect(page.locator('.mp-foot')).toContainText('오류 신고 및 문의');
+  await expect(page.getByRole('link', { name: 'hufswavoo123@gmail.com' })).toHaveAttribute('href', 'mailto:hufswavoo123@gmail.com');
   await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
   const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
   await dlg.getByLabel('이름 / 닉네임').fill('웨이');
@@ -316,6 +328,7 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
 test('알림: 동의·켜기 → 실제 whale.alarms 예약 → 알람 실행 시 whale.notifications 생성 → 끄면 정리', async () => {
   const minutes = await page.evaluate(() => new Date().getHours() * 60 + new Date().getMinutes());
   test.skip(minutes >= 23 * 60 + 50, '자정 직전에는 당일 알림 검사를 건너뜀');
+  test.setTimeout(360_000); // 웨일 알람은 최소 1분 간격이라 실제 알림이 뜰 때까지 기다린다
   const t = await today();
   await tab('마이페이지').click();
   await page.getByRole('button', { name: '학적 정보 수정하기' }).click();

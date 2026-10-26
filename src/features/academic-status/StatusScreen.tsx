@@ -1,21 +1,22 @@
 // 학사 현황 (Figma, §3.4). 내 조건 → 남은 학점 카드 → [이수학점 / 필수과목 / 졸업시험] 알약 탭 → 01 영역별 이수학점 → 02 졸업 필수 과목 → 03 졸업 시험 및 요건.
-// 값은 모두 종정시에서 저장한 데이터 + 졸업요건 규칙으로 계산한다. 필수과목·졸업시험 줄은 눌러서 펼치고, 학생이 직접 체크해 맞출 수 있다.
-// 졸업시험·요건은 학과마다 달라서 '체크리스트' 수준(학생 확인)으로만 보여 준다. 졸업 충족을 확정하지 않는다.
+// 값은 모두 종정시에서 저장한 데이터 + 졸업요건 규칙으로 계산한다. 필수과목은 이수한 줄에 '이수 완료'만 붙고(학생이 체크하는 칸은 없다),
+// 세부 과목을 모두 이수하면 카드 전체가 '이수 완료'가 된다. 졸업시험·요건은 학과마다 달라서 학생이 스스로 표시하는 체크리스트로만 보여 준다.
+// 졸업 충족을 확정하지 않는다.
 import { useState } from 'react';
 import { useStore } from '../../app/store';
 import { departmentName } from '../../data';
-import { leafDisplay, ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
+import { ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
 import { formatUnits } from '../../domain/terms';
 import type { BundleScope, CertificationRequirement, CourseExpr } from '../../domain/types';
 import { AREA_LABEL, CAMPUS_LABEL, ENTRY_LABEL } from '../common';
-import { assessmentCriteria, QuestionsCard } from './OfficialSections';
+import { assessmentCriteria } from './OfficialSections';
 import { useProgress } from './useProgress';
 
 type Section = 'credits' | 'courses' | 'exams';
 const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '01 이수학점' }, { key: 'courses', label: '02 필수과목' }, { key: 'exams', label: '03 졸업시험' }];
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
 
-interface ReqItem { id: string; label: string; done: boolean; selfChecked: boolean; canToggle: boolean; toggle?: () => void; group?: boolean; depth: number }
+interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
 interface ExamItem { id: string; title: string; detail: string; confirmed: boolean }
 interface ExamCard { key: string; who: string; dept: string; items: ExamItem[] }
@@ -49,19 +50,6 @@ export function StatusScreen() {
       ? s.certConfirmations.filter((c) => c.requirementId !== id)
       : [...s.certConfirmations, { requirementId: id, confirmedAt: now.toISOString() }],
   }));
-  // 과목 줄을 직접 체크/해제 (졸업인증 '통과 확인'과 같은 저장소, 요건 ID 하나당 한 건)
-  const toggleLeaf = (leafId: string, checked: boolean) => void save((sv) => ({
-    ...sv,
-    courses: sv.courses.map((c) => {
-      if (!checked || !c.requirementLinks?.includes(leafId)) return c;
-      const requirementLinks = c.requirementLinks.filter((id) => id !== leafId);
-      return { ...c, requirementLinks, requiredClaim: requirementLinks.length || c.requiredClaim !== 'studentMarked' ? c.requiredClaim : 'none' };
-    }),
-    certConfirmations: checked
-      ? sv.certConfirmations.filter((c) => c.requirementId !== leafId)
-      : [...sv.certConfirmations, { requirementId: leafId, confirmedAt: now.toISOString() }],
-  }));
-
   // ---- 02 필수과목 카드 만들기 ----
   const cardKeyOf = (departmentId: string | null | undefined, scope?: BundleScope): 'primary' | 'secondary' | 'common' => {
     if (departmentId) return departmentId === profile.primaryDepartmentId ? 'primary' : departmentId === secondary ? 'secondary' : 'common';
@@ -74,19 +62,18 @@ export function StatusScreen() {
   };
   for (const g of progress.groups) {
     const card = cards[cardKeyOf(null, g.scope)];
-    const done = g.status === 'met' || confirmed.has(g.group.id);
-    card.items.push({ id: g.group.id, label: g.group.title, done, selfChecked: g.status !== 'met' && confirmed.has(g.group.id), canToggle: g.status !== 'met', toggle: () => toggleConfirm(g.group.id), depth: 0 });
+    const done = g.status === 'met';
+    card.items.push({ id: g.group.id, label: g.group.title, done, depth: 0 });
     card.total += 1; card.met += done ? 1 : 0;
   }
   const walk = (p: NodeProgress, depth: number, out: ReqItem[]) => {
     const n = p.node as CourseExpr;
     if (n.op === 'course') {
-      const { selfChecked } = leafDisplay(p);
-      out.push({ id: n.id, label: n.name, done: p.level > 0, selfChecked, canToggle: !p.skipped && p.level < 2, toggle: () => toggleLeaf(n.id, selfChecked), depth });
+      out.push({ id: n.id, label: n.name, done: p.level > 0, depth });
       return;
     }
     const head = n.op === 'AT_LEAST' ? `다음 중 ${n.count}과목 이상` : n.op === 'OR' ? '다음 중 1과목' : null;
-    if (head) out.push({ id: `${depth}-${out.length}-${head}`, label: head, done: p.level > 0, selfChecked: false, canToggle: false, group: true, depth });
+    if (head) out.push({ id: `${depth}-${out.length}-${head}`, label: head, done: p.level > 0, group: true, depth });
     for (const c of p.children ?? []) walk(c, head ? depth + 1 : depth, out);
   };
   for (const cp of courseProgress) {
@@ -135,6 +122,8 @@ export function StatusScreen() {
         <br /><b>{cards.primary.dept}</b>{secondary && <> <span className="sep">|</span> <b>{cards.secondary.dept}</b></>}
       </p>
 
+      {/* 사진이 들어올 자리(Figma 351×290 중 카드 위쪽). 사진이 들어오면 아래 내용이 그만큼 밀려 내려간다. */}
+      <div className="photo-slot status" aria-hidden="true" />
       <section className="remain-card" aria-label="졸업까지 남은 학점">
         <p className="t">졸업까지 남은 총 학점</p>
         <p className="big"><span>{remaining === null ? '—' : formatUnits(Math.max(0, remaining))}</span><small>학점</small></p>
@@ -143,9 +132,6 @@ export function StatusScreen() {
           ? <><b>{formatUnits(progress.total.earned)}</b>{required !== null && <span>/{formatUnits(required)}</span>} 학점 취득</>
           : '종정시 정보를 저장하면 표시돼요'}</p>
       </section>
-
-      {/* Figma에는 없지만, 규칙을 고르려면 학생이 답해야 하는 질문(특별전형·영어 전공 분류·인증 언어 등)이 있을 때만 나타난다. 답하지 않으면 해당 필수과목·인증 규칙을 계산할 수 없다. */}
-      <QuestionsCard />
 
       <div className="pill-tabs" role="group" aria-label="학사 현황 구간" style={{ marginTop: 24 }}>
         {SECTIONS.map((s) => <button key={s.key} type="button" aria-pressed={sec === s.key} onClick={() => goSection(s.key)}>{s.label}</button>)}
@@ -194,9 +180,8 @@ export function StatusScreen() {
                       <li key={`${it.id}-${i}`} className={`sc-item${it.done ? ' met' : ''}${it.depth > 0 ? ' nest' : ''}`}>
                         {it.group ? <span className="grp">{it.label}</span> : (
                           <>
-                            <span className="mk" aria-hidden="true">{it.done ? '✓' : '○'}</span>
-                            <span className="tx">{it.label}<span className="sub">{it.done ? (it.selfChecked ? '이수 · 내가 체크' : '이수') : '미이수'}</span></span>
-                            {it.canToggle && <button type="button" className="tg" aria-pressed={it.selfChecked} aria-label={`${it.label} 직접 체크`} onClick={it.toggle}>직접 체크</button>}
+                            <span className="tx">{it.label}</span>
+                            {it.done && <span className="sc-done"><i className="icon ic-check" aria-hidden="true" />이수 완료</span>}
                           </>
                         )}
                       </li>
@@ -233,9 +218,10 @@ export function StatusScreen() {
                     <ul className="sc-list-in">
                       {c.items.map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <span className="mk" aria-hidden="true">{it.confirmed ? '✓' : '○'}</span>
                           <span className="tx">{it.title}{it.detail && <span className="sub">{it.detail}</span>}</span>
-                          <button type="button" className="tg" aria-pressed={it.confirmed} aria-label={`${it.title} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>{it.confirmed ? '체크함' : '체크'}</button>
+                          <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.title} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
+                            {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
+                          </button>
                         </li>
                       ))}
                     </ul>

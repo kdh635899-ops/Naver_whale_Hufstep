@@ -92,10 +92,11 @@ describe('학생이 체크한 줄도 충족 수에 들어가고, 학점은 더�
     expect(STATUS_SCREEN).not.toContain('내가 필수로 표시한 과목');
     expect(STATUS_SCREEN).not.toContain('studentMarkedCourseIds');
   });
-  it('묶음 요건 줄도 ○/✓ 두 가지만 쓰고, 다시 누르면 체크가 풀린다', () => {
-    expect(STATUS_SCREEN).toContain("{it.done ? '✓' : '○'}");
+  it('필수과목 줄에는 학생이 체크하는 칸이 없고, 이수한 줄에만 "이수 완료"가 붙는다 (졸업시험·요건만 학생이 체크)', () => {
+    expect(STATUS_SCREEN).toContain('이수 완료');
+    expect(STATUS_SCREEN).not.toContain('직접 체크');
     expect(STATUS_SCREEN).not.toContain("'?' :");
-    expect(STATUS_SCREEN).toContain('toggleConfirm(g.group.id)');
+    expect(STATUS_SCREEN).toContain('toggleConfirm(it.id)'); // 졸업시험·요건 체크박스
   });
 });
 
