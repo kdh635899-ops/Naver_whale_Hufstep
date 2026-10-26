@@ -140,7 +140,7 @@ test('첫 실행 → 조건 입력 → 동의 → 붙여넣기 분석 → 확인
 });
 
 test('학사현황: 기본값으로 결과 표시 → 공식 학점·필수과목 반영 (졸업 충족은 확정하지 않음)', async () => {
-  await tab('학사현황').click();
+  await tab('학사 현황').click();
   const coverage = page.locator('section[aria-labelledby="coverage-title"]');
   await expect(coverage).toContainText('졸업 충족 여부는 확정하지 않아요');
   // 기본값이 있는 질문은 답하지 않아도 필요학점을 계산한다.
@@ -351,8 +351,8 @@ async function checkTimetableWidths(state: string) {
   await page.setViewportSize({ width: 390, height: 820 });
 }
 
-test('평가일정: 수업 시간 입력 → 월~금 시간표, 자유 메모 저장과 시험 정보 수정 구분, 오늘 집계 갱신', async () => {
-  await tab('평가일정').click();
+test('시간표: 수업 시간 입력 → 월~금 시간표, 자유 메모 저장과 시험 정보 수정 구분, 오늘 집계 갱신', async () => {
+  await tab('시간표').click();
   await expect(page.getByText('오늘 등록된 평가가 없어요')).toBeVisible();
   await expect(page.locator('h1')).toHaveCSS('color', 'rgb(11, 42, 91)'); // 진한 네이비 제목
   // 수강 과목이 0개여도 월~금, 9~18시의 빈 격자는 항상 남는다.
@@ -504,7 +504,7 @@ test('알림: 동의·켜기 → 실제 whale.alarms 예약 → 알람 실행 �
 });
 
 test('보안: 과목명에 넣은 HTML은 실행되지 않고 글자로 보인다', async () => {
-  await tab('평가일정').click();
+  await tab('시간표').click();
   const evil = '<img src=x onerror="window.__xss=1">';
   await addCourse(evil);
   await expect(page.locator('.tt-pending .tt-block').filter({ hasText: evil })).toBeVisible();
@@ -514,13 +514,13 @@ test('보안: 과목명에 넣은 HTML은 실행되지 않고 글자로 보인�
 test('레이아웃: 320 / 390 / 590px 에서 가로 넘침 없음', async () => {
   for (const width of [320, 390, 590]) {
     await page.setViewportSize({ width, height: 820 });
-    for (const t of ['종정시 입력', '학사현황', '평가일정', '학점계산', '마이페이지']) {
+    for (const t of ['종정시 입력', '학사 현황', '시간표', '학점 계산', '마이페이지']) {
       await tab(t).click();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${width}px ${t}`).toBeLessThanOrEqual(0);
     }
     // 시간표와 상세 패널: 가로 넘침 없이 화면 안, 메모·시험 정보가 보임 (사람 확인용 스크린샷도 남김)
-    await tab('평가일정').click();
+    await tab('시간표').click();
     const block = page.locator('.tt-col .tt-block').first();
     const box = (await page.locator('.timetable').boundingBox())!;
     expect(box.x).toBeGreaterThanOrEqual(0);
@@ -549,7 +549,7 @@ test('레이아웃: 320 / 390 / 590px 에서 가로 넘침 없음', async () => 
 test('다시 열어도 저장된 기록·메모·수업 시간이 복원된다', async () => {
   await page.reload();
   await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeVisible();
-  await tab('평가일정').click();
+  await tab('시간표').click();
   await expect(page.locator('.tt-pending .tt-block')).toHaveCount(2); // 시간 미정 과목
   await expect(page.locator('.tt-col .tt-block')).toHaveCount(2);
   await page.locator('.tt-col .tt-block').first().click();
@@ -569,7 +569,7 @@ test('전체 초기화: 기록·예약이 남지 않는다', async () => {
 test('가상 데이터 둘러보기: 실제 기록과 섞이지 않는다', async () => {
   await page.getByRole('button', { name: '가상 데이터로 둘러보기' }).click();
   await expect(page.locator('.demo-banner')).toBeVisible();
-  await tab('평가일정').click();
+  await tab('시간표').click();
   await expect(page.locator('.today-line')).toContainText('오늘 시험 2개 · 제출 1개');
   await expect(page.locator('.tt-col .tt-block')).toHaveCount(7); // 가상 과목 5개, 그중 2개는 주 2회
   await expect(page.locator('.tt-pending .tt-block')).toHaveCount(1); // 수업 시간 없는 가상 과목

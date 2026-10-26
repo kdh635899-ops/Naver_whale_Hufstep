@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "HUFStep",
   "version": "0.2.0",
-  "description": "한국외대 학생의 이수학점과 졸업요건, 평가일정, 예상 평점을 관리합니다.",
+  "description": "한국외대 학생의 이수학점과 졸업요건, 시간표, 예상 평점을 관리합니다.",
   "permissions": ["alarms", "notifications"],
   "sidebar_action": {
     "default_page": "sidebar.html",

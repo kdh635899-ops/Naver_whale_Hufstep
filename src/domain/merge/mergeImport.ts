@@ -113,7 +113,7 @@ export function applyMerge(state: AppState, parse: ParseResult, plan: MergePlan,
   }
   for (const l of plan.linkCandidates) {
     const r = rowByKey.get(l.rowKey)!;
-    // 연결하면 같은 Course ID를 유지 → 평가일정·메모가 그대로 남고 학점이 두 번 더해지지 않는다
+    // 연결하면 같은 Course ID를 유지 → 시간표·메모가 그대로 남고 학점이 두 번 더해지지 않는다
     const next = (d.link[l.rowKey] ?? true) ? fromRow(r, byId.get(l.courseId)) : fromRow(r);
     byId.set(next.id, next);
     snapshotCourseIds.push(next.id);

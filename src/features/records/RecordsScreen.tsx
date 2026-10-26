@@ -173,7 +173,7 @@ function PasteImport() {
               <label key={l.rowKey} className="check">
                 <input type="checkbox" checked={decisions.link[l.rowKey] ?? true}
                   onChange={(e) => setDecisions((d) => ({ ...d, link: { ...d.link, [l.rowKey]: e.target.checked } }))} />
-                <span>직접 추가한 “{c.name}”({termLabel(c.term)})과 같은 과목으로 연결 (평가일정·메모 유지, 학점은 한 번만 반영)</span>
+                <span>직접 추가한 “{c.name}”({termLabel(c.term)})과 같은 과목으로 연결 (시간표·메모 유지, 학점은 한 번만 반영)</span>
               </label>
             );
           })}

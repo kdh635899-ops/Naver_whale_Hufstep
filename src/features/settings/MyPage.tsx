@@ -40,7 +40,7 @@ export function MyPage() {
 
       <section className="card">
         <h2 className="h3">현재 학기</h2>
-        <p className="muted small">평가일정·오늘 집계·알림·예상 성적의 기준 학기예요. 날짜가 지나도 자동으로 바뀌지 않아요.</p>
+        <p className="muted small">시간표·오늘 집계·알림·예상 성적의 기준 학기예요. 날짜가 지나도 자동으로 바뀌지 않아요.</p>
         <TermPicker term={p.currentTerm} onChange={setTerm} />
       </section>
 
@@ -78,11 +78,11 @@ export function MyPage() {
         {state.consent.academicData && <p className="muted small">학업정보 처리 동의: {new Date(state.consent.academicData.at).toLocaleDateString('ko-KR')} (안내 버전 {state.consent.academicData.version})</p>}
         {state.consent.academicData && (
           <ConfirmButton label="학업정보 동의 철회" className="btn danger-ghost block"
-            confirmText="동의를 철회하면 과목·성적 요약·평가일정·완료 표시·예상 성적·인증 확인·알림 예약이 모두 지워져요. 학생 조건은 남아요."
+            confirmText="동의를 철회하면 과목·성적 요약·시간표·완료 표시·예상 성적·인증 확인·알림 예약이 모두 지워져요. 학생 조건은 남아요."
             onConfirm={() => save((s) => ({ ...withoutAcademicData(s), consent: {}, settings: { ...s.settings, notifications: { ...s.settings.notifications, enabled: false, version: s.settings.notifications.version + 1 } } }))} />
         )}
         <ConfirmButton label="학업정보 삭제" className="btn danger-ghost block"
-          confirmText="과목·성적 요약·평가일정·완료 표시·예상 성적·인증 확인을 지워요. 학생 조건·알림 설정·동의 기록은 남아요."
+          confirmText="과목·성적 요약·시간표·완료 표시·예상 성적·인증 확인을 지워요. 학생 조건·알림 설정·동의 기록은 남아요."
           onConfirm={() => save(withoutAcademicData)} />
         {mode === 'demo'
           ? <button type="button" className="btn danger block" onClick={exitDemo}>가상 데이터 둘러보기 끝내기</button>

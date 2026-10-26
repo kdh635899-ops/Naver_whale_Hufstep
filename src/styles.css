@@ -56,20 +56,26 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* 헤더 */
 .app-header {
-  display: flex; align-items: center; gap: 12px; padding: 16px;
-  background: linear-gradient(120deg, var(--navy-900), var(--blue-600)); color: #fff;
+  display: flex; align-items: center; gap: 14px; min-height: 74px; padding: 14px 18px;
+  background: linear-gradient(169deg, var(--navy-950), var(--navy-900)); color: #fff;
 }
-.logo { width: 40px; height: 40px; border-radius: 10px; background: #fff; color: var(--navy-900); display: grid; place-items: center; font-weight: 800; font-size: 20px; flex: none; }
+.logo { width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: 0 8px 11px rgba(0, 25, 60, 0.22); color: var(--navy-900); display: grid; place-items: center; font-weight: 800; font-size: 21px; letter-spacing: -2px; flex: none; }
 .brand { flex: 1; min-width: 0; }
-.brand-name { font-weight: 800; font-size: 18px; letter-spacing: -0.2px; }
-.brand-sub { font-size: 12px; opacity: 0.85; }
-.badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); white-space: nowrap; }
+/* 로고 글꼴(Y Spotlight)은 파일을 쓰지 않는다 → 로고 이미지가 오기 전까지 임시 텍스트 로고 */
+.brand-name { font-weight: 700; font-size: 17px; line-height: 1.2; letter-spacing: -0.3px; }
+.brand-sub { font-size: 11px; line-height: 1.5; color: #c8d8eb; }
 
-/* 탭 */
-.tabs { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #fff; border-bottom: 1px solid var(--line); }
-.tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 7px; letter-spacing: -0.4px; overflow: hidden; border: 0; background: none; color: var(--muted); font-size: 11px; cursor: pointer; border-bottom: 2px solid transparent; min-height: 52px; min-width: 0; }
-.tab span { white-space: nowrap; font-size: 10.5px; }
-.tab[aria-current='page'] { color: var(--navy-900); font-weight: 700; border-bottom-color: var(--navy-900); }
+/* 탭: Figma 78×60, 아이콘 17px + 라벨 10px, 선택은 남색 1px 밑줄. 아이콘은 SVG 마스크라 글자색을 따른다 */
+.tabs { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #fff; border-bottom: 1px solid var(--line-soft); }
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 60px; padding: 0; letter-spacing: -0.4px; overflow: hidden; border: 0; background: none; color: var(--slate); cursor: pointer; border-bottom: 1px solid transparent; min-width: 0; }
+.tab span { white-space: nowrap; font-size: 10px; font-weight: 600; line-height: 15px; }
+.tab[aria-current='page'] { color: var(--navy-900); border-bottom-color: var(--navy-900); }
+.tab-icon { display: block; width: 17px; height: 17px; flex: none; background: currentColor; -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
+.ti-records { -webkit-mask-image: url('./icons/tab-records.svg'); mask-image: url('./icons/tab-records.svg'); }
+.ti-status { width: 22px; -webkit-mask-image: url('./icons/tab-status.svg'); mask-image: url('./icons/tab-status.svg'); }
+.ti-assessments { -webkit-mask-image: url('./icons/tab-timetable.svg'); mask-image: url('./icons/tab-timetable.svg'); }
+.ti-calculator { -webkit-mask-image: url('./icons/tab-calculator.svg'); mask-image: url('./icons/tab-calculator.svg'); }
+.ti-mypage { -webkit-mask-image: url('./icons/tab-mypage.svg'); mask-image: url('./icons/tab-mypage.svg'); }
 
 /* 화면 */
 main { padding-bottom: 32px; }
@@ -103,7 +109,10 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.3
 .btn { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 10px 14px; font-weight: 600; cursor: pointer; min-height: 44px; }
 .btn.small { min-height: 34px; padding: 6px 10px; font-size: 13px; }
 .btn.block { width: 100%; }
-.btn.primary { background: linear-gradient(120deg, var(--navy-900), var(--blue-600)); color: #fff; border: 0; }
+.btn.primary { background: var(--navy-900); color: #fff; border: 0; border-radius: var(--r-button); }
+/* Figma 큰 버튼: 주(저장) 60px / 보조(바로가기) 53px. Figma 화면에서만 쓴다 */
+.btn.cta { width: 100%; min-height: 60px; font-size: 18px; font-weight: 700; line-height: 1.25; background: var(--navy-900); color: #fff; border: 0; border-radius: var(--r-button); }
+.btn.cta-sub { width: 100%; min-height: 53px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--navy-900); color: #fff; border: 0; border-radius: var(--r-input); text-decoration: none; }
 .btn.ghost { background: #f7f9fc; }
 .btn.light { background: rgba(255, 255, 255, 0.95); color: var(--navy-900); border: 0; }
 .btn.danger { background: var(--danger); color: #fff; border: 0; }
@@ -138,6 +147,21 @@ legend { font-size: 13px; font-weight: 700; margin-bottom: 6px; padding: 0; }
 .seg input { position: absolute; opacity: 0; width: 1px; height: 1px; min-height: 0; }
 .seg label:focus-within { box-shadow: var(--focus); }
 .inline-select select { min-height: 34px; padding: 4px 8px; font-size: 12px; }
+
+/* Figma 입력 (.field): 라벨 18px · 입력 50px · 슬레이트 1px · 모서리 10px. Figma 화면에서만 쓴다 */
+label.field { gap: 9px; font-size: 18px; font-weight: 600; line-height: 1.1; color: var(--label); }
+.field input, .field select { min-height: 50px; padding: 0 15px; border: 1px solid var(--slate); border-radius: var(--r-input); font-size: 16px; font-weight: 400; color: #000; }
+.field select { appearance: none; padding-right: 40px; background: #fff url('./icons/select-chevron.svg') right 15px center / 17px 17px no-repeat; }
+/* 선택 칩 (이중전공 / 부전공 / 없음 …): 개수와 관계없이 한 줄에 균등 분할 → 좁은 폭에서도 잘리지 않는다 */
+.opt-chips { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; }
+.opt-chips label { position: relative; flex-direction: row; justify-content: center; align-items: center; min-height: 50px; padding: 0 4px; border: 1px solid var(--slate); border-radius: var(--r-chip); background: #fff; color: var(--slate); font-size: 16px; font-weight: 600; text-align: center; word-break: keep-all; cursor: pointer; }
+.opt-chips label.on { background: var(--navy-900); border-color: var(--navy-900); color: #fff; }
+.opt-chips input { position: absolute; opacity: 0; width: 1px; height: 1px; min-height: 0; }
+.opt-chips label:focus-within { box-shadow: var(--focus); }
+/* 알약 탭 바 (학사 현황 3구간 / 학점 계산 학년) */
+.pill-tabs { display: flex; gap: 10px; align-items: center; justify-content: center; min-height: 54px; padding: 7px; background: var(--panel); border-radius: var(--r-pill); }
+.pill-tabs > button { flex: 1 1 0; min-width: 0; height: 40px; padding: 0 4px; border: 0; border-radius: 20px; background: none; color: var(--slate); font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.pill-tabs > button[aria-pressed='true'], .pill-tabs > button[aria-selected='true'] { background: var(--navy-900); color: #fff; }
 .inline { flex-direction: row; align-items: center; gap: 8px; }
 .inline input { width: auto; }
 
@@ -184,10 +208,10 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 .stat.dark { background: linear-gradient(130deg, var(--navy-900), var(--blue-600)); color: #fff; border: 0; }
 .stat.dark .num { color: #fff; }
 
-/* 평가일정: 오늘 평가 */
+/* 시간표: 오늘 평가 */
 .today-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #b9dede; background: var(--teal-50); color: var(--navy-900); font-weight: 700; cursor: pointer; min-height: 48px; }
 .today-line span:first-child { overflow-wrap: anywhere; }
-/* 평가일정: 월~금 시간표 (기존 카드·선·네이비 토큰 사용) */
+/* 시간표: 월~금 시간표 (기존 카드·선·네이비 토큰 사용) */
 .timetable-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .timetable { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .tt-days, .tt-body { display: grid; grid-template-columns: 26px repeat(5, minmax(0, 1fr)); }
@@ -232,7 +256,9 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 
 @media (max-width: 340px) {
   .screen { padding: 16px 12px 20px; }
-  .tab span { font-size: 9.5px; letter-spacing: -0.6px; }
+  .tab span { font-size: 9px; letter-spacing: -0.6px; }
+  .opt-chips label { font-size: 13px; }
+  .opt-chips { gap: 6px; }
   .tt-name { font-size: 13px; }
   .tt-block { padding-left: 3px; padding-right: 3px; }
   .tt-eval { letter-spacing: -0.7px; }

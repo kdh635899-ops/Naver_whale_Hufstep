@@ -1,4 +1,4 @@
-// 평가일정: 월~금 격자와 맨 아래 '시간 미정' 줄을 하나의 시간표로 표시한다.
+// 시간표: 월~금 격자와 맨 아래 '시간 미정' 줄을 하나의 시간표로 표시한다.
 // 시간표(학생이 입력한 수업 시간) → 과목 누르면 하단 상세 패널(자유 메모 + 중간·기말 정보) → 메모 저장과 시험 정보 수정은 따로.
 // 시험 정보 저장은 store.save()를 거쳐 오늘 집계·알림 예약을 갱신한다. 자유 메모는 알림을 만들지 않는다.
 import { useEffect, useId, useMemo, useState } from 'react';
@@ -96,7 +96,7 @@ export function AssessmentsScreen() {
           </label>
         )}
       </div>
-      <h1>평가일정</h1>
+      <h1>시간표</h1>
 
       {isCurrent && (
         <button type="button" className="today-line" onClick={() => setTodayDate(today)} aria-haspopup="dialog">

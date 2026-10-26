@@ -1,10 +1,10 @@
 // 사이드바 앱 뼈대: 헤더 · 5개 메뉴 · 화면 · 공유 과목 편집기.
-// 메뉴 순서(§2.2): 종정시 입력 → 학사현황 → 평가일정 → 학점계산 → 마이페이지
+// 메뉴 순서(§2.2): 종정시 입력 → 학사 현황 → 시간표 → 학점 계산 → 마이페이지
 import { useState } from 'react';
 import type { View } from '../domain/state';
 import { AssessmentsScreen } from '../features/assessments/AssessmentsScreen';
 import { CalculatorScreen } from '../features/calculator/CalculatorScreen';
-import { CAMPUS_LABEL, ConfirmButton, PrivacySummary } from '../features/common';
+import { ConfirmButton, PrivacySummary } from '../features/common';
 import { CourseEditor } from '../features/courses/CourseEditor';
 import { ProfileForm } from '../features/profile/ProfileForm';
 import { RecordsScreen } from '../features/records/RecordsScreen';
@@ -12,20 +12,16 @@ import { MyPage } from '../features/settings/MyPage';
 import { StatusScreen } from '../features/academic-status/StatusScreen';
 import { useStore } from './store';
 
-const TABS: { view: View; label: string; icon: string }[] = [
-  { view: 'records', label: '종정시 입력', icon: 'M4 5h16v4H4zM5 9v10h14V9M9 13h6' },
-  { view: 'status', label: '학사현황', icon: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6' },
-  { view: 'assessments', label: '평가일정', icon: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' },
-  { view: 'calculator', label: '학점계산', icon: 'M6 3h12v18H6zM9 7h6M9 12h1M14 12h1M9 16h1M14 16h1' },
-  { view: 'mypage', label: '마이페이지', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1-4 4-6 8-6s7 2 8 6' },
+// 아이콘은 Figma에서 내려받은 SVG(src/icons)를 CSS 마스크로 칠한다 → 선택/비선택 색이 글자색을 따라간다.
+const TABS: { view: View; label: string }[] = [
+  { view: 'records', label: '종정시 입력' },
+  { view: 'status', label: '학사 현황' },
+  { view: 'assessments', label: '시간표' },
+  { view: 'calculator', label: '학점 계산' },
+  { view: 'mypage', label: '마이페이지' },
 ];
 
-function Icon({ d }: { d: string }) {
-  return <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"><path d={d} /></svg>;
-}
-
 function Header() {
-  const { state } = useStore();
   return (
     <header className="app-header">
       <div className="logo" aria-hidden="true">W</div>
@@ -33,7 +29,6 @@ function Header() {
         <p className="brand-name">HUFStep</p>
         <p className="brand-sub">외대생의 학사 도우미</p>
       </div>
-      {state.profile && <span className="badge">{CAMPUS_LABEL[state.profile.homeCampus]}</span>}
     </header>
   );
 }
@@ -50,7 +45,7 @@ export function App() {
       <nav className="tabs" aria-label="주 메뉴">
         {TABS.map((t) => (
           <button key={t.view} type="button" className="tab" aria-current={s.view === t.view ? 'page' : undefined} onClick={() => s.setView(t.view)}>
-            <Icon d={t.icon} /><span>{t.label}</span>
+            <i className={`tab-icon ti-${t.view}`} aria-hidden="true" /><span>{t.label}</span>
           </button>
         ))}
       </nav>
@@ -89,7 +84,7 @@ function Start() {
         {step === 'welcome' ? (
           <>
             <p className="eyebrow">나에게 맞는 졸업요건</p>
-            <h1>이수학점과 평가일정을<br />한곳에서 관리해요</h1>
+            <h1>이수학점과 시간표을<br />한곳에서 관리해요</h1>
             <p className="lead">내 조건에 맞는 졸업요건과 앞으로 채워야 할 학점, 이번 학기 시험 일정과 예상 평점을 확인해요.</p>
             <section className="card">
               <h2 className="h3">시작 전에 알아 두세요</h2>

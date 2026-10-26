@@ -1,4 +1,4 @@
-// 공유 과목 편집기 (§3.5). 학사현황·학점계산·평가일정이 모두 이 편집기와 같은 Course ID를 쓴다.
+// 공유 과목 편집기 (§3.5). 학사현황·학점계산·시간표이 모두 이 편집기와 같은 Course ID를 쓴다.
 import { useMemo, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog, departmentName } from '../../data';
@@ -218,7 +218,7 @@ export function CourseEditor() {
           </div>
           {existing && (
             <ConfirmButton label="과목 삭제" className="btn danger-ghost"
-              confirmText="이 과목과 연결된 평가일정·예상 성적도 함께 지워져요." onConfirm={remove} />
+              confirmText="이 과목과 연결된 시간표·예상 성적도 함께 지워져요." onConfirm={remove} />
           )}
         </form>
       </ConsentGate>

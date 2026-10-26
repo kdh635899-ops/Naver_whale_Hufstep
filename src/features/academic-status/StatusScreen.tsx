@@ -184,7 +184,7 @@ export function StatusScreen() {
       <MyCourses courses={state.courses} />
 
       {mode === 'demo' && <p className="muted small">가상 데이터의 수치는 예시이며 공식 학교 기준이 아니에요.</p>}
-      <button type="button" className="btn primary block" onClick={() => setView('calculator')}>학점계산으로 이동 →</button>
+      <button type="button" className="btn primary block" onClick={() => setView('calculator')}>학점 계산으로 이동 →</button>
 
       {editProfile && (
         <Sheet title="학생 조건 수정" onClose={() => setEditProfile(false)}>
@@ -201,7 +201,7 @@ function ScopeNotice() {
   let text = '';
   if (mode === 'demo') text = '가상 데이터로 보는 시안이에요. 졸업 기준·과목·성적은 모두 예시예요.';
   else if (report) text = ''; // 실제 모드: 아래 '졸업요건 판정 범위'에서 한 번에 안내
-  else if (!resolved) text = '현재 선택 조건의 졸업 기준이 아직 제공되지 않아요. 취득학점·과목 관리·평가일정·계산기는 그대로 쓸 수 있고, 필요·부족 학점은 비워 둬요.';
+  else if (!resolved) text = '현재 선택 조건의 졸업 기준이 아직 제공되지 않아요. 취득학점·과목 관리·시간표·계산기는 그대로 쓸 수 있고, 필요·부족 학점은 비워 둬요.';
   else if (resolved.missingScopes.length || resolved.conflicts.length) {
     text = [
       resolved.missingScopes.length ? `${resolved.missingScopes.map((s) => SCOPE_TITLE[s]).join('·')} 기준은 아직 제공되지 않아요.` : '',

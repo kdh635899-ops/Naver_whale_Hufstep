@@ -276,7 +276,7 @@ describe('이미 끝난 작업은 그대로 남아 있다', () => {
     expect(COURSE_EDITOR).toContain('<summary>추가 정보</summary>');
     expect(COURSE_EDITOR).toContain('공식 과목 코드 (선택)');
   });
-  it('평가일정: 요일 시간표·시간 미정·중간·기말·메모', () => {
+  it('시간표: 요일 시간표·시간 미정·중간·기말·메모', () => {
     expect(ASSESSMENTS).toMatch(/월|화|수|목|금/);
     expect(ASSESSMENTS).toContain('시간 미정');
     expect(ASSESSMENTS).toMatch(/중간/);
