@@ -20,9 +20,36 @@ if (check && !existsSync(join(SRC, 'integration-manifest.json'))) {
 }
 const manifest = read(SRC, 'integration-manifest.json');
 
-// ---- 1) 앱 형식 배열 6종: 그대로 사용 (값 변환 없음) ----
+// ---- 1) 앱 형식 배열 6종: 학과 별칭만 등록부의 명시된 관계로 보완 ----
 const ARRAYS = ['departments.json', 'requirement-bundles.json', 'course-equivalences.json', 'grading-policies.json', 'academic-calendars.json', 'sources.json'];
 const out = Object.fromEntries(ARRAYS.map((f) => [f, read(SRC, f)]));
+
+const majors = read(dirname(SRC), 'major-registry.json').majors;
+const majorsById = new Map(majors.map((m) => [m.majorId, m]));
+const aliasesById = new Map(majors.map((m) => [m.majorId, new Set(m.formerNames ?? [])]));
+const SAME_UNIT = new Set(['renamedTo', 'renamedFrom', 'sameUnitCatalogLabel', 'sameUnitAlternateLabel']);
+for (const m of majors) {
+  const aliases = aliasesById.get(m.majorId);
+  const parents = [m.parentMajorId, ...(m.reorganizationRelations ?? [])
+    .filter((r) => r.relation === 'submajorOf').map((r) => r.relatedMajorId)].filter(Boolean);
+  for (const id of parents) {
+    if (!majorsById.has(id)) throw new Error(`${m.majorId}: 상위 학부 ID 누락 ${id}`);
+    aliases.add(majorsById.get(id).officialName);
+  }
+  // 같은 단위의 표기만 양방향으로 인정한다. 조직개편·미확정 승계 관계는 포함하지 않는다.
+  for (const r of m.reorganizationRelations ?? []) {
+    if (!SAME_UNIT.has(r.relation)) continue;
+    if (!majorsById.has(r.relatedMajorId)) throw new Error(`${m.majorId}: 동일 학과 ID 누락 ${r.relatedMajorId}`);
+    aliases.add(majorsById.get(r.relatedMajorId).officialName);
+    aliasesById.get(r.relatedMajorId).add(m.officialName);
+  }
+}
+const departmentsById = new Map(out['departments.json'].map((d) => [d.id, d]));
+for (const m of majors) {
+  const d = departmentsById.get(manifest.idMap[m.majorId] ?? m.majorId);
+  if (!d) throw new Error(`등록부 학과 ID 누락: ${m.majorId}`);
+  d.aliases = [...aliasesById.get(m.majorId)].filter((name) => name !== d.name).sort();
+}
 
 // 기존 학생 저장 정보가 참조하는 학과 ID·데모 출처가 새 전달본에도 있어야 한다
 const LEGACY_DEPARTMENT_IDS = ['seoul-malay-indonesian', 'seoul-business', 'seoul-german', 'seoul-japanese-language-culture'];

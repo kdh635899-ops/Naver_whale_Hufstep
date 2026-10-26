@@ -1,7 +1,7 @@
 // 실제 배포 공식 데이터(official-rules.json·requirement-bundles.json)와 조건식 규칙 엔진 검사.
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { catalog, departmentFacts, departmentMetaById, departmentName, loadList, type Rejected } from '../../src/data';
+import { catalog, departmentById, departmentFacts, departmentMetaById, loadList, type Rejected } from '../../src/data';
 import { buildDemoState } from '../../src/data/demo';
 import { condValues, evalCond, factsFor, roleContexts, type Cond } from '../../src/domain/requirements/conditions';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../src/domain/requirements/officialRules';
 import { evaluateProgress, resolveRequirements } from '../../src/domain/requirements/resolve';
 import { appStateSchema, bundleSchema, officialRuleSchema, profileSchema } from '../../src/domain/validation/schemas';
-import type { CourseExpr, OfficialRule, StudentProfile } from '../../src/domain/types';
+import type { CourseExpr, CourseLeaf, OfficialRule, StudentProfile } from '../../src/domain/types';
 import { course } from '../fixtures';
 import { correctTermScope, periodBound, type EffectivePeriod } from '../../scripts/term-scope.mjs';
 
@@ -580,6 +580,81 @@ describe('기존 학생 데이터와 데모', () => {
   });
 });
 
+describe('등록부 별칭으로 코드 없는 전공필수 대조', () => {
+  const run = (departmentId: string, courses: ReturnType<typeof course>[], rules = catalog.officialRules) => {
+    const p: StudentProfile = {
+      ...base, homeCampus: departmentById(departmentId)!.campus, cohortYear: 2023, entryType: 'transferBachelor',
+      primaryDepartmentId: departmentId, programType: 'single', secondaryDepartmentId: undefined,
+      facts: { foreignLanguageSpecialAdmission: false, pureForeignAdmission: false },
+    };
+    return evaluateCourseRules(report(p, rules), courses, null, { dept: departmentById });
+  };
+  const taken = (name: string, offeringDepartmentName: string, officialCode?: string) =>
+    course({ name, offeringDepartmentName, officialCode, grade: 'A0' });
+
+  it('서아프리카어전공 전필을 아프리카학부 개설 성적으로 이름 대조한다', () => {
+    const progress = run('global-232e50994b', [
+      taken('하우사문법(고급)', '아프리카학부'), taken('하우사언어실습(중급)', '아프리카학부'),
+    ]).find((p) => p.eval.rule.id === 'dr105-africa-west-required-2019-2026')!;
+    expect(progress.status).toBe('met');
+    expect(progress.root.children!.map((c) => c.state)).toEqual(['nameMatched', 'nameMatched']);
+    expect(progress.root.children!.every((c) => !!c.courseId)).toBe(true);
+  });
+
+  it.each([
+    ['seoul-cc643ab94a', '태국어과'], ['seoul-8c71399e19', '태국학과'],
+  ])('%s의 이름 대조는 개칭 전후 개설학과 %s를 인정한다', (departmentId, offeringDepartmentName) => {
+    // 합성 요건으로 이름 대조만 검증한다. 실제 규칙의 학과·학번 적용범위를 승계시키지는 않는다.
+    const req = synth({ departmentId, courses: { op: 'ALL', items: [leaf('thai', null, '태국어연습A1(1)')] } });
+    const progress = run(departmentId, [taken('태국어연습A1(1)', offeringDepartmentName)], [req])[0];
+    expect(progress.status).toBe('met');
+    expect(progress.root.children![0].state).toBe('nameMatched');
+  });
+
+  it('태국어과의 실제 전필 규칙도 태국학과 개설 성적으로 대조한다', () => {
+    const progress = run('seoul-8c71399e19', [taken('태국어연습A1(1)', '태국학과')])
+      .find((p) => p.eval.rule.id === 'c99-thai-2021')!;
+    expect(progress.root.children![0].state).toBe('nameMatched');
+  });
+
+  it.each([
+    ['하우사문법(고급)', '베트남어과'], // 과목명이 같아도 관계가 없는 학과는 제외
+    ['다른 과목', '아프리카학부'],     // 별칭 학과가 맞아도 과목명이 다르면 제외
+  ])('학과와 과목명이 모두 맞아야 한다: %s / %s', (name, offeringDepartmentName) => {
+    const progress = run('global-232e50994b', [taken(name, offeringDepartmentName)])
+      .find((p) => p.eval.rule.id === 'dr105-africa-west-required-2019-2026')!;
+    expect(progress.status).toBe('unmet');
+    expect(progress.root.children!.map((c) => c.state)).toEqual(['unmet', 'unmet']);
+  });
+
+  it('동일 학과의 편람 표기는 양방향이며, 상위 학부는 하위 전공·다른 전공을 별칭으로 받지 않는다', () => {
+    expect(departmentById('seoul-1ae01dc67c')!.aliases).toContain('페르시아어·이란학과');
+    expect(departmentById('seoul-fbbf413afe')!.aliases).toContain('페르시아어·이란학과(구이란어과)');
+    expect(departmentById('global-232e50994b')!.aliases).toEqual(['아프리카학부']);
+    expect(departmentById('global-4e887fa213')!.aliases).not.toContain('서아프리카어전공');
+    expect(departmentById('seoul-e2e6ddcb13')!.aliases).toEqual([]); // 일본어학전공은 상위 학부 관계 미기록
+  });
+
+  it('2023학번 학사편입 말레이·인도네시아어과: 전필 11과목 중 7과목 이수·4과목 미이수 유지', () => {
+    const dept = '말레이·인도네시아어과';
+    const grades = [
+      taken('인도네시아세계역사.문화:인도네시아,동티모르,필리핀', dept, 'B03493'),
+      taken('지역과지역학', dept, 'B03131'),
+      ...['초급마.인어(1)', '초급마.인어(2)', '초급마.인어회화작문(1)', '초급마.인어회화작문(2)', '중급마.인어회화작문(1)']
+        .map((name) => taken(name, dept)),
+    ];
+    const progress = run('seoul-malay-indonesian', grades).find((p) => p.eval.rule.id === 'core-malay-primary-2022-2026')!;
+    const children = progress.root.children!;
+    expect(children).toHaveLength(11);
+    expect(children.filter((c) => c.state === 'met')).toHaveLength(2);
+    expect(children.filter((c) => c.state === 'nameMatched')).toHaveLength(5);
+    expect(children.filter((c) => c.state === 'unmet').map((c) => (c.node as CourseLeaf).name)).toEqual([
+      '말레이세계역사와문화: 말레이시아,싱가포르,브루나이', '중급마.인어회화작문(2)', '영상마.인어(1)', '영상마.인어(2)',
+    ]);
+    expect(progress.status).toBe('unmet');
+  });
+});
+
 // ---- 코드 없는 전공필수: 개설학과 + 과목명 대조 (실제 배포 규칙으로 시나리오 검사) ----
 // 가상(합성) 학생 시나리오. 실제 학생의 수강 이력·등급을 쓰거나 참고해 재구성하지 않는다 (§11).
 describe('코드 없는 전공필수 대조 (독일어과 2025 학사편입·단일전공)', () => {
@@ -602,7 +677,7 @@ describe('코드 없는 전공필수 대조 (독일어과 2025 학사편입·단
   const RULE_ID = 'core-german-primary-2025-2026';
   const run = (courses: ReturnType<typeof course>[], confirmedLeafIds: string[] = []) => {
     const rep = report(german);
-    const p = evaluateCourseRules(rep, courses, null, { deptName: departmentName, confirmedLeafIds })
+    const p = evaluateCourseRules(rep, courses, null, { dept: departmentById, confirmedLeafIds })
       .find((x) => x.eval.rule.id === RULE_ID);
     expect(p, `${RULE_ID} 규칙이 확정 규칙에 없음`).toBeTruthy();
     return p!;

@@ -3,7 +3,7 @@
 import { effectiveCourses } from '../gpa/gpa';
 import { compareTerms, termKey } from '../terms';
 import type {
-  AcademicSnapshot, Course, CourseExpr, CourseLeaf, CreditArea, DepartmentMeta, OfficialRule, RequirementBundle, StudentProfile,
+  AcademicSnapshot, Course, CourseExpr, CourseLeaf, CreditArea, Department, DepartmentMeta, OfficialRule, RequirementBundle, StudentProfile,
   SupportGap, Term,
 } from '../types';
 import {
@@ -468,8 +468,8 @@ const parseTerm = (s: string): Term => ({ academicYear: Number(s.slice(0, 4)), s
 export interface CourseMatchContext {
   /** 기존 필수 묶음에서 이미 쓴 과목 (한 과목은 한 요건에만 쓴다) */
   alreadyUsed?: Iterable<string>;
-  /** 학과 ID → 학과명. 코드 없는 요건을 '개설학과 + 과목명'으로 대조할 때 쓴다. */
-  deptName?: (id: string) => string | undefined;
+  /** 학과 ID → 학과명·별칭. 코드 없는 요건을 '개설학과 + 과목명'으로 대조할 때 쓴다. */
+  dept?: (id: string) => Pick<Department, 'name' | 'aliases'> | undefined;
   /** 학생이 '이수함(직접 확인)'만 체크한 요건(leaf) ID */
   confirmedLeafIds?: Iterable<string>;
 }
@@ -484,9 +484,12 @@ export interface CourseMatchContext {
 export function evaluateCourseRules(
   report: OfficialReport, courses: Course[], snapshot: AcademicSnapshot | null, ctx: CourseMatchContext = {},
 ): CourseRuleProgress[] {
-  const { alreadyUsed = [], deptName, confirmedLeafIds = [] } = ctx;
+  const { alreadyUsed = [], dept, confirmedLeafIds = [] } = ctx;
   const selfConfirmed = new Set(confirmedLeafIds);
-  const deptKey = (id: string) => { const n = deptName?.(id); return n ? normalizeCourseName(n) : undefined; };
+  const deptKey = (id: string) => {
+    const d = dept?.(id);
+    return new Set(d ? [d.name, ...d.aliases].map(normalizeCourseName) : []);
+  };
   const earned = effectiveCourses(courses).filter((c) => c.earnedInclusion === 'included');
   const useReported = !!snapshot && !snapshot.completeness.courses && snapshot.completeness.earnedTotals;
   const hasRecords = courses.length > 0 || !!snapshot;
@@ -501,7 +504,7 @@ export function evaluateCourseRules(
   // 개설학과 칸이 없던 시절에 저장한 성적: 이수구분(1전공·이중전공·부전공)이 규칙의 역할과 같으면 그 학과 과목으로 본다
   const AREA_OF_ROLE: Record<MajorRole, CreditArea> = { primary: 'primary', dual: 'double', minor: 'minor' };
   const fromSameDepartment = (c: Course, departmentId: string, role: MajorRole) =>
-    (c.offeringDepartmentName ? normalizeCourseName(c.offeringDepartmentName) === deptKey(departmentId) : c.area === AREA_OF_ROLE[role]);
+    (c.offeringDepartmentName ? deptKey(departmentId).has(normalizeCourseName(c.offeringDepartmentName)) : c.area === AREA_OF_ROLE[role]);
 
   const matchLeaf = (leaf: CourseLeaf, departmentId: string | null, allowStudent: boolean, role: MajorRole): NodeProgress => {
     if (leaf.waiverRuleIds?.some((id) => confirmedIds.has(id))) return { node: leaf, level: 2, state: 'waived' };

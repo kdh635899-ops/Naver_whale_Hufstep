@@ -3,7 +3,9 @@
   "id": "seoul-9603b1d647",
   "name": "ELLT학과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "영어학과"
+  ],
   "status": "verified"
  },
  {
@@ -101,7 +103,9 @@
   "id": "seoul-cc643ab94a",
   "name": "태국학과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "태국어과"
+  ],
   "status": "verified"
  },
  {
@@ -122,14 +126,18 @@
   "id": "seoul-1c979f06c8",
   "name": "튀르키예·아제르바이잔학과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "터키.아제르바이잔어과"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-fbbf413afe",
   "name": "페르시아어·이란학과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "페르시아어·이란학과(구이란어과)"
+  ],
   "status": "verified"
  },
  {
@@ -297,14 +305,18 @@
   "id": "seoul-2141b7d57c",
   "name": "외국어로서의 한국어교육 전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "KFL학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-fd335bc600",
   "name": "외국어로서의 한국어통번역 전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "KFL학부"
+  ],
   "status": "verified"
  },
  {
@@ -773,7 +785,9 @@
   "id": "seoul-ad6c8bb46f",
   "name": "상담·UX심리전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "상담∙UX심리전공"
+  ],
   "status": "verified"
  },
  {
@@ -850,28 +864,36 @@
   "id": "seoul-1425b8a93b",
   "name": "영어학과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "ELLT학과"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-8c71399e19",
   "name": "태국어과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "태국학과"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-1615797ab6",
   "name": "터키.아제르바이잔어과",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "튀르키예·아제르바이잔학과"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-1ae01dc67c",
   "name": "페르시아어·이란학과(구이란어과)",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "페르시아어·이란학과"
+  ],
   "status": "verified"
  },
  {
@@ -885,21 +907,27 @@
   "id": "seoul-5f6617f421",
   "name": "중국언어문화전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "중국언어문화학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-70ffe9c6dd",
   "name": "차이나데이터큐레이션전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "중국언어문화학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-eb9046ea06",
   "name": "중국외교통상전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "중국외교통상학부"
+  ],
   "status": "verified"
  },
  {
@@ -934,35 +962,45 @@
   "id": "seoul-f3f0815824",
   "name": "일본언어문화전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "일본언어문화학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-134e00d983",
   "name": "융합일본지역전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "융합일본지역학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-9d16f68862",
   "name": "언론.정보전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "미디어커뮤니케이션학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-38cdb7c2a2",
   "name": "광고·PR·브랜딩전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "미디어커뮤니케이션학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-768ec435b7",
   "name": "방송·영상·뉴미디어전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "미디어커뮤니케이션학부"
+  ],
   "status": "verified"
  },
  {
@@ -997,7 +1035,9 @@
   "id": "seoul-ddfd7f9826",
   "name": "상담∙UX심리전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "상담·UX심리전공"
+  ],
   "status": "verified"
  },
  {
@@ -1011,161 +1051,215 @@
   "id": "seoul-ba3aa08c56",
   "name": "프랑스응용어문학전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "프랑스어학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-3677089215",
   "name": "FATI(프랑스어통번역)전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "프랑스어학부"
+  ],
   "status": "verified"
  },
  {
   "id": "seoul-8b34084f56",
   "name": "프랑스·EU 전공",
   "campus": "seoul",
-  "aliases": [],
+  "aliases": [
+   "프랑스어학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-4cb4661130",
   "name": "영어통번역 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-c2a8364bd5",
   "name": "아랍어통번역 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-72af36e2fe",
   "name": "중국어통번역 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-2ab8cdae18",
   "name": "미주·영연방 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "미국․영연방전략세부모듈",
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-8756f4182d",
   "name": "중동·이슬람 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부",
+   "중동.이슬람전략세부모듈"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-bea5339c3c",
   "name": "중화권 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부",
+   "중화권전략세부모듈"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-2edef5805c",
   "name": "이탈리아·EU 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부",
+   "이탈리아.EU전략세부모듈"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-76b3f4191d",
   "name": "테크노미디어디자인 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-ea6656e0f3",
   "name": "패션관광문화산업 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-2e1d12fd5b",
   "name": "게임한류문화산업 세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-d064fe39c6",
   "name": "융합비즈니스 모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합비즈니스세부모듈",
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-984440e7e3",
   "name": "ICT & AI 모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "ICT&AI세부모듈",
+   "융합인재학부"
+  ],
   "status": "unverified"
  },
  {
   "id": "global-1b7f2b54b1",
   "name": "영어통번역학전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "영어통번역심화전공"
+  ],
   "status": "verified"
  },
  {
   "id": "global-70d776988c",
   "name": "영미권통상통번역전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "영어통번역학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-e650497ca2",
   "name": "영미문학·번역전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "영미문학문화통번역전공",
+   "영어통번역학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-fe7abf6bb7",
   "name": "TESOL영어학전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "영어통번역학부",
+   "영어학전공"
+  ],
   "status": "verified"
  },
  {
   "id": "global-09d717c221",
   "name": "동아프리카어전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "아프리카학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-232e50994b",
   "name": "서아프리카어전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "아프리카학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-c9acfaaba0",
   "name": "남아프리카어전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "아프리카학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-7fd0922a1d",
   "name": "Global Business & Technology전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "Global Business & Technology학부"
+  ],
   "status": "verified"
  },
  {
@@ -1186,70 +1280,90 @@
   "id": "global-14b53335f0",
   "name": "컴퓨터공학전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "컴퓨터공학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-7a517308a3",
   "name": "바이오메디컬공학전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "바이오메디컬공학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-3bb6419a74",
   "name": "중동.이슬람전략세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "중동·이슬람 세부모듈"
+  ],
   "status": "verified"
  },
  {
   "id": "global-cdbdc54f3b",
   "name": "이탈리아.EU전략세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "이탈리아·EU 세부모듈"
+  ],
   "status": "verified"
  },
  {
   "id": "global-e572550d75",
   "name": "미국․영연방전략세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "미주·영연방 세부모듈"
+  ],
   "status": "verified"
  },
  {
   "id": "global-99731ecbb1",
   "name": "중화권전략세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "중화권 세부모듈"
+  ],
   "status": "verified"
  },
  {
   "id": "global-5d1cfe0377",
   "name": "융합비즈니스세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "융합비즈니스 모듈"
+  ],
   "status": "verified"
  },
  {
   "id": "global-177e7c4404",
   "name": "ICT&AI세부모듈",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "ICT & AI 모듈"
+  ],
   "status": "verified"
  },
  {
   "id": "global-48a9df5484",
   "name": "AI데이터융합전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "AI데이터융합학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-ae815297dc",
   "name": "Finance&AI융합전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "Finance & AI융합학부"
+  ],
   "status": "verified"
  },
  {
@@ -1263,49 +1377,66 @@
   "id": "global-29c41fa983",
   "name": "그리스학",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "그리스·불가리아학과"
+  ],
   "status": "verified"
  },
  {
   "id": "global-4edd73f351",
   "name": "불가리아학",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "그리스·불가리아학과"
+  ],
   "status": "verified"
  },
  {
   "id": "global-1dffd7c1e9",
   "name": "영미문학문화통번역전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "영미문학·번역전공",
+   "영어통번역학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-0c29039c56",
   "name": "영어학전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "TESOL영어학전공",
+   "영어통번역학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-830b0303f4",
   "name": "영어통번역심화전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "영어통번역학부",
+   "영어통번역학전공"
+  ],
   "status": "verified"
  },
  {
   "id": "global-sports-gsi",
   "name": "글로벌스포츠산업전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "글로벌스포츠산업학부"
+  ],
   "status": "verified"
  },
  {
   "id": "global-sports-gem",
   "name": "글로벌e스포츠매니지먼트전공",
   "campus": "global",
-  "aliases": [],
+  "aliases": [
+   "글로벌스포츠산업학부"
+  ],
   "status": "verified"
  }
 ]

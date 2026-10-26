@@ -1,7 +1,7 @@
 // 학사현황 (§3.4). 피그마 순서: 내 조건 → 전체 진행 → 영역별 → 필수과목 → 전공별 시험·인증 → 공통요건.
 import { useMemo, useState } from 'react';
 import { useStore } from '../../app/store';
-import { catalog, departmentName } from '../../data';
+import { catalog, departmentById, departmentName } from '../../data';
 import { formatGpa, graduationGpa } from '../../domain/gpa/gpa';
 import { evaluateCourseRules } from '../../domain/requirements/officialRules';
 import { evaluateProgress, type ReqStatus } from '../../domain/requirements/resolve';
@@ -26,7 +26,7 @@ export function StatusScreen() {
   const courseProgress = useMemo(() => (report
     ? evaluateCourseRules(report, state.courses, snap, {
       alreadyUsed: resolved?.allowCourseReuseAcrossGroups ? [] : progress.groups.flatMap((g) => g.matchedCourseIds),
-      deptName: departmentName, // 코드 없는 전필을 '개설학과 + 과목명'으로 대조
+      dept: departmentById, // 코드 없는 전필을 '개설학과(별칭 포함) + 과목명'으로 대조
       confirmedLeafIds: state.certConfirmations.map((c) => c.requirementId),
     })
     : []), [report, state.courses, snap, resolved, progress, state.certConfirmations]);
