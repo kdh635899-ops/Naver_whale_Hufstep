@@ -348,11 +348,11 @@ html, body { background: #fff; }
 .help-btn { display: grid; place-items: center; width: 25px; height: 25px; padding: 0; border: 1px solid var(--navy-900); border-radius: 25px; background: #fff; color: var(--navy-900); font-size: 16px; font-weight: 700; line-height: 1; cursor: pointer; flex: none; }
 /* ? 말풍선: 안내 카드 아래로 톡 튀어나오고 X로 닫는다 */
 .guide { position: relative; }
-.bubble { position: absolute; z-index: 30; right: 0; width: 66.667%; min-width: 190px; top: calc(100% + 14px); padding: 12px 12px 14px; border: 2px solid var(--navy-900); border-radius: 20px; background: #fff; box-shadow: 0 14px 28px rgba(12, 53, 104, 0.18); transform-origin: calc(100% - 38px) -10px; animation: bubble-pop 0.18s ease-out; }
+.bubble { position: absolute; z-index: 30; right: 0; width: 60%; min-width: 180px; max-width: 100%; top: calc(100% + 20px); padding: 10px 12px 12px; border: 2px solid var(--navy-900); border-radius: 20px; background: #fff; box-shadow: 0 14px 28px rgba(12, 53, 104, 0.18); transform-origin: calc(100% - 38px) -10px; animation: bubble-pop 0.18s ease-out; }
 .bubble::before, .bubble::after { content: ''; position: absolute; right: 16px; border-style: solid; border-color: transparent; }
-.bubble::before { top: -14px; border-width: 0 11px 12px; border-bottom-color: var(--navy-900); }
-.bubble::after { top: -10px; right: 18px; border-width: 0 9px 10px; border-bottom-color: #fff; }
-.bubble img { display: block; width: 100%; height: auto; margin-top: 20px; border: 1px solid var(--line-soft); border-radius: 6px; }
+.bubble::before { top: -21px; border-width: 0 11px 19px; border-bottom-color: var(--navy-900); }
+.bubble::after { top: -16px; right: 18px; border-width: 0 9px 16px; border-bottom-color: #fff; }
+.bubble img { display: block; width: 86%; height: auto; margin: 18px auto 0; border: 1px solid var(--line-soft); border-radius: 6px; }
 .bubble p { margin-top: 10px; font-size: 15px; font-weight: 700; line-height: 22px; text-align: center; color: #000; word-break: keep-all; }
 .bubble-x { position: absolute; top: 4px; right: 6px; width: 28px; height: 28px; padding: 0; border: 0; background: none; color: #000; font-size: 18px; line-height: 1; cursor: pointer; }
 @keyframes bubble-pop { from { opacity: 0; transform: scale(0.92) translateY(-6px); } to { opacity: 1; transform: none; } }

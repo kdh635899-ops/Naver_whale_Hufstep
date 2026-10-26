@@ -1,7 +1,7 @@
 // 종정시 입력 (Figma, §3.3, §6). 학생이 직접 복사해 붙여넣은 text/plain만 이 기기에서 분석한다.
 // '종정시 정보 저장' 한 번으로: 분석 → 빠졌거나 애매한 것이 있으면 빨간 글씨로 알리고 저장을 막음 → 이상 없으면 저장하고 학사 현황으로.
 // 반영 기본값(사람이 고르던 선택): 직접 추가한 같은 과목은 연결, 내가 고친 값은 유지, 이번에 없는 과목은 지우지 않는다.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog } from '../../data';
 import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
@@ -70,12 +70,18 @@ export function RecordsScreen() {
 
 function Guide() {
   const [help, setHelp] = useState(false);
-  // 말풍선은 ? 버튼으로 열고, X 버튼이나 Esc로 닫는다
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  // 말풍선은 ? 버튼으로 열고, X 버튼이나 Esc로 닫는다. 열릴 때 화면 아래에 걸려 잘리지 않게 전체가 보이는 곳까지 스크롤한다.
   useEffect(() => {
     if (!help) return;
+    const frame = window.requestAnimationFrame(() => {
+      const r = bubbleRef.current?.getBoundingClientRect();
+      const hidden = r ? r.bottom + 16 - window.innerHeight : 0; // 말풍선 아랫부분이 화면 밖으로 나간 만큼
+      if (hidden > 0) window.scrollBy({ top: hidden });
+    });
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setHelp(false); };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    return () => { window.cancelAnimationFrame(frame); document.removeEventListener('keydown', onKey); };
   }, [help]);
   return (
     <div className="guide">
@@ -87,7 +93,7 @@ function Guide() {
         </li>
       </ol>
       {help && (
-        <div id="guide-bubble" className="bubble" role="dialog" aria-label="성적취득현황 복사 방법">
+        <div id="guide-bubble" ref={bubbleRef} className="bubble" role="dialog" aria-label="성적취득현황 복사 방법">
           <button type="button" className="bubble-x" aria-label="말풍선 닫기" onClick={() => setHelp(false)}>✕</button>
           <img src={guideImg} alt="종합정보시스템 성적취득현황 화면 예시" />
           <p>해당 영역의 위에서 아래까지 모두 드래그해주세요!</p>
