@@ -277,12 +277,18 @@ describe('이미 끝난 작업은 그대로 남아 있다', () => {
     expect(COURSE_EDITOR).toContain('<summary>추가 정보</summary>');
     expect(COURSE_EDITOR).toContain('공식 과목 코드 (선택)');
   });
-  it('시간표: 요일 시간표·시간 미정·중간·기말·메모', () => {
+  it('시간표: 끌어서 추가/삭제 확인·수업 정보·시험 정보·메모 (Figma 문구)', () => {
     expect(ASSESSMENTS).toMatch(/월|화|수|목|금/);
-    expect(ASSESSMENTS).toContain('시간 미정');
+    expect(ASSESSMENTS).toContain('해당 영역에 강의 정보를 추가하시겠습니까?');
+    expect(ASSESSMENTS).toContain('강의 시간표를');
+    expect(ASSESSMENTS).toContain('하시겠습니까?');
+    expect(ASSESSMENTS).toContain('수업 시간표 추가');
+    expect(ASSESSMENTS).toContain('시험정보 추가');
+    expect(ASSESSMENTS).toContain("editing ? '저장' : '시험 정보 추가'"); // 처음엔 추가, 다시 열면 저장
+    expect(ASSESSMENTS).toContain('메모 저장');
     expect(ASSESSMENTS).toMatch(/중간/);
     expect(ASSESSMENTS).toMatch(/기말/);
-    expect(ASSESSMENTS).toMatch(/메모/);
+    expect(ASSESSMENTS).not.toContain('시간 미정'); // Figma에 없는 칩은 두지 않는다
   });
   it('학사현황: 기본값 접기·졸업시험/논문 표기·참고 규정 접기', () => {
     expect(OFFICIAL_SECTIONS).toContain('기본값으로 계산했어요 · 다르면 수정');

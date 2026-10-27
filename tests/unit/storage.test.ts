@@ -106,7 +106,8 @@ describe('IndexedDB 저장소', () => {
 
 describe('입력 검증', () => {
   it('학점·과목명·enum·날짜·메모 길이를 검사', () => {
-    expect(courseSchema.safeParse({ ...course(), creditUnits: 0 }).success).toBe(false);
+    expect(courseSchema.safeParse({ ...course(), creditUnits: -1 }).success).toBe(false);
+    expect(courseSchema.safeParse({ ...course(), creditUnits: 0 }).success).toBe(true); // 시간표에서 이름·시간만 넣어 만든 과목
     expect(courseSchema.safeParse({ ...course(), name: 'x'.repeat(121) }).success).toBe(false);
     expect(courseSchema.safeParse({ ...course(), area: 'hacker' }).success).toBe(false);
     expect(courseSchema.safeParse({ ...course(), creditUnits: 250 }).success).toBe(true); // 소수 학점 2.5

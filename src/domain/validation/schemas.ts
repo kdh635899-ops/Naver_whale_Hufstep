@@ -55,7 +55,8 @@ export const courseSchema: z.ZodType<Course> = z.object({
   officialCode: z.string().max(30).optional(),
   name: z.string().trim().min(1, '과목명을 입력해 주세요').max(120, '과목명은 120자까지예요'),
   term: termSchema,
-  creditUnits: z.number().int().positive('학점은 0보다 커야 해요').max(MAX_RECORD_UNITS),
+  // 0 = 시간표에서 이름과 시간만 넣어 만든 과목 (학점은 학점 계산에서 채움)
+  creditUnits: z.number().int().nonnegative('학점은 0 이상이어야 해요').max(MAX_RECORD_UNITS),
   area: creditArea,
   rawAreaLabel: z.string().max(30).optional(),
   offeringDepartmentName: z.string().max(60).optional(),

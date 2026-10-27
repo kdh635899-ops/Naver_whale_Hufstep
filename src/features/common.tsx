@@ -29,8 +29,13 @@ export function Bar({ value, max, label }: { value: number; max: number; label: 
  * 화면 하단에서 올라오는 패널(모달). 열리면 패널로 포커스 이동, Esc·닫기·배경 클릭으로 닫힘,
  * 배경 조작 차단(포커스 가두기), 닫히면 원래 위치로 포커스를 돌려준다.
  */
-export function Sheet({ title, onClose, children, footer }: { title: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
+export function Sheet({ title, onClose, children, footer, variant }: {
+  title: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode;
+  /** 'fg' = Figma 시간표 시트(남색 머리줄, 탭 아래만 어둡게) */
+  variant?: 'fg';
+}) {
   const ref = useRef<HTMLDivElement>(null);
+  const [dimTop, setDimTop] = useState(0);
   const titleId = useId();
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -38,6 +43,10 @@ export function Sheet({ title, onClose, children, footer }: { title: ReactNode; 
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
     document.body.classList.add('sheet-open');
+    // Figma: 머리글·탭 줄은 어둡게 덮지 않는다 (탭 줄 아래부터)
+    const measure = () => setDimTop(Math.max(0, document.querySelector('.tabs')?.getBoundingClientRect().bottom ?? 0));
+    measure();
+    window.addEventListener('scroll', measure, { passive: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); closeRef.current(); return; }
       if (e.key !== 'Tab' || !ref.current) return;
@@ -51,17 +60,20 @@ export function Sheet({ title, onClose, children, footer }: { title: ReactNode; 
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', measure);
       document.body.classList.remove('sheet-open');
       prev?.focus?.({ preventScroll: true });
     };
   }, []);
   return (
-    <div className="sheet-layer">
-      <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" />
+    <div className={`sheet-layer${variant ? ` ${variant}` : ''}`}>
+      <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" style={variant ? { top: dimTop } : undefined} />
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} ref={ref}>
         <div className="sheet-head">
           <h2 id={titleId}>{title}</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="닫기">✕</button>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="닫기">
+            {variant ? <i className="icon ic-sheet-x" aria-hidden="true" /> : '✕'}
+          </button>
         </div>
         <div className="sheet-body">{children}</div>
         {footer && <div className="sheet-foot">{footer}</div>}

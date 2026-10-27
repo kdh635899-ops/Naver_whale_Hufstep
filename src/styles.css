@@ -394,22 +394,81 @@ button.term-row { cursor: pointer; }
 .stack { display: flex; flex-direction: column; gap: 14px; }
 
 /* 시간표 */
-.tt { position: relative; margin-top: 24px; border: 1px solid #e4e4e4; border-right: 0; border-bottom: 0; }
+.tt { position: relative; margin-top: 24px; border: 1px solid #e4e4e4; border-right: 0; border-bottom: 0; user-select: none; -webkit-user-select: none; }
 .tt-grid, .tt-over { display: grid; grid-template-columns: 30px repeat(5, minmax(0, 1fr)); }
 .tt-over { position: absolute; inset: 35px 0 0 0; pointer-events: none; }
 .tt-cell, .tt-dayh { border-right: 1px solid #e4e4e4; border-bottom: 1px solid #e4e4e4; }
 .tt-dayh { display: grid; place-items: center; height: 35px; font-size: 10px; font-weight: 600; color: #888; }
-.tt-cell { position: relative; height: 70px; }
-.tt-cell.hour { padding: 0 0 0 5px; font-size: 10px; font-weight: 600; line-height: 17px; color: #888; }
+.tt-cell { position: relative; height: 70px; cursor: pointer; }
+.tt-cell.hour { padding: 0 0 0 5px; font-size: 10px; font-weight: 600; line-height: 17px; color: #888; cursor: default; }
 .tt-lane { position: relative; }
-.tt-blk { position: absolute; left: 0; right: 0; display: block; padding: 0; overflow: hidden; border: 0; border-right: 1px solid #e4e4e4; border-bottom: 1px solid #e4e4e4; text-align: left; color: #000; cursor: pointer; pointer-events: auto; font: inherit; }
-.tt-blk .nm { display: block; min-height: 70px; max-height: 70px; padding: 9px 7px 0; overflow: hidden; font-size: 12px; font-weight: 600; line-height: 15px; overflow-wrap: anywhere; }
-.tt-blk .ev { display: block; padding: 0 7px; font-size: 10px; font-weight: 400; line-height: 15px; color: #888; }
-.tt-blk .nm + .ev { margin-top: 15px; }
-.tt-blk.short .nm + .ev { margin-top: 0; }
-.tt-blk.short .nm { min-height: 0; max-height: none; }
-.tt-extra { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--slate); }
-.tt-extra .pill { min-height: 32px; padding: 0 12px; border: 1px solid var(--slate); border-radius: 15px; background: #fff; color: var(--slate); font-size: 12px; font-weight: 600; cursor: pointer; }
+/* 고른 칸(끌기·클릭): Figma의 진한 테두리 + 그림자 */
+.tt-sel { position: absolute; left: 0; right: 0; z-index: 3; border: 1.5px solid rgba(6, 43, 98, 0.6); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.49); pointer-events: none; }
+.tt-blk { position: absolute; left: 0; right: 0; overflow: hidden; border-right: 1px solid #e4e4e4; border-bottom: 1px solid #e4e4e4; text-align: left; color: #000; cursor: pointer; pointer-events: auto; }
+.tt-blk:focus-visible { outline: 2px solid var(--navy-900); outline-offset: -2px; }
+.tt-blk .nm { display: block; padding: 9px 7px 0; overflow: hidden; font-size: 12px; font-weight: 600; line-height: 15px; overflow-wrap: anywhere; }
+.tt-blk.tall .nm { min-height: 70px; max-height: 70px; }
+.tt-blk .ex { position: absolute; left: 0; right: 0; display: block; padding: 0 7px; }
+.tt-blk .ev { display: block; font-size: 10px; font-weight: 400; line-height: 15px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tt-pen { position: absolute; right: 7px; display: grid; place-items: center; width: 14px; height: 14px; padding: 0; border: 0; background: none; color: #888; cursor: pointer; }
+.tt-add { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: var(--slate); font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: -0.3px; cursor: pointer; }
+.tt-add .icon { width: 20px; height: 20px; }
+/* 한 시간짜리 짧은 블록: 이름 아래에 작게 */
+.tt-blk.short .nm { padding: 6px 5px 0; max-height: 32px; font-size: 11px; line-height: 13px; }
+.tt-blk.short .ex { top: auto; bottom: 4px; padding: 0 5px; }
+.tt-blk.short .ev { font-size: 9px; line-height: 11px; }
+.tt-blk.short .tt-pen { right: 3px; bottom: 3px; width: 12px; height: 12px; }
+.tt-blk.short .tt-add { bottom: 4px; gap: 2px; font-size: 9px; line-height: 11px; }
+.tt-blk.short .tt-add .icon { width: 14px; height: 14px; }
+.ic-pencil { width: 14px; height: 14px; -webkit-mask-image: url('./icons/pencil.svg'); mask-image: url('./icons/pencil.svg'); }
+.tt-pen .ic-pencil { width: 100%; height: 100%; }
+
+/* 추가·삭제 확인 창 (Figma: 화면 가운데 카드) */
+.tt-confirm { position: fixed; z-index: 40; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; width: min(279px, calc(100vw - 40px)); min-height: 150px; padding: 10px; background: var(--panel); border: 1px solid var(--slate); border-radius: 10px; box-shadow: 0 10px 28px rgba(0, 25, 60, 0.18); }
+.tt-confirm p { font-size: 14px; line-height: 27px; text-align: center; color: #000; word-break: keep-all; overflow-wrap: anywhere; }
+.tt-confirm .red { color: #f11; }
+.tt-confirm .acts { display: flex; gap: 15px; }
+.tt-confirm button { width: 80px; height: 35px; padding: 0; border: 1px solid var(--navy-900); border-radius: 10px; font-size: 14px; line-height: 27px; cursor: pointer; }
+.tt-confirm .yes { background: var(--navy-900); color: #fff; }
+.tt-confirm .no { background: #fff; color: var(--navy-900); }
+
+/* Figma 시간표 시트: 남색 머리줄 + 큰 남색 버튼 */
+.sheet-layer.fg .sheet-backdrop { background: rgba(0, 0, 0, 0.21); }
+.sheet-layer.fg .sheet { border-radius: 20px 20px 0 0; max-height: 92vh; overflow: hidden; }
+.fg .sheet-head { align-items: center; flex: none; min-height: 71px; padding: 0 17px 0 36px; background: var(--navy-900); color: #fff; }
+.fg .sheet-head h2 { padding: 0; font-size: 20px; font-weight: 600; line-height: 24px; }
+.fg .sheet-head .icon-btn { display: grid; place-items: center; color: #fff; }
+.ic-sheet-x { width: 19px; height: 19px; -webkit-mask-image: url('./icons/sheet-close.svg'); mask-image: url('./icons/sheet-close.svg'); }
+.fg .sheet-body { --fgpad: clamp(20px, 12.8vw, 50px); padding: 22px var(--fgpad) 8px; gap: 24px; }
+.fg .sheet-foot { display: flex; justify-content: center; padding: 10px 10px 20px; border-top: 0; }
+.btn-fg { width: min(325px, 100%); min-height: 54px; padding: 0 16px; border: 0; border-radius: var(--r-button); background: var(--navy-900); color: #fff; font-size: 18px; font-weight: 700; line-height: 22.5px; cursor: pointer; }
+.btn-fg:disabled { opacity: 0.4; cursor: default; }
+.fg-form { display: flex; flex-direction: column; gap: 30px; }
+.fg-field { display: flex; flex-direction: column; gap: 9px; font-size: 16px; font-weight: 600; line-height: 19.5px; color: var(--label); }
+.fg-field > input { height: 50px; padding: 10px; border: 1px solid var(--slate); border-radius: var(--r-input); background: #fff; font-size: 16px; font-weight: 400; color: #000; }
+.tt-spacer { height: 380px; }
+.fg-field > input::-webkit-calendar-picker-indicator { display: none !important; }
+.tt-time { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; height: 50px; padding: 0 44px 0 14px; border: 1px solid var(--slate); border-radius: var(--r-input); background: #fff; font-size: 16px; font-weight: 400; line-height: 24px; color: #000; }
+.tt-time:focus-within { box-shadow: var(--focus); }
+.tt-time .t { display: flex; align-items: center; gap: 4px; }
+.tt-time .dg { width: 24px; padding: 0; border: 0; background: none; text-align: center; font-size: 16px; font-weight: 400; color: #000; outline: 0; }
+.tt-time .tilde { color: var(--slate); }
+.tt-time .ic-clock { position: absolute; right: 14px; width: 25px; height: 25px; color: var(--slate); }
+.ic-clock { -webkit-mask-image: url('./icons/clock.svg'); mask-image: url('./icons/clock.svg'); }
+.fg-error { font-size: 13px; line-height: 19px; color: var(--danger); }
+.fg-memo { display: flex; flex-direction: column; gap: 6px; margin: 0 calc(var(--fgpad) * -0.48); padding: 12px calc(var(--fgpad) * 0.48 + 6px) 12px; background: var(--panel); border-radius: var(--r-input); }
+.fg-memo label { font-size: 13px; font-weight: 600; line-height: 19.5px; color: #000; }
+.fg-memo textarea { width: 100%; height: 73px; padding: 8px 10px; border: 1px solid #000; border-radius: var(--r-input); background: #fff; resize: none; font-size: 13px; line-height: 19px; color: #000; }
+.fg-memo .foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.fg-memo .cnt { font-size: 10px; font-weight: 600; line-height: 19.5px; color: #000; }
+.fg-memo .save { height: 28px; padding: 0 10px; border: 0; border-radius: 5px; background: var(--navy-900); color: #fff; font-size: 10px; font-weight: 600; cursor: pointer; }
+.fg-memo .save:disabled { background: var(--slate); cursor: default; }
+.fg-phase { display: flex; flex-direction: column; gap: 14px; }
+.fg-phase h3 { font-size: 16px; font-weight: 600; line-height: 19.5px; color: var(--navy-900); }
+.fg-phase .opts { display: flex; gap: clamp(8px, 4.6vw, 18px); }
+.fg-phase .o { flex: 78 1 0; min-width: 0; height: 45px; padding: 0 6px; border: 1px solid var(--navy-900); border-radius: var(--r-input); background: #fff; color: var(--navy-900); font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.fg-phase .o.wide { flex-grow: 90; }
+.fg-phase .o[aria-pressed='true'] { background: var(--navy-900); color: #fff; }
 
 /* 학사 현황 */
 .st-meta { margin-top: 6px; font-size: 15px; line-height: 23px; color: #000; }
