@@ -59,7 +59,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   display: flex; align-items: center; gap: 14px; min-height: 74px; padding: 14px 18px;
   background: linear-gradient(169deg, var(--navy-950), var(--navy-900)); color: #fff;
 }
-.logo { width: 40px; height: 40px; border-radius: 12px; background: #fff; border: 1px solid rgba(255, 255, 255, 0.7); box-shadow: 0 8px 11px rgba(0, 25, 60, 0.22); color: var(--navy-900); display: grid; place-items: center; font-weight: 800; font-size: 21px; letter-spacing: -2px; flex: none; }
+.logo { display: block; width: 40px; height: 40px; border-radius: 9px; object-fit: cover; flex: none; } /* 학년별 로고(Figma 40×40, 모서리 9) */
 .brand { flex: 1; min-width: 0; }
 /* 로고 글꼴(Y Spotlight)은 파일을 쓰지 않는다 → 로고 이미지가 오기 전까지 임시 텍스트 로고 */
 .brand-name { font-weight: 700; font-size: 17px; line-height: 1.2; letter-spacing: -0.3px; }
@@ -110,7 +110,7 @@ h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.3
 .btn.primary { background: var(--navy-900); color: #fff; border: 0; border-radius: var(--r-button); }
 /* Figma 큰 버튼: 주(저장) 60px / 보조(바로가기) 53px. Figma 화면에서만 쓴다 */
 .btn.cta { width: 100%; min-height: 60px; font-size: 18px; font-weight: 700; line-height: 1.25; background: var(--navy-900); color: #fff; border: 0; border-radius: var(--r-button); }
-.btn.cta-sub { width: 100%; min-height: 53px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--navy-900); color: #fff; border: 0; border-radius: var(--r-input); text-decoration: none; }
+.btn.cta-sub { width: 100%; min-height: 53px; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--slate); color: #fff; border: 0; border-radius: var(--r-input); text-decoration: none; }
 .btn.ghost { background: #f7f9fc; }
 .btn.light { background: rgba(255, 255, 255, 0.95); color: var(--navy-900); border: 0; }
 .btn.danger { background: var(--danger); color: #fff; border: 0; }
@@ -151,14 +151,14 @@ label.field { gap: 9px; font-size: 18px; font-weight: 600; line-height: 1.1; col
 .field input, .field select { min-height: 50px; padding: 0 15px; border: 1px solid var(--slate); border-radius: var(--r-input); font-size: 16px; font-weight: 400; color: #000; }
 .field select { appearance: none; padding-right: 40px; background: #fff url('./icons/select-chevron.svg') right 15px center / 17px 17px no-repeat; }
 /* 선택 칩 (이중전공 / 부전공 / 없음 …): 개수와 관계없이 한 줄에 균등 분할 → 좁은 폭에서도 잘리지 않는다 */
-.opt-chips { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 8px; }
-.opt-chips label { position: relative; flex-direction: row; justify-content: center; align-items: center; min-height: 50px; padding: 0 4px; border: 1px solid var(--slate); border-radius: var(--r-chip); background: #fff; color: var(--slate); font-size: 16px; font-weight: 600; text-align: center; word-break: keep-all; cursor: pointer; }
+.opt-chips { display: flex; justify-content: center; gap: 15px; } /* Figma: 칩 100×50, 사이 15 */
+.opt-chips label { position: relative; flex: 0 1 100px; min-width: 0; flex-direction: row; justify-content: center; align-items: center; min-height: 50px; padding: 0 4px; border: 1px solid var(--slate); border-radius: var(--r-chip); background: #fff; color: var(--slate); font-size: 16px; font-weight: 600; text-align: center; word-break: keep-all; cursor: pointer; }
 .opt-chips label.on { background: var(--navy-900); border-color: var(--navy-900); color: #fff; }
 .opt-chips input { position: absolute; opacity: 0; width: 1px; height: 1px; min-height: 0; }
 .opt-chips label:focus-within { box-shadow: var(--focus); }
 /* Figma 개인정보 입력(첫 실행) 화면: 로고 80px · 제목 28px · 설명 15px · 폼 */
 .start { padding: 38px 25px 48px; display: flex; flex-direction: column; background: #fff; min-height: 100vh; }
-.logo-lg { width: 80px; height: 80px; border-radius: 25px; border: 1px solid #365f91; background: linear-gradient(145deg, #093b7e 6%, #061f49 94%); box-shadow: 0 18px 25px rgba(18, 60, 113, 0.22); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 40px; line-height: 60px; letter-spacing: -2px; flex: none; }
+.logo-lg { display: block; width: 80px; height: 80px; border-radius: 25px; object-fit: cover; box-shadow: 0 18px 25px rgba(18, 60, 113, 0.22); flex: none; }
 .fig-title { margin-top: 44px; font-size: 28px; font-weight: 600; line-height: 43.5px; letter-spacing: -1.7px; color: var(--navy-900); }
 .fig-lead { margin: 14px 0 46px; font-size: 15px; line-height: 27px; color: #000; }
 .fig-form { gap: 30px; }
@@ -260,6 +260,32 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 @keyframes up { from { transform: translateY(24px); opacity: 0.6; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
 
+/* ? 도움말 모달 (Figma 179:1572 · 어둡게 170:1035) */
+.sheet-layer.howto .sheet-backdrop { background: rgba(0, 0, 0, 0.5); }
+.sheet-layer.howto .sheet { border-radius: 20px 20px 0 0; max-height: calc(100vh - 24px); overflow: hidden; }
+.howto .sheet-head { align-items: center; flex: none; min-height: 65px; padding: 0 25px 0 36px; background: var(--navy-900); color: #fff; }
+.howto .sheet-head h2 { padding: 0; font-size: 20px; font-weight: 600; line-height: 24px; }
+.howto .sheet-head .icon-btn { display: grid; place-items: center; color: #fff; }
+.howto .sheet-body { align-items: center; gap: 0; padding: 10px 10px 30px; }
+.gd { display: flex; flex-direction: column; gap: 22px; width: min(346px, 100%); }
+.gd-fig { position: relative; width: 100%; }
+.gd-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.gd-crop { position: absolute; inset: 0; overflow: hidden; }
+.gd-crop img { position: absolute; left: 0; top: -0.57%; width: 100%; height: 100.62%; max-width: none; }
+.gd-box { position: absolute; border: 1px solid #f11; box-sizing: border-box; pointer-events: none; }
+.gd-mk { position: absolute; height: 24px; pointer-events: none; }
+.gd-mk i { position: absolute; left: 0; height: 7px; background: rgba(255, 17, 17, 0.3); }
+.gd-mk b, .gd-drag b { position: absolute; font-size: 13px; font-weight: 600; line-height: 24px; color: red; white-space: nowrap; }
+.gd-mk b { top: 0; }
+.gd-drag { position: absolute; pointer-events: none; }
+.gd-drag b { left: 0; }
+.gd-drag img { position: absolute; left: 100%; top: 0; width: 7.36px; height: 115.5px; max-width: none; }
+.gd-text { font-size: 13px; font-weight: 600; line-height: 24px; color: #000; word-break: break-word; }
+.gd-text p { margin: 0 0 24px; }
+.gd-text p:last-child { margin-bottom: 0; }
+.gd-text b { font-weight: 800; }
+.gd-note { color: #888; }
+
 @media (max-width: 340px) {
   .screen { padding: 16px 12px 20px; }
   .tab span { font-size: 9px; letter-spacing: -0.6px; }
@@ -348,15 +374,6 @@ html, body { background: #fff; }
 .help-btn { display: grid; place-items: center; width: 25px; height: 25px; padding: 0; border: 1px solid var(--navy-900); border-radius: 25px; background: #fff; color: var(--navy-900); font-size: 16px; font-weight: 700; line-height: 1; cursor: pointer; flex: none; }
 /* ? 말풍선: 안내 카드 아래로 톡 튀어나오고 X로 닫는다 */
 .guide { position: relative; }
-.bubble { position: absolute; z-index: 30; right: 0; width: 60%; min-width: 180px; max-width: 100%; top: calc(100% + 20px); padding: 10px 12px 12px; border: 2px solid var(--navy-900); border-radius: 20px; background: #fff; box-shadow: 0 14px 28px rgba(12, 53, 104, 0.18); transform-origin: calc(100% - 38px) -10px; animation: bubble-pop 0.18s ease-out; }
-.bubble::before, .bubble::after { content: ''; position: absolute; right: 16px; border-style: solid; border-color: transparent; }
-.bubble::before { top: -21px; border-width: 0 11px 19px; border-bottom-color: var(--navy-900); }
-.bubble::after { top: -16px; right: 18px; border-width: 0 9px 16px; border-bottom-color: #fff; }
-.bubble img { display: block; width: 86%; height: auto; margin: 18px auto 0; border: 1px solid var(--line-soft); border-radius: 6px; }
-.bubble p { margin-top: 10px; font-size: 15px; font-weight: 700; line-height: 22px; text-align: center; color: #000; word-break: keep-all; }
-.bubble-x { position: absolute; top: 4px; right: 6px; width: 28px; height: 28px; padding: 0; border: 0; background: none; color: #000; font-size: 18px; line-height: 1; cursor: pointer; }
-@keyframes bubble-pop { from { opacity: 0; transform: scale(0.92) translateY(-6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }
 .fig-label { margin-bottom: 13px; font-size: 18px; font-weight: 600; line-height: 19.5px; color: var(--label); }
 .paste { display: block; width: 100%; min-height: 190px; padding: 10px 16px; border: 1px solid var(--slate); border-radius: 10px; background: #fff; font-size: 14px; line-height: 24px; resize: vertical; }
 .paste::placeholder { color: #7d7d7d; }
@@ -523,7 +540,7 @@ button.sc-state { cursor: pointer; }
 .page > .card { margin-top: 24px; }
 /* 사진이 들어올 자리: 지금은 비워 두고, 사진이 들어오면 아래 내용이 그만큼 밀려 내려간다 */
 .photo-slot { width: 100%; }
-.photo-slot.records { height: 106px; margin: 5px 0 15px; }
+.records-banner { display: block; width: 100%; aspect-ratio: 341 / 110; height: auto; object-fit: cover; margin: 5px 0 15px; }
 .photo-slot.status { height: 135px; margin-top: 18px; }
 .photo-slot.status + .remain-card { margin-top: 0; }
 

@@ -9,11 +9,10 @@ import { firstIssue, profileSchema } from '../../domain/validation/schemas';
 import { CAMPUS_LABEL, ENTRY_LABEL } from '../common';
 
 const COHORTS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
-// Figma 칩 4개: 이중전공 / 부전공 / 없음 / (4번째). 4번째 칩은 졸업요건 데이터에 쓰이는 전공심화(intensive)에 대응한다.
+// Figma 칩 3개: 이중전공 / 부전공 / 전공심화 (각 100×50, 사이 15). '없음'은 화면에서 뺐다.
 const PROGRAM_CHIPS: { v: ProgramType; label: string }[] = [
   { v: 'double', label: '이중전공' },
   { v: 'minor', label: '부전공' },
-  { v: 'single', label: '없음' },
   { v: 'intensive', label: '전공심화' },
 ];
 
@@ -50,7 +49,7 @@ export function ProfileForm({ onDone, submitLabel }: { onDone: () => void; submi
   const [cohort, setCohort] = useState(p?.cohortYear ?? 0);
   const [entry, setEntry] = useState<EntryType>(p?.entryType ?? 'freshman');
   const [primary, setPrimary] = useState(p?.primaryDepartmentId ?? '');
-  const [program, setProgram] = useState<ProgramType>(p?.programType ?? 'single');
+  const [program, setProgram] = useState<ProgramType>(p?.programType ?? 'double');
   const [secondary, setSecondary] = useState(p?.secondaryDepartmentId ?? '');
   const [year, setYear] = useState<string>(p?.currentYear ? String(p.currentYear) : '');
   const [error, setError] = useState('');

@@ -31,8 +31,8 @@ export function Bar({ value, max, label }: { value: number; max: number; label: 
  */
 export function Sheet({ title, onClose, children, footer, variant }: {
   title: ReactNode; onClose: () => void; children: ReactNode; footer?: ReactNode;
-  /** 'fg' = Figma 시간표 시트(남색 머리줄, 탭 아래만 어둡게) */
-  variant?: 'fg';
+  /** 'fg' = Figma 시간표 시트(남색 머리줄, 탭 아래만 어둡게), 'howto' = ? 도움말(남색 머리줄, 화면 전체를 #000 50%로 어둡게) */
+  variant?: 'fg' | 'howto';
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [dimTop, setDimTop] = useState(0);
@@ -67,7 +67,7 @@ export function Sheet({ title, onClose, children, footer, variant }: {
   }, []);
   return (
     <div className={`sheet-layer${variant ? ` ${variant}` : ''}`}>
-      <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" style={variant ? { top: dimTop } : undefined} />
+      <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" style={variant === 'fg' ? { top: dimTop } : undefined} />
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1} ref={ref}>
         <div className="sheet-head">
           <h2 id={titleId}>{title}</h2>

@@ -93,12 +93,27 @@ async function addCurrentCourse(name: string, credits = '3') {
 }
 
 test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 저장(빠진 건 반려) → 학사 현황 (원문 미저장)', async () => {
+  // Figma: 칩은 이중전공·부전공·전공심화 3개 (없음 없음), 이중전공이 처음 선택돼 있다. 첫 화면 로고는 메인 로고 이미지
+  await expect(page.locator('.opt-chips label')).toHaveText(['이중전공', '부전공', '전공심화']);
+  await expect(page.getByRole('radio', { name: '이중전공' })).toBeChecked();
+  const [c1, c2] = await page.locator('.opt-chips label').all();
+  const b1 = (await c1.boundingBox())!, b2 = (await c2.boundingBox())!;
+  expect(b1.width).toBeLessThanOrEqual(100); // 폭이 넉넉하면 100, 사이드바가 좁으면 그만큼 줄어든다
+  expect(b1.width).toBeGreaterThan(85);
+  expect(Math.round(b1.height)).toBe(50);
+  expect(Math.round(b2.x - (b1.x + b1.width))).toBe(15);
+  expect(await page.locator('img.logo-lg').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
   await page.getByLabel('이름 / 닉네임').fill('김웨이');
   await page.getByLabel(/^주전공/).selectOption({ label: '말레이·인도네시아어과' });
   await page.getByRole('radio', { name: '이중전공' }).check();
   await page.getByRole('combobox', { name: /^이중전공/ }).selectOption({ label: '경영학부 (서울캠퍼스)' });
   await page.getByLabel(/^학번/).selectOption('2024');
+  await page.getByLabel(/^현재 학년/).selectOption('3');
   await page.getByRole('button', { name: '학사정보 저장' }).click();
+  // 정보를 저장한 뒤부터 헤더 로고가 학년을 따른다 (3학년 = 머리에 전구)
+  const headLogo = page.locator('.app-header img.logo');
+  await expect(headLogo).toHaveAttribute('data-year', '3');
+  expect(await headLogo.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
 
   await expect(page.getByRole('heading', { name: /종정시 정보를 입력하고/ })).toBeVisible();
   expect(JSON.parse(await readState()).profile.name).toBe('김웨이');
@@ -110,17 +125,34 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   await expect(link).toHaveAttribute('target', '_blank');
 
-  // ? 를 누르면 말풍선이 튀어나와 방법을 보여 주고, X 또는 Esc로 닫힌다
-  const bubble = page.getByRole('dialog', { name: '성적취득현황 복사 방법' });
-  await page.getByRole('button', { name: '붙여넣기 도움말' }).click();
-  await expect(bubble).toBeVisible();
-  await expect(bubble).toContainText('해당 영역의 위에서 아래까지 모두 드래그해주세요!');
-  expect(await bubble.locator('img').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0); // 사진이 실제로 로드됨
-  await page.getByRole('button', { name: '말풍선 닫기' }).click();
-  await expect(bubble).toBeHidden();
-  await page.getByRole('button', { name: '붙여넣기 도움말' }).click();
+  // 종정시 입력 화면 위쪽 안내 사진, 종정시 바로가기 버튼 색(#7A899B)
+  expect(await page.locator('img.records-banner').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+  await expect(link).toHaveCSS('background-color', 'rgb(122, 137, 155)');
+
+  // ? 를 누르면 가이드 모달이 올라오고(뒤는 #000 50%), 닫기 버튼 또는 Esc로 닫힌다
+  const guide = page.getByRole('dialog', { name: '종정시 정보 붙여넣기 가이드' });
+  const help = page.getByRole('button', { name: '붙여넣기 도움말' });
+  await help.click();
+  await expect(guide).toBeVisible();
+  await expect(page.locator('.sheet-layer.howto .sheet-backdrop')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.5)');
+  await expect(guide).toContainText('Step 1.');
+  await expect(guide).toContainText('빨간 박스 안의 영역을 끝까지 내리며 모든 정보를 드래그 해주세요!');
+  await expect(guide).toContainText('그림 속 ①~⑤번의 내용들이 모두 선택되어야 해요.');
+  await expect(guide).toContainText('드래그한 모든 정보를 Ctrl + C로 복사해주세요.');
+  await expect(guide).toContainText('복사한 정보를 Ctrl + V로 아래 상자에 붙여넣어주세요.');
+  await expect(guide).toContainText('상자 하단의 글씨가 검정색으로 바뀌었다면, 모든 정보가 정상적으로 입력된 거예요.');
+  await expect(guide).toContainText('빨간색 글씨가 뜬다면 누락된 정보가 있는 거예요. 저장 버튼 클릭 후 입력한 내용 삭제하고, 종정시에서 다시 정보를 복사해서 넣어주세요.');
+  await expect(guide.locator('.gd-note')).toHaveCSS('color', 'rgb(136, 136, 136)');
+  await expect(guide.locator('.gd-mk b')).toHaveText(['①', '②', '③', '④', '⑤']);
+  await expect(guide.locator('.gd-drag b')).toHaveText(['드래그', '드래그']);
+  for (const img of await guide.locator('.gd-fig > img, .gd-crop img').all()) {
+    expect(await img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0); // 사진 2장이 실제로 로드됨
+  }
+  await guide.getByRole('button', { name: '닫기' }).click();
+  await expect(guide).toBeHidden();
+  await help.click();
   await page.keyboard.press('Escape');
-  await expect(bubble).toBeHidden();
+  await expect(guide).toBeHidden();
 
   const box = page.getByLabel('종정시 정보 붙여넣기');
   const save = page.getByRole('button', { name: '종정시 정보 저장' });
@@ -376,10 +408,13 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
   const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
   for (const gone of ['기타 설정', '알림', '동의 철회', '전체 초기화', '현재 학기']) await expect(dlg).not.toContainText(gone);
   await dlg.getByLabel('이름 / 닉네임').fill('웨이');
+  await dlg.getByLabel(/^현재 학년/).selectOption('4');
   await dlg.getByRole('button', { name: '저장', exact: true }).click();
   await expect(dlg).toBeHidden();
   await expect(page.getByRole('heading', { name: /안녕하세요,\s*웨이님/ })).toBeVisible();
   expect(JSON.parse(await readState()).profile.name).toBe('웨이');
+  // 학년을 바꾸면 헤더 로고도 같이 바뀐다 (4학년 = 학사모)
+  await expect(page.locator('.app-header img.logo')).toHaveAttribute('data-year', '4');
 });
 
 test('보안: 과목명에 넣은 HTML은 실행되지 않고 글자로 보인다', async () => {
@@ -412,12 +447,12 @@ test('레이아웃: 320 / 390 / 590px 에서 가로 넘침 없음', async () => 
     expect(await dlg.locator('.sheet-body').evaluate((el) => el.scrollWidth - el.clientWidth), `${width}px 패널`).toBeLessThanOrEqual(0);
     await page.keyboard.press('Escape');
     await expect(dlg).toBeHidden();
-    // 개인정보 입력 폼(마이페이지 수정 패널): 칩 4개가 모두 보이고 안 잘린다
+    // 개인정보 입력 폼(마이페이지 수정 패널): 칩 3개가 모두 보이고 안 잘린다
     await tab('마이페이지').click();
     await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
     const edit = page.getByRole('dialog', { name: '내 정보 수정' });
     const chips = edit.locator('.opt-chips label');
-    await expect(chips).toHaveCount(4);
+    await expect(chips).toHaveCount(3);
     for (const chip of await chips.all()) {
       const b = (await chip.boundingBox())!;
       expect(b.x).toBeGreaterThanOrEqual(0);

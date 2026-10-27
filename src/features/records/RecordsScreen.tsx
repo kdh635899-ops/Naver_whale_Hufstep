@@ -1,13 +1,14 @@
 // 종정시 입력 (Figma, §3.3, §6). 학생이 직접 복사해 붙여넣은 text/plain만 이 기기에서 분석한다.
 // '종정시 정보 저장' 한 번으로: 분석 → 빠졌거나 애매한 것이 있으면 빨간 글씨로 알리고 저장을 막음 → 이상 없으면 저장하고 학사 현황으로.
 // 반영 기본값(사람이 고르던 선택): 직접 추가한 같은 과목은 연결, 내가 고친 값은 유지, 이번에 없는 과목은 지우지 않는다.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog } from '../../data';
 import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
 import { parseTranscript, type ParseResult } from '../../domain/parser/parseTranscript';
-import guideImg from '../../assets/guide-grades.png';
+import bannerImg from '../../assets/logo/start-banner.png';
 import { ConsentGate } from '../common';
+import { GuideModal } from './GuideModal';
 
 const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
 
@@ -50,8 +51,7 @@ const cleanMessage = (m: string) => m.replace(/ 학점 반영 영역을 골라 �
 export function RecordsScreen() {
   return (
     <div className="page">
-      {/* 안내 사진이 들어올 자리(Figma 330×106). 사진이 들어오면 아래 내용이 그만큼 밀려 내려간다. */}
-      <div className="photo-slot records" aria-hidden="true" />
+      <img className="records-banner" src={bannerImg} alt="" />
       <h1 className="page-title">종정시 정보를 입력하고<br />맞춤형 서비스를 이용해보세요!</h1>
       <p className="page-lead">종합정보시스템의 ‘성적취득현황’ 정보를 가져오면<br />자동으로 학사현황과 학점계산 페이지가 완성돼요.</p>
 
@@ -70,35 +70,16 @@ export function RecordsScreen() {
 
 function Guide() {
   const [help, setHelp] = useState(false);
-  const bubbleRef = useRef<HTMLDivElement>(null);
-  // 말풍선은 ? 버튼으로 열고, X 버튼이나 Esc로 닫는다. 열릴 때 화면 아래에 걸려 잘리지 않게 전체가 보이는 곳까지 스크롤한다.
-  useEffect(() => {
-    if (!help) return;
-    const frame = window.requestAnimationFrame(() => {
-      const r = bubbleRef.current?.getBoundingClientRect();
-      const hidden = r ? r.bottom + 16 - window.innerHeight : 0; // 말풍선 아랫부분이 화면 밖으로 나간 만큼
-      if (hidden > 0) window.scrollBy({ top: hidden });
-    });
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setHelp(false); };
-    document.addEventListener('keydown', onKey);
-    return () => { window.cancelAnimationFrame(frame); document.removeEventListener('keydown', onKey); };
-  }, [help]);
   return (
     <div className="guide">
       <ol className="guide-card plain" style={{ margin: 0, listStyle: 'none' }}>
         <li className="guide-step"><b aria-hidden="true">1</b><span>종합정보시스템에서 성적취득현황 메뉴 열기</span></li>
         <li className="guide-step"><b aria-hidden="true">2</b><span>전체 영역을 드래그해 복사하기</span></li>
         <li className="guide-step"><b aria-hidden="true">3</b><span>아래 입력창에 붙여넣고 분석하기</span>
-          <button type="button" className="help-btn" aria-label="붙여넣기 도움말" aria-expanded={help} aria-controls="guide-bubble" onClick={() => setHelp((v) => !v)}>?</button>
+          <button type="button" className="help-btn" aria-label="붙여넣기 도움말" aria-haspopup="dialog" aria-expanded={help} onClick={() => setHelp(true)}>?</button>
         </li>
       </ol>
-      {help && (
-        <div id="guide-bubble" ref={bubbleRef} className="bubble" role="dialog" aria-label="성적취득현황 복사 방법">
-          <button type="button" className="bubble-x" aria-label="말풍선 닫기" onClick={() => setHelp(false)}>✕</button>
-          <img src={guideImg} alt="종합정보시스템 성적취득현황 화면 예시" />
-          <p>해당 영역의 위에서 아래까지 모두 드래그해주세요!</p>
-        </div>
-      )}
+      {help && <GuideModal onClose={() => setHelp(false)} />}
     </div>
   );
 }
