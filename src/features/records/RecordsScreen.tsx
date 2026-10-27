@@ -1,7 +1,7 @@
 // 종정시 입력 (Figma, §3.3, §6). 학생이 직접 복사해 붙여넣은 text/plain만 이 기기에서 분석한다.
 // '종정시 정보 저장' 한 번으로: 분석 → 빠졌거나 애매한 것이 있으면 빨간 글씨로 알리고 저장을 막음 → 이상 없으면 저장하고 학사 현황으로.
 // 반영 기본값(사람이 고르던 선택): 직접 추가한 같은 과목은 연결, 내가 고친 값은 유지, 이번에 없는 과목은 지우지 않는다.
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog } from '../../data';
 import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
@@ -9,6 +9,7 @@ import { parseTranscript, type ParseResult } from '../../domain/parser/parseTran
 import bannerImg from '../../assets/logo/start-banner.png';
 import { ConsentGate } from '../common';
 import { GuideModal } from './GuideModal';
+import { WarningModal } from './WarningModal';
 
 const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
 
@@ -91,6 +92,8 @@ function PasteSave() {
   const [checked, setChecked] = useState(false);
   const [found, setFound] = useState<Record<PartKey, boolean>>({ byArea: false, majors: false, summary: false });
   const [problems, setProblems] = useState<string[]>([]);
+  const [warn, setWarn] = useState<[string, string] | null>(null); // 경고 모달 제목 두 줄
+  const pasteRef = useRef<HTMLTextAreaElement>(null);
   // 이미 저장한 종정시 정보가 있으면 새로 붙여넣기 전에 '초기화'부터 해야 한다 (처음에는 '종정시 정보 저장' 버튼만 보인다)
   const hasSaved = state.snapshots.length > 0 || state.courses.some((c) => c.origin === 'paste');
   const [armed, setArmed] = useState(false); // 초기화는 두 번 눌러야 실행 (실수로 지우지 않게)
@@ -107,6 +110,13 @@ function PasteSave() {
     const gone = new Set(state.courses.filter((c) => c.origin === 'paste').map((c) => c.id));
     const ok = await save((s) => ({ ...s, courses: s.courses.filter((c) => !gone.has(c.id)), snapshots: [], ...dropCourseRefs(s, gone) }));
     if (ok) { setText(''); setChecked(false); setProblems([]); }
+  }
+
+  /** 경고 모달의 '입력된 내용 삭제': 붙여넣은 내용을 비우고 다시 붙여넣게 한다 (저장된 기록은 건드리지 않는다) */
+  function onClearInput() {
+    setText(''); setChecked(false); setProblems([]); setWarn(null);
+    setFound({ byArea: false, majors: false, summary: false });
+    window.requestAnimationFrame(() => pasteRef.current?.focus());
   }
 
   async function onSave() {
@@ -139,7 +149,11 @@ function PasteSave() {
       if (!r.rows.length && !r.completeness.earnedTotals) issues.push('성적 목록을 찾지 못했어요. 성적취득현황 화면을 복사했는지 확인해 주세요.');
       for (const w of r.warnings) if (BLOCKING_CODES.has(w.code)) issues.push(cleanMessage(w.message));
       setProblems(issues);
-      if (issues.length) return; // 저장 반려
+      if (issues.length) { // 저장 반려: 붙여넣은 내용이 규격에 안 맞거나 빠진 부분이 있다 → 경고 모달
+        const lost = PARTS.filter((p) => p.required && !next[p.key]).map((p) => `‘${p.label}'`);
+        setWarn(lost.length ? [lost.join(', '), '영역이 누락되었습니다.'] : ['입력한 내용을 확인하지 못했습니다.', '규격이 맞지 않는 내용이 있어요.']);
+        return;
+      }
 
       const plan = planMerge(state, r);
       const decisions: MergeDecisions = { ...NO_DECISIONS, link: Object.fromEntries(plan.linkCandidates.map((l) => [l.rowKey, true])) };
@@ -161,7 +175,7 @@ function PasteSave() {
   return (
     <div>
       <label htmlFor="paste" className="fig-label" style={{ display: 'block' }}>종정시 정보 붙여넣기</label>
-      <textarea id="paste" className="paste" value={text} spellCheck={false} disabled={hasSaved}
+      <textarea id="paste" className="paste" ref={pasteRef} value={text} spellCheck={false} disabled={hasSaved}
         placeholder="종정시에서 복사한 성적 정보를 여기에 붙여 넣어주세요."
         onChange={(e) => setText(e.target.value)} />
       <p className="parts">
@@ -170,6 +184,7 @@ function PasteSave() {
       {problems.length > 0 && (
         <ul className="red-list" role="alert">{problems.map((m, i) => <li key={i}>{m}</li>)}</ul>
       )}
+      {warn && <WarningModal title={warn} onDelete={onClearInput} onClose={() => setWarn(null)} />}
       <div className="cta-row">
         <button type="button" className="btn cta" disabled={busy || hasSaved} onClick={() => void onSave()}>
           {busy ? '확인하는 중…' : '종정시 정보 저장'}

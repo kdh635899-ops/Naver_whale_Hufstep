@@ -169,6 +169,26 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await expect(page.locator('.red-list')).toContainText('이수구분별 취득학점 계');
   await expect(page.locator('.part.missing')).toHaveText(['영역별 취득학점', '이수중인 전공', '이수구분별 취득학점 계']); // DEMO 자료에는 세 부분 중 있는 것이 없다
   expect(JSON.parse(await readState()).courses).toHaveLength(0);
+  // 붙여넣은 내용이 규격에 안 맞으면 경고 모달이 뜬다 (뒤는 #000 50%). Esc로 닫으면 입력은 그대로 남는다
+  const warn = page.getByRole('alertdialog');
+  await expect(warn).toContainText("‘이수구분별 취득학점 계'");
+  await expect(warn).toContainText('영역이 누락되었습니다.');
+  await expect(warn).toContainText('현재 입력된 내용을 삭제하고');
+  await expect(warn).toContainText('종정시 정보를 다시 불러오세요.');
+  await expect(page.locator('.wm-backdrop')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.5)');
+  await expect(warn.getByRole('button', { name: '입력된 내용 삭제' })).toHaveCSS('background-color', 'rgb(255, 17, 17)');
+  expect(await warn.locator('img').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+  await page.keyboard.press('Escape');
+  await expect(warn).toBeHidden();
+  await expect(box).toHaveValue(noSummary);
+  // '입력된 내용 삭제'를 누르면 붙여넣은 내용과 빨간 표시가 지워져 다시 붙여넣을 수 있다 (저장된 기록은 건드리지 않는다)
+  await save.click();
+  await warn.getByRole('button', { name: '입력된 내용 삭제' }).click();
+  await expect(warn).toBeHidden();
+  await expect(box).toHaveValue('');
+  await expect(box).toBeFocused();
+  await expect(page.locator('.part.missing')).toHaveCount(0);
+  await expect(page.locator('.red-list')).toHaveCount(0);
 
   // 이상 없으면 저장하고 학사 현황으로 넘어간다
   await box.fill(DEMO_TRANSCRIPT);
@@ -183,6 +203,9 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeDisabled();
   await expect(page.getByRole('button', { name: '종정시 정보 저장' })).toBeDisabled();
   const reset = page.getByRole('button', { name: '저장된 종정시 정보 초기화' });
+  const rb = (await reset.boundingBox())!; // Figma: 100×60, 남색 테두리 흰 바탕
+  expect(Math.round(rb.width)).toBe(100);
+  await expect(reset).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   await reset.click(); // 첫 번째 누름은 확인만
   expect(JSON.parse(await readState()).courses).toHaveLength(6);
   await page.getByRole('button', { name: /한 번 더 누르면/ }).click();
@@ -199,6 +222,11 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
 test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저장한 데이터로 채워지고, 직접 체크로 맞출 수 있다', async () => {
   await tab('학사 현황').click();
   await expect(page.locator('.st-meta')).toContainText('24학번');
+  // 계단 위 캐릭터: 현재 학년(3학년)의 캐릭터가 3층에 선다
+  const stairChar = page.locator('.stairs .stair-char');
+  await expect(stairChar).toHaveAttribute('data-year', '3');
+  expect(await stairChar.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+  expect(await page.locator('.stairs .stairs-bg').evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
   await expect(page.locator('.remain-card .got')).toContainText('20');
   await expect(page.locator('.remain-card .got')).toContainText('/134');
   expect(await page.locator('.area-row').count()).toBeGreaterThan(0);
@@ -245,6 +273,10 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   // 졸업시험·요건 제목은 20자까지만 보이고 뒤는 …로 줄인다
   const rowTitle = (await exam.locator('.sc-row span').first().innerText()).replace(/\s*외 \d+건$/, '');
   expect([...rowTitle].length).toBeLessThanOrEqual(21);
+  // 펼친 목록의 항목 제목·기준·설명은 줄이지 않고 전부 보인다
+  const itemText = await exam.locator('.sc-item .tx').first().innerText();
+  expect(itemText).not.toMatch(/…|\.\.\./);
+  expect(itemText.length).toBeGreaterThan(0);
   await expect(box).toHaveAttribute('aria-checked', 'false');
   await box.click();
   await expect(box).toHaveAttribute('aria-checked', 'true');
@@ -415,6 +447,11 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
   expect(JSON.parse(await readState()).profile.name).toBe('웨이');
   // 학년을 바꾸면 헤더 로고도 같이 바뀐다 (4학년 = 학사모)
   await expect(page.locator('.app-header img.logo')).toHaveAttribute('data-year', '4');
+  // 학사 현황 계단 캐릭터도 같이 바뀐다 (4학년 = 4층, 3층일 때보다 위·오른쪽)
+  await tab('학사 현황').click();
+  const stairChar4 = page.locator('.stairs .stair-char');
+  await expect(stairChar4).toHaveAttribute('data-year', '4');
+  expect(await stairChar4.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
 });
 
 test('보안: 과목명에 넣은 HTML은 실행되지 않고 글자로 보인다', async () => {

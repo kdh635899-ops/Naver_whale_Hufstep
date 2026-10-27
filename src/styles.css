@@ -260,6 +260,16 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 @keyframes up { from { transform: translateY(24px); opacity: 0.6; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
 
+/* 종정시 경고 모달 (Figma 170:1191 · 어둡게 170:1144) */
+.wm-layer { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; }
+.wm-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); }
+.wm { position: relative; display: flex; flex-direction: column; align-items: center; width: min(330px, 100%); padding: 40px 20px 20px; border-radius: 20px; background: #fff; text-align: center; }
+.wm-icon { display: block; width: 96px; height: 96px; }
+.wm-title { margin-top: 21px; font-size: 20px; font-weight: 600; line-height: 30px; color: #000; word-break: keep-all; overflow-wrap: anywhere; }
+.wm-sub { margin-top: 10px; font-size: 13px; line-height: 20px; color: #888; }
+.wm-del { width: min(266px, 100%); height: 50px; margin-top: 32px; padding: 10px; border: 0; border-radius: 10px; background: #f11; color: #fff; font-size: 15px; font-weight: 600; line-height: 27px; cursor: pointer; }
+.wm-del:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
 /* ? 도움말 모달 (Figma 179:1572 · 어둡게 170:1035) */
 .sheet-layer.howto .sheet-backdrop { background: rgba(0, 0, 0, 0.5); }
 .sheet-layer.howto .sheet { border-radius: 20px 20px 0 0; max-height: calc(100vh - 24px); overflow: hidden; }
@@ -380,7 +390,7 @@ html, body { background: #fff; }
 .parts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 13px; font-size: 12px; font-weight: 600; line-height: 19.5px; }
 .part { color: #888; }
 .part.found { color: #000; }
-.part.missing { color: #f11; }
+.part.missing { color: #ff0606; }
 .red-list { margin: 8px 0 0; padding-left: 16px; color: #f11; font-size: 12px; line-height: 18px; }
 
 /* 학점 계산 */
@@ -538,17 +548,22 @@ button.sc-state { cursor: pointer; }
 .st-empty { padding: 14px 0; font-size: 13px; line-height: 20px; color: var(--slate); }
 .name-btn { min-width: 0; padding: 0; border: 0; background: none; font: inherit; text-align: left; color: inherit; cursor: pointer; overflow-wrap: anywhere; }
 .page > .card { margin-top: 24px; }
-/* 사진이 들어올 자리: 지금은 비워 두고, 사진이 들어오면 아래 내용이 그만큼 밀려 내려간다 */
-.photo-slot { width: 100%; }
 .records-banner { display: block; width: 100%; aspect-ratio: 341 / 110; height: auto; object-fit: cover; margin: 5px 0 15px; }
-.photo-slot.status { height: 135px; margin-top: 18px; }
-.photo-slot.status + .remain-card { margin-top: 0; }
+/* 학사 현황 계단 (Figma 169:472 · 캐릭터 169:630): 계단 이미지는 오른쪽에 붙이고 양옆은 화면 밖으로 잘린다 */
+.stairs { position: relative; height: 172px; margin: 0 -25px; overflow: hidden; }
+.stairs + .remain-card { margin-top: 0; }
+.stairs-bg { position: absolute; top: 0; right: -78px; width: 535px; height: 172px; max-width: none; }
+.stair-char { position: absolute; width: 61px; height: auto; max-width: none; } /* 몸 크기는 Figma(원본의 0.42배), 발이 계단 윗면 한가운데에 닿는다 */
+.stair-char.s1 { right: 262.5px; bottom: 2.6px; }
+.stair-char.s2 { right: 193.9px; bottom: 25.3px; }
+.stair-char.s3 { right: 126.2px; bottom: 48.4px; }
+.stair-char.s4 { right: 58.9px; bottom: 71px; }
 
 /* 종정시 입력: 저장 + 초기화 */
-.cta-row { display: flex; gap: 8px; margin-top: 22px; }
+.cta-row { display: flex; gap: 10px; margin-top: 22px; }
 .cta-row .btn.cta { flex: 1 1 auto; min-width: 0; }
 .cta-row .btn.cta:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn.cta-reset { flex: 0 0 96px; min-height: 60px; padding: 0 8px; border: 0; border-radius: var(--r-button); background: var(--slate); color: #fff; font-size: 18px; font-weight: 700; line-height: 1.25; }
+.btn.cta-reset { flex: 0 0 100px; min-height: 60px; padding: 0 8px; border: 1.5px solid var(--navy-900); border-radius: var(--r-button); background: #fff; color: var(--navy-900); font-size: 18px; font-weight: 700; line-height: 1.25; }
 .paste:disabled { background: var(--panel); color: #7d7d7d; cursor: not-allowed; }
 
 /* 학사 현황: 필수과목 줄의 '이수 완료', 졸업시험 체크박스 */

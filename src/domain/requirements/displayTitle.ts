@@ -38,10 +38,10 @@ export const TITLE_MAX = 20;
 const clip = (s: string, n = TITLE_MAX) => ([...s].length > n ? `${[...s].slice(0, n).join('').trimEnd()}…` : s);
 
 /** 한 줄에 보이는 짧은 제목: ':' 앞의 이름만(너무 길면 20자까지), 나머지 설명은 `rest`로 */
-export function shortTitle(raw: string): { short: string; rest: string; full: string } {
+export function shortTitle(raw: string): { short: string; head: string; rest: string; full: string } {
   const full = prettyTitle(raw);
   const i = full.indexOf(':');
   const head = i > 0 && i <= 28 ? full.slice(0, i).trim() : full;
   const rest = i > 0 && i <= 28 ? full.slice(i + 1).trim() : '';
-  return { short: clip(head), rest, full };
+  return { short: clip(head), head, rest, full }; // head = 줄이지 않은 ':' 앞 이름 (펼친 목록에서는 전부 보여 준다)
 }

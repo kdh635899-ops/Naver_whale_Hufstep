@@ -3,6 +3,7 @@
 // 세부 과목을 모두 이수하면 카드 전체가 '이수 완료'가 된다. 졸업시험·요건은 학과마다 달라서 학생이 스스로 표시하는 체크리스트로만 보여 준다.
 // 졸업 충족을 확정하지 않는다.
 import { useState } from 'react';
+import { stairCharacter, STAIRS_IMG } from '../../app/stairs';
 import { useStore } from '../../app/store';
 import { departmentName } from '../../data';
 import { shortTitle } from '../../domain/requirements/displayTitle';
@@ -18,8 +19,8 @@ const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '0
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
 interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
-/** title = 한 줄에 보이는 짧은 제목, full = 마우스를 올리면 보이는 전체 제목 */
-interface ExamItem { id: string; title: string; full: string; detail: string; confirmed: boolean }
+/** title = 접힌 줄에 보이는 짧은 제목(길면 …), head = 펼친 목록에 보이는 줄이지 않은 제목, full = 전체 제목, detail·rest = 기준·설명(모두 보여 준다) */
+interface ExamItem { id: string; title: string; head: string; full: string; detail: string; rest: string; confirmed: boolean }
 interface ExamCard { key: string; who: string; dept: string; items: ExamItem[] }
 
 /** [이수한 수, 필요한 수]: 택일(OR)은 1, AT_LEAST는 count로 센다 (택일 후보를 모두 필수처럼 세지 않는다) */
@@ -95,15 +96,15 @@ export function StatusScreen() {
     : c.kind === 'externalCertificate' ? c.acceptedTests.map((t) => `${t.name}: ${t.passCriteria}`).join(' / ') : c.description;
   for (const { scope, cert } of resolved?.certifications ?? []) {
     const st = shortTitle(cert.title);
-    examCards[cardKeyOf(null, scope)].items.push({ id: cert.id, title: st.short, full: st.full, detail: certDetail(cert) || st.rest, confirmed: confirmed.has(cert.id) });
+    examCards[cardKeyOf(null, scope)].items.push({ id: cert.id, title: st.short, head: st.head, full: st.full, detail: certDetail(cert), rest: st.rest, confirmed: confirmed.has(cert.id) });
   }
   for (const e of report?.items ?? []) {
     if (!CONFIRMABLE.has(e.rule.category) || e.rule.none) continue;
     const dept = e.rule.departmentId;
     const st = shortTitle(ruleTitle(e.rule, dept ? departmentName(dept) : undefined));
     examCards[cardKeyOf(dept)].items.push({
-      id: e.rule.id, title: st.short, full: st.full,
-      detail: assessmentCriteria(e.rule.detail as Record<string, unknown> | null | undefined) || st.rest, confirmed: confirmed.has(e.rule.id),
+      id: e.rule.id, title: st.short, head: st.head, full: st.full,
+      detail: assessmentCriteria(e.rule.detail as Record<string, unknown> | null | undefined), rest: st.rest, confirmed: confirmed.has(e.rule.id),
     });
   }
   const examList = [examCards.primary, ...(secondary ? [examCards.secondary] : []), examCards.common].filter((c) => c.items.length);
@@ -125,8 +126,11 @@ export function StatusScreen() {
         <br /><b>{cards.primary.dept}</b>{secondary && <> <span className="sep">|</span> <b>{cards.secondary.dept}</b></>}
       </p>
 
-      {/* 사진이 들어올 자리(Figma 351×290 중 카드 위쪽). 사진이 들어오면 아래 내용이 그만큼 밀려 내려간다. */}
-      <div className="photo-slot status" aria-hidden="true" />
+      {/* Figma: 계단 위에 현재 학년의 캐릭터가 선다 (학년을 바꾸면 같이 바뀐다) */}
+      <div className="stairs" role="img" aria-label={profile.currentYear ? `${profile.currentYear}학년: 계단 ${profile.currentYear}층` : '계단'}>
+        <img className="stairs-bg" src={STAIRS_IMG} alt="" />
+        {profile.currentYear && <img className={`stair-char s${profile.currentYear}`} data-year={profile.currentYear} src={stairCharacter(profile.currentYear)} alt="" />}
+      </div>
       <section className="remain-card" aria-label="졸업까지 남은 학점">
         <p className="t">졸업까지 남은 총 학점</p>
         <p className="big"><span>{remaining === null ? '—' : formatUnits(Math.max(0, remaining))}</span><small>학점</small></p>
@@ -221,7 +225,7 @@ export function StatusScreen() {
                     <ul className="sc-list-in">
                       {c.items.map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <span className="tx" title={it.full}>{it.title}{it.detail && <span className="sub">{it.detail}</span>}</span>
+                          <span className="tx">{it.head}{it.detail && <span className="sub">{it.detail}</span>}{it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}</span>
                           <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.full} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
                             {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
                           </button>
