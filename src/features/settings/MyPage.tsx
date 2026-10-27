@@ -2,6 +2,7 @@
 // 알림·동의 철회·삭제·전체 초기화·현재 학기 설정은 가볍게 가기 위해 뺐다. (종정시 정보를 지우고 다시 저장하는 것은 종정시 입력의 '초기화')
 // '정보 관리'(종정시 성적 다시 불러오기 / 졸업요건 기준 확인하기)는 보류 중이라 만들지 않았다.
 import { useState } from 'react';
+import hufsLogo from '../../assets/logo/hufs-logo.png';
 import { useStore } from '../../app/store';
 import { departmentName } from '../../data';
 import { formatUnits } from '../../domain/terms';
@@ -29,7 +30,7 @@ export function MyPage() {
       </p>
 
       <div className="profile-card">
-        <div className="avatar" aria-hidden="true">{name ? [...name][0] : 'W'}</div>
+        <div className="avatar" aria-hidden="true"><img src={hufsLogo} alt="" /></div>
         <div>
           <p className="pc-name">{name || '이름 없음'}</p>
           <p className="pc-sub">{yy}{p.currentYear ? ` · ${p.currentYear}학년` : ''}</p>

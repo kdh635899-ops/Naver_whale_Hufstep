@@ -6,7 +6,7 @@ import { deriveInclusion, LETTER_GRADES } from '../../domain/grades';
 import { dropCourseRefs, MERGE_FIELDS } from '../../domain/merge/mergeImport';
 import { autoLinkTargets, linkableLeaves } from '../../domain/requirements/officialRules';
 import { initialReplacesCourseId, retakeCandidates } from '../../domain/retake';
-import { newId } from '../../domain/state';
+import { gradeCourses, newId } from '../../domain/state';
 import { formatUnits, termLabel, toUnits } from '../../domain/terms';
 import type { Course, CourseStatus, CreditArea, Grade, Term } from '../../domain/types';
 import { courseSchema, firstIssue } from '../../domain/validation/schemas';
@@ -31,7 +31,7 @@ export function CourseEditor() {
   const [code, setCode] = useState(init.officialCode ?? '');
   const [link, setLink] = useState(init.requirementLinks?.[0] ?? '');
   // 성적표에 '재수강' 표시만 있는 과목은 체크를 켠 채로 열고 같은 이름의 이전 기록을 미리 골라 둔다 (저장은 학생이 누를 때만)
-  const [replaces, setReplaces] = useState(() => initialReplacesCourseId(state.courses, state.snapshots, {
+  const [replaces, setReplaces] = useState(() => initialReplacesCourseId(gradeCourses(state.courses), state.snapshots, {
     id: existing?.id,
     name: init.name ?? '',
     term: init.term ?? { academicYear: Number(year), semester: sem },
@@ -47,7 +47,7 @@ export function CourseEditor() {
   const linkedName = useMemo(() => (effectiveLink
     ? linkableLeaves(report, departmentName).find((l) => l.leaf.id === effectiveLink)?.leaf.name
     : undefined), [report, effectiveLink]);
-  const candidates = retakeCandidates(state.courses, { id: existing?.id, name, term: { academicYear: Number(year), semester: sem } });
+  const candidates = retakeCandidates(gradeCourses(state.courses), { id: existing?.id, name, term: { academicYear: Number(year), semester: sem } });
   const [error, setError] = useState('');
   const close = () => openEditor(null);
 

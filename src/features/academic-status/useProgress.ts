@@ -4,19 +4,20 @@ import { useStore } from '../../app/store';
 import { catalog, departmentById } from '../../data';
 import { evaluateCourseRules } from '../../domain/requirements/officialRules';
 import { evaluateProgress } from '../../domain/requirements/resolve';
-import { latestSnapshot } from '../../domain/state';
+import { gradeCourses, latestSnapshot } from '../../domain/state';
 
 export function useProgress() {
   const { state, resolved, report } = useStore();
   const snap = latestSnapshot(state);
-  const progress = useMemo(() => evaluateProgress(resolved, state.courses, snap, catalog.equivalences), [resolved, state.courses, snap]);
+  const courses = useMemo(() => gradeCourses(state.courses), [state.courses]); // 시간표 과목은 제외
+  const progress = useMemo(() => evaluateProgress(resolved, courses, snap, catalog.equivalences), [resolved, courses, snap]);
   // 공식 필수과목 식: 기존 필수 묶음에서 이미 쓴 과목은 다시 쓰지 않는다 (중복 인정은 규정에 명시된 경우만)
   const courseProgress = useMemo(() => (report
-    ? evaluateCourseRules(report, state.courses, snap, {
+    ? evaluateCourseRules(report, courses, snap, {
       alreadyUsed: resolved?.allowCourseReuseAcrossGroups ? [] : progress.groups.flatMap((g) => g.matchedCourseIds),
       dept: departmentById, // 코드 없는 전필을 '개설학과(별칭 포함) + 과목명'으로 대조
       confirmedLeafIds: state.certConfirmations.map((c) => c.requirementId),
     })
-    : []), [report, state.courses, snap, resolved, progress, state.certConfirmations]);
+    : []), [report, courses, snap, resolved, progress, state.certConfirmations]);
   return { snap, progress, courseProgress };
 }

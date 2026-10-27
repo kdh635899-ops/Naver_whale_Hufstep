@@ -6,7 +6,7 @@ import { useStore } from '../../app/store';
 import { calculateScenario, computeGpa, effectiveCourses, formatGpa, type GpaResult } from '../../domain/gpa/gpa';
 import { gradeTermLabel, gradeYearOf, semesterOrder } from '../../domain/gradeYear';
 import { LETTER_GRADES } from '../../domain/grades';
-import { latestSnapshot } from '../../domain/state';
+import { gradeCourses, latestSnapshot } from '../../domain/state';
 import { formatUnits, sameTerm, termKey } from '../../domain/terms';
 import type { Course, Grade, GradeScenario, ScenarioEntry, Term } from '../../domain/types';
 
@@ -27,7 +27,8 @@ export function CalculatorScreen() {
   const snap = latestSnapshot(state);
   // 상세 성적 없이 요약 평점만 있으면 '요약값 기반 추정'
   const summary = snap?.source === 'summaryInput' ? snap.reportedGpa : undefined;
-  const r = useMemo(() => calculateScenario(state.courses, scenario, summary), [state.courses, scenario, summary]);
+  const courses = useMemo(() => gradeCourses(state.courses), [state.courses]); // 시간표에서 만든 과목은 학점 계산에 넣지 않는다
+  const r = useMemo(() => calculateScenario(courses, scenario, summary), [courses, scenario, summary]);
   const base = r.baseline;
   const hasScenario = !!scenario?.entries.some((e) => e.expectedGrade);
 
@@ -40,17 +41,17 @@ export function CalculatorScreen() {
   });
 
   // 이번 학기 과목 / 지난 학기(성적이 확정된 과목)
-  const currentCourses = state.courses.filter((c) => sameTerm(c.term, term));
+  const currentCourses = courses.filter((c) => sameTerm(c.term, term));
   const pastByTerm = useMemo(() => {
     const m = new Map<string, { term: Term; list: Course[] }>();
-    for (const c of effectiveCourses(state.courses)) {
+    for (const c of effectiveCourses(courses)) {
       if (sameTerm(c.term, term) || !(c.status === 'completed' || c.status === 'notEarned')) continue;
       const k = termKey(c.term);
       if (!m.has(k)) m.set(k, { term: c.term, list: [] });
       m.get(k)!.list.push(c);
     }
     return [...m.values()];
-  }, [state.courses, term]);
+  }, [courses, term]);
 
   const showCurrent = currentYear === yearSel;
   const pastInYear = pastByTerm.filter((g) => gradeYearOf(g.term, profile) === yearSel)

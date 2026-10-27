@@ -1,5 +1,5 @@
 // 종정시 '?' 도움말 모달 (Figma 179:1572). 뒤는 #000 50%로 어둡게, 아래에서 올라오는 패널.
-// 사진 위 빨간 박스·번호·'드래그' 화살표는 사진의 가로·세로에 비례해 얹어서 화면 폭이 달라져도 어긋나지 않는다.
+// 사진 위 빨간 박스·번호·'드래그' 화살표와 글씨는 모두 폭 346px 기준 값을 --u(= 폭/346)로 곱해 쓴다 → 사이드바 폭이 달라져도 사진·글씨가 같이 커지고 줄어 어긋나지 않는다.
 import step1 from '../../assets/help/step1.png';
 import step2 from '../../assets/help/step2.png';
 import arrow from '../../assets/help/drag-arrow.svg';
@@ -43,13 +43,13 @@ function Figure({ f }: { f: Fig }) {
       <i className="gd-box" aria-hidden="true" style={{ left: `${f.box[0]}%`, top: pct(f.box[1], h), width: `${100 - f.box[0]}%`, height: pct(BOX_H, h) }} />
       {f.marks.map((m) => (
         <span key={m.n} className="gd-mk" aria-hidden="true" style={{ left: `${m.left}%`, top: pct(m.top, h), width: `${m.w}%` }}>
-          <i style={{ top: m.by, width: `${m.bw}%` }} />
+          <i style={{ top: `calc(${m.by} * var(--u))`, width: `${m.bw}%` }} />
           <b style={{ left: `${m.tx}%` }}>{m.n}</b>
         </span>
       ))}
       <span className="gd-drag" aria-hidden="true" style={{ left: `${f.drag.left}%`, top: pct(f.drag.top, h), width: `${f.drag.w}%` }}>
         <img src={arrow} alt="" />
-        <b style={{ top: f.drag.textTop, width: `${f.drag.textW}%` }}>드래그</b>
+        <b style={{ top: `calc(${f.drag.textTop} * var(--u))`, width: `${f.drag.textW}%` }}>드래그</b>
       </span>
     </div>
   );
@@ -59,6 +59,7 @@ export function GuideModal({ onClose }: { onClose: () => void }) {
   return (
     <Sheet variant="howto" title="종정시 정보 붙여넣기 가이드" onClose={onClose}>
       <div className="gd">
+        <div className="gd-in">
         {FIGS.map((f) => <Figure key={f.src} f={f} />)}
         <div className="gd-text">
           <p><b>Step 1. </b><br />빨간 박스 안의 영역을 끝까지 내리며 모든 정보를 드래그 해주세요! <br />그림 속 ①~⑤번의 내용들이 모두 선택되어야 해요.</p>
@@ -66,6 +67,7 @@ export function GuideModal({ onClose }: { onClose: () => void }) {
           <p><b>Step 3. </b><br />복사한 정보를 Ctrl + V로 아래 상자에 붙여넣어주세요.</p>
           <p><b>Step4.</b> <br />상자 하단의 글씨가 검정색으로 바뀌었다면, 모든 정보가 정상적으로 입력된 거예요.<br /><br />
             <span className="gd-note">빨간색 글씨가 뜬다면 누락된 정보가 있는 거예요. 저장 버튼 클릭 후 입력한 내용 삭제하고, 종정시에서 다시 정보를 복사해서 넣어주세요.</span></p>
+        </div>
         </div>
       </div>
     </Sheet>

@@ -277,17 +277,25 @@ describe('이미 끝난 작업은 그대로 남아 있다', () => {
     expect(COURSE_EDITOR).toContain('<summary>추가 정보</summary>');
     expect(COURSE_EDITOR).toContain('공식 과목 코드 (선택)');
   });
-  it('시간표: 끌어서 추가/삭제 확인·수업 정보·시험 정보·메모 (Figma 문구)', () => {
+  it('시간표: 끌어서 추가 확인·수업 정보·시험 정보·메모 (Figma 문구), 끌기/Delete 삭제는 없다', () => {
     expect(ASSESSMENTS).toMatch(/월|화|수|목|금/);
-    expect(ASSESSMENTS).toContain('해당 영역에 강의 정보를 추가하시겠습니까?');
-    expect(ASSESSMENTS).toContain('강의 시간표를');
-    expect(ASSESSMENTS).toContain('하시겠습니까?');
+    expect(ASSESSMENTS).toContain('아래 표를 드래그하여 수업 시간표를 추가하고,');
+    expect(ASSESSMENTS).not.toContain('추가/삭제하고');
+    expect(ASSESSMENTS).toContain('선택하신 영역에');
+    expect(ASSESSMENTS).toContain('시간표를 추가하시겠습니까?');
+    expect(ASSESSMENTS).toContain('시간표를 삭제하시겠습니까?');
+    expect(ASSESSMENTS).toContain('해당 시간표에 입력한 모든 정보도 함께 사라집니다.');
     expect(ASSESSMENTS).toContain('수업 시간표 추가');
-    expect(ASSESSMENTS).toContain('시험정보 추가');
-    expect(ASSESSMENTS).toContain("editing ? '저장' : '시험 정보 추가'"); // 처음엔 추가, 다시 열면 저장
-    expect(ASSESSMENTS).toContain('메모 저장');
-    expect(ASSESSMENTS).toMatch(/중간/);
-    expect(ASSESSMENTS).toMatch(/기말/);
+    expect(ASSESSMENTS).toContain('시험정보<br />추가');
+    expect(ASSESSMENTS).toContain("editing ? '변경사항 저장하기' : '시험 정보 추가'"); // 처음엔 추가, 다시 열면 변경사항 저장
+    expect(ASSESSMENTS).not.toContain('메모 저장');
+    expect(ASSESSMENTS).toContain('대체과제'); // O / X / 대체과제 중에서 고른다
+    expect(ASSESSMENTS).toContain("'exam'"); // 처음 값은 O
+    expect(ASSESSMENTS).toContain('고사O');
+    expect(ASSESSMENTS).toContain('고사X');
+    expect(ASSESSMENTS).toContain("other: ' 대체 과제'"); // 중간 대체 과제 (낱말 띄어쓰기)
+    expect(ASSESSMENTS).toContain("presentation: '발표'"); // 중간발표 (붙여 쓴다)
+    expect(ASSESSMENTS).not.toContain("'Delete'"); // Delete 키로 지우지 않는다: 삭제는 블록 아래 아이콘 하나뿐
     expect(ASSESSMENTS).not.toContain('시간 미정'); // Figma에 없는 칩은 두지 않는다
   });
   it('학사현황: 기본값 접기·졸업시험/논문 표기·참고 규정 접기', () => {

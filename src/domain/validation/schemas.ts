@@ -61,7 +61,7 @@ export const courseSchema: z.ZodType<Course> = z.object({
   rawAreaLabel: z.string().max(30).optional(),
   offeringDepartmentName: z.string().max(60).optional(),
   recognizedDepartmentId: id.optional(),
-  origin: z.enum(['paste', 'manual', 'demo']),
+  origin: z.enum(['paste', 'manual', 'demo', 'timetable']),
   recordKind: z.enum(['course', 'recognizedCredit']),
   status: z.enum(['planned', 'inProgress', 'completed', 'notEarned']),
   grade,

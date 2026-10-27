@@ -1,6 +1,6 @@
 // 재붙여넣기·수동 기록 병합 (§6.4). 확인 전까지 기존 상태를 바꾸지 않고, 확정 시 새 상태를 한 번에 만든다.
 import type { ParseResult, ParsedRow } from '../parser/parseTranscript';
-import { newId, type AppState } from '../state';
+import { gradeCourses, newId, type AppState } from '../state';
 import { sameTerm } from '../terms';
 import type { AcademicSnapshot, Course, CreditArea } from '../types';
 
@@ -39,7 +39,7 @@ function importedValues(r: ParsedRow) {
 export function planMerge(state: AppState, parse: ParseResult): MergePlan {
   const plan: MergePlan = { matched: [], linkCandidates: [], added: [], missing: [] };
   const taken = new Set<string>();
-  const courses = state.courses;
+  const courses = gradeCourses(state.courses); // 시간표에서 만든 과목은 종정시 정보와 합치지 않는다
 
   for (const r of parse.rows) {
     // 1) 이전 반영 때의 source mapping

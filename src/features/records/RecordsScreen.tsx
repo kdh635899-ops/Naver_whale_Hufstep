@@ -18,8 +18,8 @@ const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
  * 기준을 바꾸려면 이 목록만 고치면 된다.
  */
 const PARTS = [
-  { key: 'byArea', label: '영역별 취득학점', required: false },
-  { key: 'majors', label: '이수중인 전공', required: false },
+  { key: 'byArea', label: '영역별 취득학점', required: true },
+  { key: 'majors', label: '이수중인 전공', required: true },
   { key: 'summary', label: '이수구분별 취득학점 계', required: true },
 ] as const;
 type PartKey = (typeof PARTS)[number]['key'];

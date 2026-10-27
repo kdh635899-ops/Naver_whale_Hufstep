@@ -1,8 +1,9 @@
-// 시간표: 월~금 격자에서 칸을 누르거나 끌어 수업을 넣고, 수업 블록의 '시험정보 추가'·연필로 메모와 중간·기말 정보를 적는다.
+// 시간표: 월~금 격자에서 칸을 누르거나 끌어 수업을 넣고, 수업 블록의 '시험정보 추가'로 메모와 중간·기말 정보를 적는다.
 // 칸 고르기 → (손을 떼고 0.3초 뒤) '추가하시겠습니까?' 확인 → 수업 정보 시트(과목명·시간) → 블록 생성.
-// 수업 블록을 누르면 시험 정보·메모 시트가 열리고(메모는 수시로 쓰므로), 블록 맨 아래 연필 모양을 눌러야만 '삭제하시겠습니까?' 확인이 뜬다.
+// 수업 블록을 누르면 시험 정보·메모 시트가 열리고(메모는 수시로 쓰므로), 시간표 안의 삭제는 블록 맨 아래 삭제 아이콘 하나뿐이다.
+// 아이콘을 누르면 '삭제하시겠습니까?' 확인이 뜨고, 끌어서 지우기·Delete 키 삭제는 없다.
 // 수업·시험 정보 저장은 모두 store.save()를 거친다. 자유 메모는 알림을 만들지 않는다.
-import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { useStore } from '../../app/store';
 import { deriveEvaluationEvents, eventsOn, KIND_LABEL, PHASE_LABEL } from '../../domain/assessment-events/events';
 import { dropCourseRefs } from '../../domain/merge/mergeImport';
@@ -23,14 +24,16 @@ const TINTS = ['#dff1ed', '#e3edf9', '#eee8f8', '#f9e9de', '#f5efcf'];
 
 type Phase = Assessment['phase'];
 const PHASES: Phase[] = ['midterm', 'final'];
-const REPL: Record<NonNullable<Assessment['replacementType']>, string> = { presentation: '발표', report: '보고서', project: '프로젝트', other: '대체' };
+const PHASE_NAME: Record<Phase, string> = { midterm: '중간', final: '기말' };
+const REPL: Record<NonNullable<Assessment['replacementType']>, string> = { presentation: '발표', report: '보고서', project: '프로젝트', other: ' 대체 과제' };
 
-/** 시간표 블록용 짧은 표시(Figma): 시험O / 시험X / — / 발표·대체 */
-function evText(a?: Assessment): string {
-  if (!a || a.mode === null) return '—';
-  if (a.mode === 'exam') return '시험O';
-  if (a.mode === 'none') return '시험X';
-  return REPL[a.replacementType ?? 'other'];
+/** 시간표 블록용 표시(Figma): 중간고사O / 기말고사X / 중간 대체 과제 / 중간발표. 띄어쓰기가 있는 곳에서만 줄이 바뀌도록 낱말 단위로 적는다 */
+function phaseText(p: Phase, a?: Assessment): string {
+  const name = PHASE_NAME[p];
+  if (!a || a.mode === null) return `${name}고사—`;
+  if (a.mode === 'exam') return `${name}고사O`;
+  if (a.mode === 'none') return `${name}고사X`;
+  return `${name}${REPL[a.replacementType ?? 'other']}`;
 }
 
 const WEEK = '일월화수목금토';
@@ -52,14 +55,14 @@ export function AssessmentsScreen() {
   }, [todayRoute, consumeTodayRoute]);
 
   // 이번 학기 '수강 중' 과목
-  const courses = state.courses.filter((c) => sameTerm(c.term, current) && c.status === 'inProgress');
+  // 시간표 과목만 보인다: 학점 계산·종정시 과목과는 이어지지 않는다 (가상 데이터 둘러보기의 예시 과목은 시간표에도 보여 준다)
+  const courses = state.courses.filter((c) => (c.origin === 'timetable' || c.origin === 'demo') && sameTerm(c.term, current));
   const find = (courseId: string, phase: Phase) => state.assessments.find((a) => a.courseId === courseId && a.phase === phase);
-  const hasTimes = state.classTimes.some((t) => courses.some((c) => c.id === t.courseId));
 
   return (
     <div className="page">
       <h1 className="page-title">시간표</h1>
-      <p className="page-lead">아래 표를 드래그하여 수업 시간표를 {hasTimes ? '추가/삭제하고,' : '추가하고,'}<br />시험 정보나 기억할 내용을 메모로 남길 수 있어요.</p>
+      <p className="page-lead">아래 표를 드래그하여 수업 시간표를 추가하고,<br />시험 정보나 기억할 내용을 메모로 남길 수 있어요.</p>
 
       <Timetable courses={courses} times={state.classTimes} find={find} onExam={setExamFor} />
 
@@ -149,12 +152,9 @@ function Timetable({ courses, times, find, onExam }: {
     timer.current = window.setTimeout(() => setAsk('add'), HOLD_MS);
   };
   const onBlockKey = (e: KeyboardEvent<HTMLDivElement>, b: Target) => {
-    if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== 'Delete')) return;
+    if (e.target !== e.currentTarget || e.key !== 'Enter') return;
     e.preventDefault();
-    if (e.key === 'Enter') return onExam(b.courseId);
-    clearTimer();
-    grab(b);
-    setAsk('del');
+    onExam(b.courseId);
   };
 
   // 확인 창·시트가 떠 있는 동안 Esc는 취소 (시트는 자체 Esc 처리)
@@ -187,9 +187,9 @@ function Timetable({ courses, times, find, onExam }: {
       const course = s.courses.find((c) => c.id === t.courseId);
       const memo = s.courseMemos.find((m) => m.courseId === t.courseId)?.text.trim();
       const info = !!memo || s.assessments.some((a) => a.courseId === t.courseId && a.mode);
-      // 시간표에서 이름과 시간만 넣어 만든 과목(학점 0)이 마지막 시간까지 지워지고 적어 둔 정보도 없으면 과목째 정리한다.
-      // 종정시에서 가져온 과목이나, 메모·시험 정보가 있는 과목은 남겨 둔다 (같은 이름으로 다시 넣으면 이어진다).
-      if (course && course.origin === 'manual' && course.creditUnits === 0 && !info && !nextTimes.some((x) => x.courseId === t.courseId)) {
+      // 마지막 시간까지 지워지고 적어 둔 메모·시험 정보도 없으면 과목째 정리한다.
+      // 메모·시험 정보가 있는 과목은 남겨 둔다 (같은 이름으로 다시 넣으면 이어진다).
+      if (course && course.origin === 'timetable' && !info && !nextTimes.some((x) => x.courseId === t.courseId)) {
         return { ...s, ...dropCourseRefs(s, new Set([t.courseId])), courses: s.courses.filter((c) => c.id !== t.courseId) };
       }
       return { ...s, classTimes: nextTimes };
@@ -230,24 +230,24 @@ function Timetable({ courses, times, find, onExam }: {
                   <div key={keyOf(t)} role="listitem" tabIndex={0} data-blk={keyOf(t)} data-course={c.id}
                     className={`tt-blk${tall ? ' tall' : ' short'}`}
                     style={{ top, height, left: `${(b.lane / b.lanes) * 100}%`, width: `${100 / b.lanes}%`, right: 'auto', background: tint }}
-                    aria-label={`${c.name}, ${classTimeText(b)}, 중간 ${evText(mid)}, 기말 ${evText(fin)}. 수정하려면 Enter, 삭제하려면 Delete`}
+                    aria-label={`${c.name}, ${classTimeText(b)}, ${phaseText('midterm', mid)}, ${phaseText('final', fin)}. 수정하려면 Enter`}
                     onClick={() => onExam(c.id)} onKeyDown={(e) => onBlockKey(e, t)}>
                     <span className="nm">{c.name}</span>
                     {hasInfo(c.id) ? (
                       <span className="ex" style={tall ? { top: HOUR_PX + 15 } : undefined}>
-                        <span className="ev">중간 {evText(mid)}</span>
-                        <span className="ev">기말 {evText(fin)}</span>
+                        <span className="ev">{phaseText('midterm', mid)}</span>
+                        <span className="ev">{phaseText('final', fin)}</span>
                       </span>
                     ) : (
-                      <button type="button" data-ttaction className="tt-add" style={tall ? { top: Math.min(HOUR_PX + 35, height - 44) } : undefined}
+                      <button type="button" data-ttaction className="tt-add" style={tall ? { top: Math.min(HOUR_PX + 35, height - 80) } : undefined}
                         aria-label={`${c.name} 시험 정보 추가`} onClick={(e) => { e.stopPropagation(); onExam(c.id); }}>
-                        <i className="icon ic-plus" aria-hidden="true" />시험정보 추가
+                        <i className="icon ic-plus" aria-hidden="true" /><span>시험정보<br />추가</span>
                       </button>
                     )}
-                    {/* 연필 모양: 항상 막대 맨 아래. 누르면 이 수업의 삭제 확인이 뜬다 */}
-                    <button type="button" data-ttaction className="tt-pen" aria-label={`${c.name} ${classTimeText(b)} 삭제`}
+                    {/* 삭제 아이콘: 항상 막대 맨 아래. 시간표 안의 삭제는 이것 하나뿐이고, 누르면 삭제 확인이 뜬다 */}
+                    <button type="button" data-ttaction className="tt-del" aria-label={`${c.name} ${classTimeText(b)} 시간표 삭제`}
                       onClick={(e) => { e.stopPropagation(); clearTimer(); grab(t); setAsk('del'); }}>
-                      <i className="icon ic-pencil" aria-hidden="true" />
+                      <i className="icon ic-doc-del" aria-hidden="true" />
                     </button>
                   </div>
                 );
@@ -264,10 +264,10 @@ function Timetable({ courses, times, find, onExam }: {
       {/* 시트가 격자 아래쪽을 가리지 않게, 시트가 떠 있는 동안만 화면을 더 내릴 수 있는 여백을 둔다 */}
       {ask === 'class' && <div className="tt-spacer" aria-hidden="true" />}
       {ask === 'add' && (
-        <Confirm text="해당 영역에 강의 정보를 추가하시겠습니까?" yes="네" no="아니오" onYes={() => setAsk('class')} onNo={cancel} />
+        <Confirm title={'선택하신 영역에 \n시간표를 추가하시겠습니까?'} yes="시간표 추가" no="취소" onYes={() => setAsk('class')} onNo={cancel} />
       )}
       {ask === 'del' && target && (
-        <Confirm text={<>‘{targetName}’ 강의 시간표를 <span className="red">삭제</span>하시겠습니까?</>} yes="삭제" no="취소" onYes={removeTarget} onNo={cancel} />
+        <Confirm title={`‘${targetName}’ \n시간표를 삭제하시겠습니까?`} sub="해당 시간표에 입력한 모든 정보도 함께 사라집니다." yes="시간표 삭제" no="취소" danger onYes={removeTarget} onNo={cancel} />
       )}
       {ask === 'class' && sel && (
         <ClassSheet sel={sel} setSel={setSel} fromHour={fromHour} toHour={toHour} courses={courses} visible={visible}
@@ -277,15 +277,36 @@ function Timetable({ courses, times, find, onExam }: {
   );
 }
 
-/** Figma 확인 창 (화면 가운데): 네/아니오 · 삭제/취소 */
-function Confirm({ text, yes, no, onYes, onNo }: { text: ReactNode; yes: string; no: string; onYes: () => void; onNo: () => void }) {
+/** Figma 확인 창 (화면 가운데 카드, 뒤는 #000 50%): 취소 + 시간표 추가/삭제. 삭제는 빨간 버튼이고 기본 포커스가 '취소'에 있다 */
+function Confirm({ title, sub, yes, no, danger, onYes, onNo }: {
+  title: string; sub?: string; yes: string; no: string; danger?: boolean; onYes: () => void; onNo: () => void;
+}) {
   const id = useId();
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    document.body.classList.add('sheet-open');
+    return () => { document.body.classList.remove('sheet-open'); prev?.focus?.({ preventScroll: true }); };
+  }, []);
+  const trap = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab' || !ref.current) return;
+    const f = [...ref.current.querySelectorAll<HTMLElement>('button')];
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
   return (
-    <div className="tt-confirm" role="alertdialog" aria-labelledby={id}>
-      <p id={id}>{text}</p>
-      <div className="acts">
-        <button type="button" className="yes" autoFocus onClick={onYes}>{yes}</button>
-        <button type="button" className="no" onClick={onNo}>{no}</button>
+    <div className="wm-layer">
+      <div className="wm-backdrop" onClick={onNo} aria-hidden="true" />
+      <div className="cm" role="alertdialog" aria-modal="true" aria-labelledby={id} ref={ref} onKeyDown={trap}>
+        <div className="cm-txt">
+          <p id={id} className="cm-title">{title}</p>
+          {sub && <p className="cm-sub">{sub}</p>}
+        </div>
+        <div className="cm-acts">
+          <button type="button" className="cm-no" autoFocus={danger} onClick={onNo}>{no}</button>
+          <button type="button" className={`cm-yes${danger ? ' danger' : ''}`} autoFocus={!danger} onClick={onYes}>{yes}</button>
+        </div>
       </div>
     </div>
   );
@@ -321,7 +342,7 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
     if (okRange) setSel({ day, start: start!, end: end! });
   }, [okRange, start, end, day, setSel]);
 
-  const pending = courses.filter((c) => !visible.some((t) => t.courseId === c.id)); // 시간이 아직 없는 과목 (종정시에서 가져온 수강 중 과목)
+  const pending = courses.filter((c) => !visible.some((t) => t.courseId === c.id)); // 시간이 모두 지워지고 메모·시험 정보만 남은 시간표 과목
   const norm = (v: string) => v.trim().replace(/\s+/g, ' ').toLowerCase();
 
   async function submit() {
@@ -331,11 +352,11 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
     if (end <= start) return setError('수업 종료 시각은 시작보다 늦어야 해요');
     if (start < fromHour * 60 || end > toHour * 60) return setError(`시간표는 ${fromHour}시~${toHour}시 안에서 입력해 주세요`);
     if (overlapsAny(visible, day, start, end)) return setError('이미 다른 수업이 있는 시간이에요');
-    // 같은 이름의 이번 학기 수강 과목이 있으면 그 과목에 시간을 더한다 (종정시에서 가져온 과목, 또는 같은 수업의 다른 요일)
+    // 같은 이름의 시간표 과목이 있으면 그 과목에 시간을 더한다 (같은 수업의 다른 요일)
     const found = courses.find((c) => norm(c.name) === norm(trimmed));
     const course: Course = found ?? {
       id: newId('course'), name: trimmed, term: state.profile!.currentTerm,
-      creditUnits: 0, area: 'unknown', origin: 'manual', recordKind: 'course', status: 'inProgress', grade: null, gradingMode: 'graded',
+      creditUnits: 0, area: 'unknown', origin: 'timetable', recordKind: 'course', status: 'inProgress', grade: null, gradingMode: 'graded',
       gpaInclusion: 'excluded', earnedInclusion: 'excluded', requiredClaim: 'none', overriddenFields: [], updatedAt: now.toISOString(),
     };
     if (!found) {
@@ -374,12 +395,12 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
   );
 }
 
-const MODE_BTN: [AssessmentMode, string][] = [['exam', 'O'], ['replacement', '대체 과제'], ['none', 'X']];
+const MODE_OPTIONS: [AssessmentMode, string][] = [['exam', 'O'], ['none', 'X'], ['replacement', '대체과제']];
 
 /**
- * 시험 정보 시트: 내 메모 + 중간·기말고사 O/대체 과제/X.
- * 처음엔 '시험 정보 추가', 이미 적어 둔 수업을 다시 열면 '저장'. 같은 버튼으로 메모와 시험 정보를 함께 저장하고,
- * '메모 저장'은 메모만 따로 저장한다. 메모 속 날짜로 알림을 만들지 않는다.
+ * 시험 정보 시트: 내 메모 + 중간고사·기말고사(O / X / 대체과제 중 고르기, 처음 값은 O).
+ * 처음엔 '시험 정보 추가', 이미 적어 둔 수업을 다시 열면 '변경사항 저장하기'. 같은 버튼으로 메모와 시험 정보를 함께 저장한다.
+ * 메모 속 날짜로 알림을 만들지 않는다.
  */
 function ExamSheet({ courseId, onClose }: { courseId: string; onClose: () => void }) {
   const { state, save, now } = useStore();
@@ -387,28 +408,17 @@ function ExamSheet({ courseId, onClose }: { courseId: string; onClose: () => voi
   const existing = (p: Phase) => state.assessments.find((a) => a.courseId === courseId && a.phase === p);
   const saved = state.courseMemos.find((m) => m.courseId === courseId)?.text ?? '';
   const [editing] = useState(() => !!saved.trim() || PHASES.some((p) => existing(p)?.mode)); // 처음 열 때 이미 적어 둔 정보가 있는가
-  const [modes, setModes] = useState<Record<Phase, AssessmentMode>>(() => ({ midterm: existing('midterm')?.mode ?? null, final: existing('final')?.mode ?? null }));
+  const [modes, setModes] = useState<Record<Phase, AssessmentMode>>(() => ({ midterm: existing('midterm')?.mode ?? 'exam', final: existing('final')?.mode ?? 'exam' }));
   const [text, setText] = useState(saved);
-  const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
-  const dirty = text !== saved;
   const course = state.courses.find((c) => c.id === courseId);
   if (!course) return null;
-  const anything = !!text.trim() || modes.midterm !== null || modes.final !== null;
 
   // 빈 메모는 기록을 지운다
   const memoRows = (s: typeof state, memoText: string, stamp: string): { rows: CourseMemo[]; error?: undefined } | { rows?: undefined; error: string } => {
     const r = courseMemoSchema.safeParse({ courseId, text: memoText, updatedAt: stamp });
     return r.success ? { rows: [...s.courseMemos.filter((m) => m.courseId !== courseId), ...(memoText.trim() ? [r.data] : [])] } : { error: firstIssue(r.error) };
   };
-
-  async function saveMemo() {
-    const probe = memoRows(state, text, now.toISOString());
-    if (probe.error !== undefined) return setError(probe.error);
-    setError('');
-    const ok = await save((s) => ({ ...s, courseMemos: memoRows(s, text, now.toISOString()).rows ?? s.courseMemos }));
-    setMsg(ok ? '저장했어요' : '');
-  }
 
   async function submit() {
     const next: Assessment[] = [];
@@ -452,28 +462,23 @@ function ExamSheet({ courseId, onClose }: { courseId: string; onClose: () => voi
   }
 
   return (
-    <Sheet variant="fg" title="시험 정보" onClose={onClose}
-      footer={<button type="button" className="btn-fg" disabled={!editing && !anything} onClick={submit}>{editing ? '저장' : '시험 정보 추가'}</button>}>
+    <Sheet variant="fg" className="exam" title="시험 정보" onClose={onClose}
+      footer={<button type="button" className="btn-fg" onClick={submit}>{editing ? '변경사항 저장하기' : '시험 정보 추가'}</button>}>
       <ConsentGate>
         <div className="fg-memo">
           <label htmlFor={memoId}>내 메모</label>
-          <textarea id={memoId} rows={3} maxLength={MEMO_MAX} value={text} onChange={(e) => { setText(e.target.value); setMsg(''); }} />
-          <div className="foot">
-            <span className="cnt" aria-live="polite">{text.length}/{MEMO_MAX.toLocaleString()}{msg && ` · ${msg}`}</span>
-            <button type="button" className="save" disabled={!dirty} onClick={saveMemo}>메모 저장</button>
-          </div>
+          <textarea id={memoId} rows={3} maxLength={MEMO_MAX} value={text} onChange={(e) => setText(e.target.value)} />
+          <span className="cnt" aria-live="polite">{text.length}/{MEMO_MAX.toLocaleString()}</span>
         </div>
-        {PHASES.map((p) => (
-          <div key={p} className="fg-phase" role="group" aria-label={`${PHASE_LABEL[p]}고사`}>
-            <h3>{PHASE_LABEL[p]}고사</h3>
-            <div className="opts">
-              {MODE_BTN.map(([v, l]) => (
-                <button key={l} type="button" aria-pressed={modes[p] === v} className={`o${v === 'replacement' ? ' wide' : ''}`}
-                  onClick={() => { setModes((m) => ({ ...m, [p]: m[p] === v ? null : v })); setError(''); }}>{l}</button>
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="fg-phases">
+          {PHASES.map((p) => (
+            <label key={p} className="fg-sel">{PHASE_LABEL[p]}고사
+              <select value={modes[p] ?? 'exam'} onChange={(e) => { setModes((m) => ({ ...m, [p]: e.target.value as AssessmentMode })); setError(''); }}>
+                {MODE_OPTIONS.map(([v, l]) => <option key={l} value={v ?? ''}>{l}</option>)}
+              </select>
+            </label>
+          ))}
+        </div>
         {error && <p className="fg-error" role="alert">{error}</p>}
       </ConsentGate>
     </Sheet>

@@ -47,7 +47,8 @@ export interface Course {
   /** 성적표 '개설학과' 칸 원문. 코드 없는 전공필수를 과목명으로 대조할 때 학과가 같은지 보는 데 쓴다. */
   offeringDepartmentName?: string;
   recognizedDepartmentId?: string;
-  origin: 'paste' | 'manual' | 'demo';
+  /** 'timetable' = 시간표에서 이름·시간만 넣어 만든 과목. 학점 계산·학사 현황·종정시 반영과는 이어지지 않는다 */
+  origin: 'paste' | 'manual' | 'demo' | 'timetable';
   recordKind: 'course' | 'recognizedCredit';
   status: CourseStatus;
   grade: Grade;

@@ -79,6 +79,19 @@ function remapDepartments(cur: Record<string, unknown>): Record<string, unknown>
   return out;
 }
 
+/** 예전에 시간표에서 만든 과목(직접 추가·학점 0·미분류·수업 시간 있음)을 시간표 과목으로 옮긴다. 학점 계산과 이어지지 않는다. */
+function adoptTimetableCourses(cur: Record<string, unknown>): Record<string, unknown> {
+  if (!Array.isArray(cur.courses) || !Array.isArray(cur.classTimes)) return cur;
+  const timed = new Set(cur.classTimes.map((t) => (t as Record<string, unknown>)?.courseId));
+  return {
+    ...cur,
+    courses: cur.courses.map((c) => {
+      const o = c as Record<string, unknown>;
+      return o && o.origin === 'manual' && o.creditUnits === 0 && o.area === 'unknown' && timed.has(o.id) ? { ...o, origin: 'timetable' } : c;
+    }),
+  };
+}
+
 export function migrate(raw: unknown, target = SCHEMA_VERSION): AppState {
   if (!raw || typeof raw !== 'object') throw new StateLoadError('저장된 데이터 형식을 알 수 없어요.');
   let cur = raw as Record<string, unknown>;
@@ -91,7 +104,7 @@ export function migrate(raw: unknown, target = SCHEMA_VERSION): AppState {
     cur = { ...step(cur), schemaVersion: v + 1 };
     v++;
   }
-  const r = appStateSchema.safeParse(remapDepartments(cur));
+  const r = appStateSchema.safeParse(adoptTimetableCourses(remapDepartments(cur)));
   if (!r.success) throw new StateLoadError(`저장된 데이터 검사에 실패했어요: ${firstIssue(r.error)}`);
   return r.data;
 }
