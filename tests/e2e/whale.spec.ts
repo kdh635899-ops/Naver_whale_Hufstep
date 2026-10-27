@@ -329,7 +329,8 @@ test('시간표: 끌기·클릭으로 수업 추가 → 시험 정보 → 확인
   await expect(exam).toBeHidden();
   await expect(mon).toContainText('중간 시험O');
   await expect(mon).toContainText('기말 대체');
-  await mon.getByRole('button', { name: /시험 정보 수정/ }).click();
+  await mon.click({ position: { x: 20, y: 20 } }); // 블록을 누르면 수정 시트 (삭제 확인이 뜨지 않는다)
+  await expect(ask).toBeHidden();
   await expect(exam.getByRole('button', { name: '저장', exact: true })).toBeVisible(); // 두 번째부터는 '저장'
   await expect(exam.getByLabel('내 메모')).toHaveValue(MEMO);
   await exam.getByRole('group', { name: '기말고사' }).getByRole('button', { name: 'X' }).click();
@@ -338,13 +339,12 @@ test('시간표: 끌기·클릭으로 수업 추가 → 시험 정보 → 확인
   await page.screenshot({ path: 'test-results/timetable-figma.png', fullPage: true, timeout: 15_000 }).catch(() => {});
 
   // 삭제: 수업을 누르면 바로 지워지지 않고 확인 창이 뜬다. 취소하면 그대로, 삭제를 눌러야 월 9~12시 전체가 사라진다
-  const m = (await mon.boundingBox())!;
-  await page.mouse.click(m.x + 20, m.y + 20);
+  await mon.getByRole('button', { name: /삭제$/ }).click(); // 맨 아래 연필 모양
   await expect(ask).toContainText('‘가상 수강 과목’ 강의 시간표를 삭제하시겠습니까?');
   expect(Math.round((await page.locator('.tt-sel').boundingBox())!.height)).toBe(210);
   await ask.getByRole('button', { name: '취소' }).click();
   await expect(blocks).toHaveCount(3);
-  await page.mouse.click(m.x + 20, m.y + 20);
+  await mon.getByRole('button', { name: /삭제$/ }).click();
   await ask.getByRole('button', { name: '삭제', exact: true }).click();
   await expect(blocks).toHaveCount(2);
   await expect(page.locator('.tt-sel')).toHaveCount(0);
@@ -352,8 +352,7 @@ test('시간표: 끌기·클릭으로 수업 추가 → 시험 정보 → 확인
   await expect(blocks.filter({ hasText: '가상 수강 과목' })).toHaveCount(1);
   await expect(blocks.filter({ hasText: '가상 수강 과목' })).toContainText('중간 시험O');
   // 시간표에서만 만든 과목의 마지막 시간을 지우면 과목째 정리된다 (금 9~11시 '가상 B')
-  const bb = (await blocks.filter({ hasText: '가상 B' }).boundingBox())!;
-  await page.mouse.click(bb.x + 20, bb.y + 20);
+  await blocks.filter({ hasText: '가상 B' }).getByRole('button', { name: /삭제$/ }).click();
   await ask.getByRole('button', { name: '삭제', exact: true }).click();
   await expect(blocks).toHaveCount(1);
   const st = JSON.parse(await readState());
@@ -404,7 +403,7 @@ test('레이아웃: 320 / 390 / 590px 에서 가로 넘침 없음', async () => 
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(width);
     await page.screenshot({ path: `test-results/timetable-${width}.png`, fullPage: true, timeout: 15_000 }).catch(() => {});
-    await page.locator('.tt-blk').first().getByRole('button', { name: /시험 정보 수정/ }).click();
+    await page.locator('.tt-blk').first().click({ position: { x: 10, y: 10 } });
     const dlg = page.getByRole('dialog', { name: '시험 정보' });
     await expect(dlg.getByLabel('내 메모')).toBeVisible();
     const d = (await dlg.boundingBox())!;
@@ -436,7 +435,7 @@ test('다시 열어도 저장된 기록·메모·수업 시간이 복원된다',
   await expect(page.getByRole('navigation', { name: '주 메뉴' })).toBeVisible();
   await tab('시간표').click();
   await expect(page.locator('.tt-blk')).toHaveCount(1);
-  await page.locator('.tt-blk').first().getByRole('button', { name: /시험 정보 수정/ }).click();
+  await page.locator('.tt-blk').first().click({ position: { x: 10, y: 10 } });
   await expect(page.getByRole('dialog', { name: '시험 정보' }).getByLabel('내 메모')).toHaveValue(MEMO);
   await page.keyboard.press('Escape');
 });

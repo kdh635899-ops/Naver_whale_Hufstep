@@ -410,15 +410,15 @@ button.term-row { cursor: pointer; }
 .tt-blk.tall .nm { min-height: 70px; max-height: 70px; }
 .tt-blk .ex { position: absolute; left: 0; right: 0; display: block; padding: 0 7px; }
 .tt-blk .ev { display: block; font-size: 10px; font-weight: 400; line-height: 15px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tt-pen { position: absolute; right: 7px; display: grid; place-items: center; width: 14px; height: 14px; padding: 0; border: 0; background: none; color: #888; cursor: pointer; }
+.tt-pen { position: absolute; right: 7px; bottom: 4px; display: grid; place-items: center; width: 14px; height: 14px; padding: 0; border: 0; background: none; color: #888; cursor: pointer; }
 .tt-add { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: var(--slate); font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: -0.3px; cursor: pointer; }
 .tt-add .icon { width: 20px; height: 20px; }
 /* 한 시간짜리 짧은 블록: 이름 아래에 작게 */
 .tt-blk.short .nm { padding: 6px 5px 0; max-height: 32px; font-size: 11px; line-height: 13px; }
-.tt-blk.short .ex { top: auto; bottom: 4px; padding: 0 5px; }
+.tt-blk.short .ex { top: auto; bottom: 4px; padding: 0 15px 0 5px; }
 .tt-blk.short .ev { font-size: 9px; line-height: 11px; }
 .tt-blk.short .tt-pen { right: 3px; bottom: 3px; width: 12px; height: 12px; }
-.tt-blk.short .tt-add { bottom: 4px; gap: 2px; font-size: 9px; line-height: 11px; }
+.tt-blk.short .tt-add { right: 12px; bottom: 4px; gap: 2px; font-size: 9px; line-height: 11px; }
 .tt-blk.short .tt-add .icon { width: 14px; height: 14px; }
 .ic-pencil { width: 14px; height: 14px; -webkit-mask-image: url('./icons/pencil.svg'); mask-image: url('./icons/pencil.svg'); }
 .tt-pen .ic-pencil { width: 100%; height: 100%; }

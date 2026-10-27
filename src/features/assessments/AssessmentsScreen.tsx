@@ -1,6 +1,6 @@
 // 시간표: 월~금 격자에서 칸을 누르거나 끌어 수업을 넣고, 수업 블록의 '시험정보 추가'·연필로 메모와 중간·기말 정보를 적는다.
 // 칸 고르기 → (손을 떼고 0.3초 뒤) '추가하시겠습니까?' 확인 → 수업 정보 시트(과목명·시간) → 블록 생성.
-// 이미 있는 수업을 누르거나 끌면 같은 방식으로 '삭제하시겠습니까?' 확인이 먼저 뜬다 (확인 없이는 지워지지 않는다).
+// 수업 블록을 누르면 시험 정보·메모 시트가 열리고(메모는 수시로 쓰므로), 블록 맨 아래 연필 모양을 눌러야만 '삭제하시겠습니까?' 확인이 뜬다.
 // 수업·시험 정보 저장은 모두 store.save()를 거친다. 자유 메모는 알림을 만들지 않는다.
 import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { useStore } from '../../app/store';
@@ -98,7 +98,7 @@ function Timetable({ courses, times, find, onExam }: {
   const [ask, setAsk] = useState<Ask | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
-  const gesture = useRef<{ kind: 'add'; day: number; anchor: number } | { kind: 'del' } | null>(null);
+  const gesture = useRef<{ day: number; anchor: number } | null>(null);
   const timer = useRef(0);
   const clearTimer = () => window.clearTimeout(timer.current);
   useEffect(() => clearTimer, []);
@@ -124,26 +124,18 @@ function Timetable({ courses, times, find, onExam }: {
     if (el.closest('[data-ttaction]')) return; // 시험정보 버튼은 따로 동작
     clearTimer();
     setAsk(null);
-    const blk = el.closest<HTMLElement>('[data-blk]');
-    if (blk) {
-      const b = blocks.find((x) => keyOf(x) === blk.dataset.blk);
-      if (!b) return;
-      gesture.current = { kind: 'del' };
-      grab(b);
-      e.currentTarget.setPointerCapture(e.pointerId);
-      return;
-    }
+    if (el.closest('[data-blk]')) { setSel(null); setTarget(null); return; } // 수업 블록은 아래 onClick에서 시트를 연다 (끌어도 지워지지 않는다)
     const p = locate(e.clientX, e.clientY);
     const hour = fromHour + p.row;
     if (!p.inside || busy(p.col, hour)) { setSel(null); setTarget(null); return; }
-    gesture.current = { kind: 'add', day: p.col, anchor: hour };
+    gesture.current = { day: p.col, anchor: hour };
     setTarget(null);
     setSel({ day: p.col, start: hour * 60, end: hour * 60 + 60 });
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const g = gesture.current;
-    if (!g || g.kind !== 'add') return;
+    if (!g) return;
     const cursor = fromHour + Math.max(0, Math.min(hours.length - 1, locate(e.clientX, e.clientY).row));
     const r = dragRange(g.anchor, cursor, (h) => busy(g.day, h)); // 이미 있는 수업 앞에서 멈춘다
     const start = r.from * 60, end = (r.to + 1) * 60;
@@ -154,11 +146,12 @@ function Timetable({ courses, times, find, onExam }: {
     if (!g) return;
     gesture.current = null;
     clearTimer();
-    timer.current = window.setTimeout(() => setAsk(g.kind), HOLD_MS);
+    timer.current = window.setTimeout(() => setAsk('add'), HOLD_MS);
   };
   const onBlockKey = (e: KeyboardEvent<HTMLDivElement>, b: Target) => {
     if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== 'Delete')) return;
     e.preventDefault();
+    if (e.key === 'Enter') return onExam(b.courseId);
     clearTimer();
     grab(b);
     setAsk('del');
@@ -210,7 +203,7 @@ function Timetable({ courses, times, find, onExam }: {
   return (
     <>
       <div className="tt" role="group" aria-label="수업 시간표"
-        onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => gesture.current && cancel()}>
+        onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => { if (gesture.current) cancel(); }}>
         <div className="tt-grid" aria-hidden="true">
           <div className="tt-dayh" />
           {DAY_LABEL.map((d) => <div key={d} className="tt-dayh">{d}</div>)}
@@ -237,26 +230,25 @@ function Timetable({ courses, times, find, onExam }: {
                   <div key={keyOf(t)} role="listitem" tabIndex={0} data-blk={keyOf(t)} data-course={c.id}
                     className={`tt-blk${tall ? ' tall' : ' short'}`}
                     style={{ top, height, left: `${(b.lane / b.lanes) * 100}%`, width: `${100 / b.lanes}%`, right: 'auto', background: tint }}
-                    aria-label={`${c.name}, ${classTimeText(b)}, 중간 ${evText(mid)}, 기말 ${evText(fin)}. 삭제하려면 Enter`}
-                    onKeyDown={(e) => onBlockKey(e, t)}>
+                    aria-label={`${c.name}, ${classTimeText(b)}, 중간 ${evText(mid)}, 기말 ${evText(fin)}. 수정하려면 Enter, 삭제하려면 Delete`}
+                    onClick={() => onExam(c.id)} onKeyDown={(e) => onBlockKey(e, t)}>
                     <span className="nm">{c.name}</span>
                     {hasInfo(c.id) ? (
-                      <>
-                        <span className="ex" style={tall ? { top: HOUR_PX + 15 } : undefined}>
-                          <span className="ev">중간 {evText(mid)}</span>
-                          <span className="ev">기말 {evText(fin)}</span>
-                        </span>
-                        <button type="button" data-ttaction className="tt-pen" aria-label={`${c.name} 시험 정보 수정`}
-                          style={tall ? { top: HOUR_PX + 46 } : undefined} onClick={() => onExam(c.id)}>
-                          <i className="icon ic-pencil" aria-hidden="true" />
-                        </button>
-                      </>
+                      <span className="ex" style={tall ? { top: HOUR_PX + 15 } : undefined}>
+                        <span className="ev">중간 {evText(mid)}</span>
+                        <span className="ev">기말 {evText(fin)}</span>
+                      </span>
                     ) : (
                       <button type="button" data-ttaction className="tt-add" style={tall ? { top: Math.min(HOUR_PX + 35, height - 44) } : undefined}
-                        aria-label={`${c.name} 시험 정보 추가`} onClick={() => onExam(c.id)}>
+                        aria-label={`${c.name} 시험 정보 추가`} onClick={(e) => { e.stopPropagation(); onExam(c.id); }}>
                         <i className="icon ic-plus" aria-hidden="true" />시험정보 추가
                       </button>
                     )}
+                    {/* 연필 모양: 항상 막대 맨 아래. 누르면 이 수업의 삭제 확인이 뜬다 */}
+                    <button type="button" data-ttaction className="tt-pen" aria-label={`${c.name} ${classTimeText(b)} 삭제`}
+                      onClick={(e) => { e.stopPropagation(); clearTimer(); grab(t); setAsk('del'); }}>
+                      <i className="icon ic-pencil" aria-hidden="true" />
+                    </button>
                   </div>
                 );
               })}
