@@ -92,8 +92,19 @@ async function addCurrentCourse(name: string, credits = '3') {
   await expect(dlg).toBeHidden();
 }
 
-// 실제 종정시 화면에는 세 부분(영역별 취득학점·이수중인 전공·이수구분별 취득학점 계)이 모두 있다. 셋 다 있어야 저장된다.
-const FULL_TRANSCRIPT = `영역별 취득학점\n이수중인 전공\n${DEMO_TRANSCRIPT}`;
+// 종정시 붙여넣기에는 두 부분(년도/학기별 취득성적·이수구분별 취득학점 계)이 모두 있어야 저장된다.
+const FULL_TRANSCRIPT = DEMO_TRANSCRIPT;
+const startHufstep = async () => {
+  // 저장에 성공하면 성공 모달이 뜨고, 'HUFStep 시작하기'를 누르면 학사 현황으로 넘어간다
+  const ok = page.getByRole('alertdialog', { name: '성공적으로 입력되었습니다.' });
+  await expect(ok).toBeVisible();
+  await expect(ok).toContainText('입력하신 정보를 바탕으로 제공되는');
+  await expect(ok).toContainText('맞춤형 HUFStep 서비스를 이용해보세요!');
+  await expect(page.locator('.wm-backdrop')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.5)');
+  expect(await ok.locator('img').first().evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
+  await ok.getByRole('button', { name: 'HUFStep 시작하기' }).click();
+  await expect(ok).toBeHidden();
+};
 
 test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 저장(빠진 건 반려) → 학사 현황 (원문 미저장)', async () => {
   // Figma: 칩은 이중전공·부전공·전공심화 3개 (없음 없음), 이중전공이 처음 선택돼 있다. 첫 화면 로고는 메인 로고 이미지
@@ -142,14 +153,13 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await expect(guide).toBeVisible();
   await expect(page.locator('.sheet-layer.howto .sheet-backdrop')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0.5)');
   await expect(guide).toContainText('Step 1.');
-  await expect(guide).toContainText('빨간 박스 안의 영역을 끝까지 내리며 모든 정보를 드래그 해주세요!');
-  await expect(guide).toContainText('그림 속 ①~⑤번의 내용들이 모두 선택되어야 해요.');
-  await expect(guide).toContainText('드래그한 모든 정보를 Ctrl + C로 복사해주세요.');
+  await expect(guide).toContainText('빨간 박스 안의 영역을 끝까지 드래그하며, 그림 속 ①~②번의 내용들을 모두 선택해주세요.');
+  await expect(guide).toContainText('선택한 모든 정보를 Ctrl + C로 복사해주세요.');
   await expect(guide).toContainText('복사한 정보를 Ctrl + V로 아래 상자에 붙여넣어주세요.');
   await expect(guide).toContainText('상자 하단의 글씨가 검정색으로 바뀌었다면, 모든 정보가 정상적으로 입력된 거예요.');
   await expect(guide).toContainText('빨간색 글씨가 뜬다면 누락된 정보가 있는 거예요. 저장 버튼 클릭 후 입력한 내용 삭제하고, 종정시에서 다시 정보를 복사해서 넣어주세요.');
   await expect(guide.locator('.gd-note')).toHaveCSS('color', 'rgb(136, 136, 136)');
-  await expect(guide.locator('.gd-mk b')).toHaveText(['①', '②', '③', '④', '⑤']);
+  await expect(guide.locator('.gd-mk b')).toHaveText(['①', '②']);
   await expect(guide.locator('.gd-drag b')).toHaveText(['드래그', '드래그']);
   for (const img of await guide.locator('.gd-fig > img, .gd-crop img').all()) {
     expect(await img.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0); // 사진 2장이 실제로 로드됨
@@ -163,11 +173,11 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   const box = page.getByLabel('종정시 정보 붙여넣기');
   const save = page.getByRole('button', { name: '종정시 정보 저장' });
   await expect(page.getByRole('button', { name: /초기화/ })).toHaveCount(0); // 처음에는 저장 버튼 하나만
-  // 아무것도 안 붙이면 반려 + 세 부분 모두 빨간색
+  // 아무것도 안 붙이면 반려 + 두 부분 모두 빨간색
   await expect(page.locator('.part.missing')).toHaveCount(0);
   await save.click();
   await expect(page.locator('.red-list')).toContainText('붙여넣은 내용이 없어요');
-  await expect(page.locator('.part.missing')).toHaveText(['영역별 취득학점', '이수중인 전공', '이수구분별 취득학점 계']);
+  await expect(page.locator('.part.missing')).toHaveText(['년도/학기별 취득성적', '이수구분별 취득학점 계']);
   // 필수 줄(이수구분별 취득학점 계)이 빠지면 빨간 글씨로 알리고 저장하지 않는다
   const noSummary = FULL_TRANSCRIPT.slice(0, FULL_TRANSCRIPT.indexOf('이수구분별 취득학점 계'));
   await box.fill(noSummary);
@@ -187,15 +197,15 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await page.keyboard.press('Escape');
   await expect(warn).toBeHidden();
   await expect(box).toHaveValue(noSummary);
-  // 어느 부분이 빠졌는지 모달에 그대로 뜬다: '이수중인 전공'만 빠져도, 둘 이상 빠져도
-  await box.fill(FULL_TRANSCRIPT.replace('이수중인 전공\n', ''));
+  // 어느 부분이 빠졌는지 모달에 그대로 뜬다: '년도/학기별 취득성적'만 빠져도, 둘 다 빠져도
+  await box.fill(FULL_TRANSCRIPT.replace('년도/학기별 취득성적\n', ''));
   await save.click();
-  await expect(warn).toContainText("‘이수중인 전공'");
+  await expect(warn).toContainText("‘년도/학기별 취득성적'");
   await expect(warn).not.toContainText('이수구분별 취득학점 계');
   await page.keyboard.press('Escape');
-  await box.fill(FULL_TRANSCRIPT.replace('영역별 취득학점\n', '').replace('이수중인 전공\n', ''));
+  await box.fill('아무 글이나 붙여넣었어요');
   await save.click();
-  await expect(warn).toContainText("‘영역별 취득학점', ‘이수중인 전공'");
+  await expect(warn).toContainText("‘년도/학기별 취득성적', ‘이수구분별 취득학점 계'");
   await expect(warn).toContainText('영역이 누락되었습니다.');
   await page.keyboard.press('Escape');
   await box.fill(noSummary);
@@ -211,6 +221,7 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   // 이상 없으면 저장하고 학사 현황으로 넘어간다
   await box.fill(FULL_TRANSCRIPT);
   await save.click();
+  await startHufstep();
   await expect(page.getByRole('heading', { name: '내 학사현황' })).toBeVisible();
   const saved = await readState();
   expect(JSON.parse(saved).courses).toHaveLength(6);
@@ -233,6 +244,7 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   expect(JSON.parse(await readState()).snapshots).toHaveLength(0);
   await page.getByLabel('종정시 정보 붙여넣기').fill(FULL_TRANSCRIPT);
   await page.getByRole('button', { name: '종정시 정보 저장' }).click();
+  await startHufstep(); // 삭제(초기화)하고 새로 넣어도 저장 성공 모달이 똑같이 뜬다
   await expect(page.getByRole('heading', { name: '내 학사현황' })).toBeVisible();
   expect(JSON.parse(await readState()).courses).toHaveLength(6);
 });
@@ -285,6 +297,8 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   const exam = page.locator('#st-exams .sc').first();
   await exam.locator('.sc-row').click();
   const box = exam.locator('.cbx').first();
+  // 체크박스는 글자 왼쪽에 있다
+  expect((await box.boundingBox())!.x).toBeLessThan((await exam.locator('.sc-item .tx').first().boundingBox())!.x);
   const size = (await box.boundingBox())!;
   expect(size.width).toBeLessThanOrEqual(22); // 작은 네모 체크박스
   expect(Math.abs(size.width - size.height)).toBeLessThan(1);

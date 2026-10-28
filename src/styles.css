@@ -269,6 +269,11 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 .wm-sub { margin-top: 10px; font-size: 13px; line-height: 20px; color: #888; }
 .wm-del { width: min(266px, 100%); height: 50px; margin-top: 32px; padding: 10px; border: 0; border-radius: 10px; background: #f11; color: #fff; font-size: 15px; font-weight: 600; line-height: 27px; cursor: pointer; }
 .wm-del:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+/* 저장 성공 모달 (Figma 202:286): 초록 체크 90px, 남색 시작 버튼 */
+.wm.sm .wm-icon { width: 90px; height: 90px; }
+.sm-go { display: flex; align-items: center; justify-content: center; gap: 10px; width: min(266px, 100%); height: 50px; margin-top: 32px; padding: 10px; border: 0; border-radius: 10px; background: var(--navy-900); color: #fff; font-size: 16px; font-weight: 700; line-height: 16.5px; cursor: pointer; }
+.sm-go img { display: block; width: 24px; height: 24px; }
+.sm-go:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
 
 /* ? 도움말 모달 (Figma 179:1572 · 어둡게 170:1035) */
 .sheet-layer.howto .sheet-backdrop { background: rgba(0, 0, 0, 0.5); }
@@ -579,3 +584,4 @@ button.sc-state { cursor: pointer; }
 .cbx[aria-checked='true'] { background: var(--done); }
 .cbx .ic-check { width: 14px; height: 14px; }
 .cbx:focus-visible { box-shadow: var(--focus); }
+.sc-item .cbx + .tx { margin-left: 8px; } /* 체크 칸과 글자 사이를 조금 더 벌린다 */

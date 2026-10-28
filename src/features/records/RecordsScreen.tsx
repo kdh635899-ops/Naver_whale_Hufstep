@@ -9,6 +9,7 @@ import { parseTranscript, type ParseResult } from '../../domain/parser/parseTran
 import bannerImg from '../../assets/logo/start-banner.png';
 import { ConsentGate } from '../common';
 import { GuideModal } from './GuideModal';
+import { SuccessModal } from './SuccessModal';
 import { WarningModal } from './WarningModal';
 
 const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
@@ -18,8 +19,7 @@ const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
  * 기준을 바꾸려면 이 목록만 고치면 된다.
  */
 const PARTS = [
-  { key: 'byArea', label: '영역별 취득학점', required: true },
-  { key: 'majors', label: '이수중인 전공', required: true },
+  { key: 'grades', label: '년도/학기별 취득성적', required: true },
   { key: 'summary', label: '이수구분별 취득학점 계', required: true },
 ] as const;
 type PartKey = (typeof PARTS)[number]['key'];
@@ -90,9 +90,10 @@ function PasteSave() {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [checked, setChecked] = useState(false);
-  const [found, setFound] = useState<Record<PartKey, boolean>>({ byArea: false, majors: false, summary: false });
+  const [found, setFound] = useState<Record<PartKey, boolean>>({ grades: false, summary: false });
   const [problems, setProblems] = useState<string[]>([]);
   const [warn, setWarn] = useState<[string, string] | null>(null); // 경고 모달 제목 두 줄
+  const [done, setDone] = useState(false); // 저장 성공 모달
   const pasteRef = useRef<HTMLTextAreaElement>(null);
   // 이미 저장한 종정시 정보가 있으면 새로 붙여넣기 전에 '초기화'부터 해야 한다 (처음에는 '종정시 정보 저장' 버튼만 보인다)
   const hasSaved = state.snapshots.length > 0 || state.courses.some((c) => c.origin === 'paste');
@@ -115,7 +116,7 @@ function PasteSave() {
   /** 경고 모달의 '입력된 내용 삭제': 붙여넣은 내용을 비우고 다시 붙여넣게 한다 (저장된 기록은 건드리지 않는다) */
   function onClearInput() {
     setText(''); setChecked(false); setProblems([]); setWarn(null);
-    setFound({ byArea: false, majors: false, summary: false });
+    setFound({ grades: false, summary: false });
     window.requestAnimationFrame(() => pasteRef.current?.focus());
   }
 
@@ -123,7 +124,7 @@ function PasteSave() {
     setChecked(true);
     setProblems([]);
     if (!text.trim()) {
-      setFound({ byArea: false, majors: false, summary: false });
+      setFound({ grades: false, summary: false });
       setProblems(['붙여넣은 내용이 없어요. 종정시에서 복사한 내용을 붙여넣어 주세요.']);
       return;
     }
@@ -133,8 +134,7 @@ function PasteSave() {
       const flat = squash(text);
       const has = (label: string) => flat.includes(squash(label));
       const next: Record<PartKey, boolean> = {
-        byArea: has('영역별 취득학점'),
-        majors: has('이수중인 전공'),
+        grades: has('년도/학기별 취득성적') && r.rows.length > 0,
         summary: has('이수구분별 취득학점 계') && r.completeness.earnedTotals,
       };
       setFound(next);
@@ -160,7 +160,7 @@ function PasteSave() {
       if (await save(applyMerge(state, r, plan, decisions, now))) {
         setText(''); // 원문은 저장하지 않는다
         setChecked(false);
-        setView('status');
+        setDone(true); // 'HUFStep 시작하기'를 누르면 학사 현황으로
       }
     } catch (e) {
       setProblems([`${(e as Error).message} 기존 기록은 그대로예요.`]);
@@ -184,6 +184,7 @@ function PasteSave() {
       {problems.length > 0 && (
         <ul className="red-list" role="alert">{problems.map((m, i) => <li key={i}>{m}</li>)}</ul>
       )}
+      {done && <SuccessModal onStart={() => { setDone(false); setView('status'); }} />}
       {warn && <WarningModal title={warn} onDelete={onClearInput} onClose={() => setWarn(null)} />}
       <div className="cta-row">
         <button type="button" className="btn cta" disabled={busy || hasSaved} onClick={() => void onSave()}>

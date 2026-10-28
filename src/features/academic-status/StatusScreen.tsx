@@ -225,10 +225,10 @@ export function StatusScreen() {
                     <ul className="sc-list-in">
                       {c.items.map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <span className="tx">{it.head}{it.detail && <span className="sub">{it.detail}</span>}{it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}</span>
                           <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.full} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
                             {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
                           </button>
+                          <span className="tx">{it.head}{it.detail && <span className="sub">{it.detail}</span>}{it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}</span>
                         </li>
                       ))}
                     </ul>
