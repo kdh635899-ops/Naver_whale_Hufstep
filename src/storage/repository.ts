@@ -28,7 +28,7 @@ async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRe
       const tx = db.transaction(STORE, mode);
       const req = fn(tx.objectStore(STORE));
       tx.oncomplete = () => resolve((req ? req.result : undefined) as T);
-      tx.onerror = () => reject(tx.error);
+      tx.onerror = () => reject(tx.error ?? new Error('저장소 작업 중 오류가 났어요'));
       tx.onabort = () => reject(tx.error ?? new Error('저장 트랜잭션이 취소됐어요'));
     });
   } finally {

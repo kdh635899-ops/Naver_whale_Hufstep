@@ -12,6 +12,7 @@ export interface GpaResult {
   hundredths: number | null;
   /** 요약 평점에서 복원한 근사치가 섞였는지 */
   estimated: boolean;
+  complete: boolean;
 }
 
 export const formatGpa = (h: number | null) => (h === null ? '—' : (h / 100).toFixed(2));
@@ -24,7 +25,8 @@ export function effectiveCourses(courses: Course[]): Course[] {
   return courses.map((c) => (replaced.has(c.id) ? { ...c, gpaInclusion: 'excluded', earnedInclusion: 'excluded' } : c));
 }
 
-export function computeGpa(courses: Course[], summary?: AcademicSnapshot['reportedGpa']): GpaResult {
+export function computeGpa(courses: Course[], summary?: AcademicSnapshot['reportedGpa'], complete = true): GpaResult {
+  complete = complete && !courses.some((c) => (c.status === 'completed' || c.status === 'notEarned') && c.gpaInclusion === 'unresolved');
   let C = 0;
   let Q = 0;
   for (const c of courses) {
@@ -38,13 +40,13 @@ export function computeGpa(courses: Course[], summary?: AcademicSnapshot['report
     C += summary.gpaUnits;
     Q += summary.gpaUnits * summary.hundredths;
   }
-  return { creditUnits: C, points: Q, hundredths: C ? Math.floor(Q / C) : null, estimated: !!summary };
+  return { creditUnits: C, points: Q, hundredths: C && complete ? Math.floor(Q / C) : null, estimated: !!summary, complete };
 }
 
 /** 졸업 평점 2.00 판정. F는 포함하고 인정학점·재수강으로 대체된 기록은 기존 계산 규칙대로 제외한다. */
 export function graduationGpa(courses: Course[], snapshot?: AcademicSnapshot | null) {
   const effective = effectiveCourses(courses);
-  const gpa = computeGpa(effective, snapshot?.source === 'summaryInput' ? snapshot.reportedGpa : undefined);
+  const gpa = computeGpa(effective, snapshot?.source === 'summaryInput' ? snapshot.reportedGpa : undefined, snapshot?.completeness.gpa ?? true);
   const incomplete = effective.some((c) => c.status === 'completed' && c.gpaInclusion === 'unresolved')
     || (snapshot?.source === 'studentPaste' && !snapshot.completeness.gpa);
   const status = gpa.hundredths === null || incomplete ? 'insufficient' : gpa.hundredths >= 200 ? 'met' : 'unmet';
@@ -55,6 +57,7 @@ export const earnedUnits = (courses: Course[]) =>
   courses.reduce((s, c) => s + (c.earnedInclusion === 'included' ? c.creditUnits : 0), 0);
 
 export interface ScenarioResult {
+  completeness: AcademicSnapshot['completeness'];
   baseline: { gpa: GpaResult; majorGpa: GpaResult; earned: number };
   projected: { gpa: GpaResult; majorGpa: GpaResult; earned: number };
   termGpa: GpaResult;
@@ -69,12 +72,13 @@ export function calculateScenario(
   courses: Course[],
   scenario: GradeScenario | null,
   summary?: AcademicSnapshot['reportedGpa'],
+  completeness: AcademicSnapshot['completeness'] = { earnedTotals: true, courses: true, gpa: true },
 ): ScenarioResult {
   const base = effectiveCourses(courses);
   const isMajor = (c: Course) => c.area === 'primary';
   const summarize = (list: Course[]) => ({
-    gpa: computeGpa(list, summary),
-    majorGpa: computeGpa(list.filter(isMajor)),
+    gpa: computeGpa(list, summary, completeness.gpa),
+    majorGpa: computeGpa(list.filter(isMajor), undefined, completeness.gpa),
     earned: earnedUnits(list),
   });
 
@@ -106,5 +110,5 @@ export function calculateScenario(
   const termCourses = scenario
     ? projectedList.filter((c) => sameTerm(c.term, scenario.term) && (scenarioIds.has(c.id) || c.status === 'completed'))
     : [];
-  return { baseline: summarize(base), projected: summarize(projectedList), termGpa: computeGpa(termCourses), errors };
+  return { completeness, baseline: summarize(base), projected: summarize(projectedList), termGpa: computeGpa(termCourses, undefined, completeness.gpa), errors };
 }

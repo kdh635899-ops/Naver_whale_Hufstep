@@ -28,7 +28,7 @@ export function CalculatorScreen() {
   // 상세 성적 없이 요약 평점만 있으면 '요약값 기반 추정'
   const summary = snap?.source === 'summaryInput' ? snap.reportedGpa : undefined;
   const courses = useMemo(() => gradeCourses(state.courses), [state.courses]); // 시간표에서 만든 과목은 학점 계산에 넣지 않는다
-  const r = useMemo(() => calculateScenario(courses, scenario, summary), [courses, scenario, summary]);
+  const r = useMemo(() => calculateScenario(courses, scenario, summary, snap?.completeness), [courses, scenario, summary, snap]);
   const base = r.baseline;
   const hasScenario = !!scenario?.entries.some((e) => e.expectedGrade);
 
@@ -67,12 +67,12 @@ export function CalculatorScreen() {
         <section className="gpa-card light" aria-label="현재 누적 평점">
           <p className="gpa-label">현재 누적 평점</p>
           <p className="gpa-num">{gpaNum(base.gpa)}</p>
-          <p className="gpa-sub">{base.gpa.estimated ? '요약값 기반 추정' : '4.5점 만점'}</p>
+          <p className="gpa-sub">{!base.gpa.complete ? '성적 자료 불완전' : base.gpa.estimated ? '요약값 기반 추정' : '4.5점 만점'}</p>
         </section>
         <section className="gpa-card dark" aria-label="예상 누적 평점">
           <p className="gpa-label">예상 누적 평점</p>
           <p className="gpa-num">{hasScenario ? gpaNum(r.projected.gpa) : '—'}</p>
-          <p className="gpa-sub">기존 취득학점 {formatUnits(base.earned)}학점</p>
+          <p className="gpa-sub">기존 취득학점 {r.completeness.courses ? formatUnits(base.earned) : '—'}학점</p>
         </section>
       </div>
 
@@ -129,7 +129,8 @@ export function CalculatorScreen() {
 
 function PastTerm({ term, list }: { term: Term; list: Course[] }) {
   const { state, openEditor } = useStore();
-  const g = computeGpa(list);
+  const completeness = latestSnapshot(state)?.completeness;
+  const g = computeGpa(list, undefined, completeness?.gpa ?? true);
   const earned = list.filter((c) => c.earnedInclusion === 'included');
   return (
     <section className="term-card" aria-label={gradeTermLabel(term, state.profile!)}>
@@ -143,7 +144,7 @@ function PastTerm({ term, list }: { term: Term; list: Course[] }) {
           <span className="grade">{gradeText(c)}</span>
         </button>
       ))}
-      <div className="term-foot">총 {formatUnits(sumUnits(earned))}학점</div>
+      <div className="term-foot">총 {completeness?.courses === false ? '—' : formatUnits(sumUnits(earned))}학점</div>
     </section>
   );
 }

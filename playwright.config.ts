@@ -7,6 +7,11 @@ export default defineConfig({
   workers: 1,
   fullyParallel: false,
   reporter: 'list',
+  webServer: {
+    command: 'npm exec vite preview -- --host 127.0.0.1 --port 4173',
+    url: 'http://127.0.0.1:4173/sidebar.html',
+    reuseExistingServer: !process.env.CI,
+  },
   // 설치된 Chrome을 쓴다 (Playwright 전용 브라우저를 따로 내려받지 않도록)
   use: { channel: 'chrome' },
 });

@@ -8,6 +8,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { DEMO_TRANSCRIPT } from '../../src/data/demo';
+import { FOOTER_TRANSCRIPT } from '../fixtures/importTranscript';
 
 const WHALE = process.env.WHALE_PATH ?? 'C:/Program Files/Naver/Naver Whale/Application/whale.exe';
 const PORT = 9334;
@@ -92,7 +93,7 @@ async function addCurrentCourse(name: string, credits = '3') {
   await expect(dlg).toBeHidden();
 }
 
-// 종정시 붙여넣기에는 두 부분(년도/학기별 취득성적·이수구분별 취득학점 계)이 모두 있어야 저장된다.
+// 제목 유무와 무관하게 과목 목록·영역별 합계를 대조해야 저장된다.
 const FULL_TRANSCRIPT = DEMO_TRANSCRIPT;
 const startHufstep = async () => {
   // 저장에 성공하면 성공 모달이 뜨고, 'HUFStep 시작하기'를 누르면 학사 현황으로 넘어간다
@@ -197,12 +198,11 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await page.keyboard.press('Escape');
   await expect(warn).toBeHidden();
   await expect(box).toHaveValue(noSummary);
-  // 어느 부분이 빠졌는지 모달에 그대로 뜬다: '년도/학기별 취득성적'만 빠져도, 둘 다 빠져도
+  // 제목만 없어도 정상 분석되며, 저장 전에는 DB를 바꾸지 않는다.
   await box.fill(FULL_TRANSCRIPT.replace('년도/학기별 취득성적\n', ''));
-  await save.click();
-  await expect(warn).toContainText("‘년도/학기별 취득성적'");
-  await expect(warn).not.toContainText('이수구분별 취득학점 계');
-  await page.keyboard.press('Escape');
+  await expect(page.locator('.part.found')).toHaveCount(2);
+  await expect(page.locator('.red-list')).toHaveCount(0);
+  expect(JSON.parse(await readState()).courses).toHaveLength(0);
   await box.fill('아무 글이나 붙여넣었어요');
   await save.click();
   await expect(warn).toContainText("‘년도/학기별 취득성적', ‘이수구분별 취득학점 계'");
@@ -227,10 +227,18 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   expect(JSON.parse(saved).courses).toHaveLength(6);
   expect(saved).not.toContain('이수구분별 취득학점 계'); // 원문은 저장하지 않는다
 
-  // 저장된 정보가 있으면 붙여넣기·저장은 잠기고 '초기화'가 나타난다. 초기화(두 번 눌러 확인) 후에만 다시 저장할 수 있다.
+  // 저장된 정보가 있어도 초기화 없이 다시 반영할 수 있고 과목 ID·학점은 중복되지 않는다.
   await tab('종정시 입력').click();
-  await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeDisabled();
-  await expect(page.getByRole('button', { name: '종정시 정보 저장' })).toBeDisabled();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeEnabled();
+  await expect(page.getByRole('button', { name: '종정시 정보 저장' })).toBeEnabled();
+  const ids = JSON.parse(await readState()).courses.map((c: { id: string }) => c.id);
+  await box.fill(FULL_TRANSCRIPT);
+  await expect(page.locator('.part.found')).toHaveCount(2);
+  expect(JSON.parse(await readState()).courses.map((c: { id: string }) => c.id)).toEqual(ids);
+  await save.click();
+  await startHufstep();
+  expect(JSON.parse(await readState()).courses.map((c: { id: string }) => c.id)).toEqual(ids);
+  await tab('종정시 입력').click();
   const reset = page.getByRole('button', { name: '저장된 종정시 정보 초기화' });
   const rb = (await reset.boundingBox())!; // Figma: 100×60, 남색 테두리 흰 바탕
   expect(Math.round(rb.width)).toBe(100);
@@ -247,6 +255,21 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await startHufstep(); // 삭제(초기화)하고 새로 넣어도 저장 성공 모달이 똑같이 뜬다
   await expect(page.getByRole('heading', { name: '내 학사현황' })).toBeVisible();
   expect(JSON.parse(await readState()).courses).toHaveLength(6);
+});
+
+test('하단 안내문과 영역별 취득학점 표를 웨일 확장앱에서도 분석·저장한다', async () => {
+  await tab('종정시 입력').click();
+  await expect.poll(async () => JSON.parse(await readState()).settings.lastView).toBe('records');
+  const before = JSON.parse(await readState());
+  await page.getByLabel('종정시 정보 붙여넣기').fill(FOOTER_TRANSCRIPT);
+  await expect(page.locator('.part.found')).toHaveCount(2);
+  await expect(page.locator('.red-list')).toHaveCount(0);
+  expect(JSON.parse(await readState())).toEqual(before);
+  await page.getByRole('button', { name: '종정시 정보 저장' }).click();
+  await startHufstep();
+  const after = JSON.parse(await readState());
+  expect(after.courses.map((c: { id: string }) => c.id)).toEqual(before.courses.map((c: { id: string }) => c.id));
+  expect(after.snapshots.at(-1).reportedTotalEarnedUnits).toBe(2000);
 });
 
 test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저장한 데이터로 채워지고, 직접 체크로 맞출 수 있다', async () => {

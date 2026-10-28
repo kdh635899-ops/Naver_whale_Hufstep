@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_LINES, ParseLimitError, parseTranscript } from '../../src/domain/parser/parseTranscript';
+import { formatTranscriptDiagnostic, MAX_LINES, ParseLimitError, parseTranscript, validateTranscript } from '../../src/domain/parser/parseTranscript';
 import { computeGpa } from '../../src/domain/gpa/gpa';
 import { TRANSCRIPT_FIXTURE } from '../fixtures';
 import type { Course } from '../../src/domain/types';
+import { CAPTIONED_TRANSCRIPT, CONTROLS_TRANSCRIPT, FOOTER_TRANSCRIPT, INCOMPLETE_TRANSCRIPTS, TITLELESS_TRANSCRIPT, WRAPPED_TRANSCRIPT } from '../fixtures/importTranscript';
 
 const asCourses = (rows: ReturnType<typeof parseTranscript>['rows']) => rows.map((r) => ({ ...r, id: r.rowKey }) as unknown as Course);
 
@@ -82,6 +83,11 @@ describe('경고·판단 보류', () => {
     expect(r.warnings.map((w) => w.code)).toContain('unknownGrade');
     expect(r.completeness.gpa).toBe(false);
   });
+  it('객체 기본 속성 이름도 등급·영역으로 오인하지 않는다', () => {
+    const result = parseTranscript('2022 - 1\n가상학과\tT1001\t합성\tconstructor\t3\ttoString');
+    expect(result.rows[0]).toMatchObject({ grade: null, area: 'unknown' });
+    expect(result.warnings.map((w) => w.code)).toEqual(expect.arrayContaining(['unknownGrade', 'unknownArea']));
+  });
   it('알 수 없는 영역 경고', () => {
     const r = parseTranscript('2022 - 1\n가상학과 T1001 가상 특수영역 3 A0');
     expect(r.rows[0].area).toBe('unknown');
@@ -129,5 +135,129 @@ describe('입력 크기 제한', () => {
   });
   it('1MiB 초과는 오류', () => {
     expect(() => parseTranscript('가'.repeat(400_000))).toThrow(ParseLimitError);
+  });
+});
+
+describe('저장에 사용하는 공통 검증', () => {
+  it.each([TITLELESS_TRANSCRIPT, WRAPPED_TRANSCRIPT, FOOTER_TRANSCRIPT])('제목 누락·합계 줄바꿈에도 실제 과목과 합계가 맞으면 저장 가능', (text) => {
+    const result = parseTranscript(text);
+    expect(result.rows).toHaveLength(6);
+    expect(result.computedTotalUnits).toBe(2000);
+    expect(result.reportedTotalEarnedUnits).toBe(2000);
+    expect(validateTranscript(result)).toEqual({ parts: { grades: true, summary: true }, problems: [], canSave: true });
+    expect(result.rows.filter((r) => r.recordKind === 'recognizedCredit')).toHaveLength(2);
+    expect(result.rows.find((r) => r.officialCode === 'O90002')?.name).toContain('Example Subject (2)');
+  });
+  it.each(Object.entries(INCOMPLETE_TRANSCRIPTS))('%s는 경고하고 저장하지 않는다', (_name, text) => {
+    const result = parseTranscript(text);
+    expect(validateTranscript(result).canSave).toBe(false);
+    expect(validateTranscript(result).problems.length).toBeGreaterThan(0);
+    expect(result.completeness.gpa).toBe(false);
+  });
+  it.each([
+    '이수구분 1전공 총계\n이수구분별 취득학점 계 3',
+    '이수구분 1전공 총계\n이수구분별 취득학점 계 3 3 3',
+    '이수구분 1전공 총계\n이수구분별 취득학점 계 -3 -3',
+    '이수구분 1전공 총계\n이수구분별 취득학점 계 3.001 3.001',
+    '이수구분 1전공 총계\n이수구분별 취득학점 계 10001 10001',
+    '이수구분 1전공 1전공 총계\n이수구분별 취득학점 계 3 3 6',
+    '이수구분 미상 총계\n이수구분별 취득학점 계 3 3',
+    '이수구분 1전공 총계\n이수구분별 취득학점 계 3 4',
+  ])('하단 표의 열·값·범위·자체 합계가 틀리면 불완전', (text) => {
+    const result = parseTranscript(text);
+    expect(result.completeness.earnedTotals).toBe(false);
+    expect(validateTranscript(result).canSave).toBe(false);
+  });
+  it.each(['숫자 2026 3 4.5', '2026 - 1\n아무 문장 1전공 3\n이수구분 1전공 총계\n3 3'])('숫자와 영역만 있는 문장은 성적으로 통과시키지 않는다', (text) => {
+    expect(validateTranscript(parseTranscript(text)).canSave).toBe(false);
+  });
+  it.each(['0', '151'])('과목 학점 범위를 검사한다: %s', (credit) => {
+    const result = parseTranscript(`2026 - 1\n가상학과 T1001 합성과목 1전공 ${credit} A0\n이수구분 1전공 총계\n${credit} ${credit}`);
+    expect(result.warnings.some((w) => w.code === 'invalidCredit')).toBe(true);
+    expect(validateTranscript(result).canSave).toBe(false);
+  });
+});
+
+describe('하단 안내문과 영역별 취득학점 표', () => {
+  it.each([
+    CAPTIONED_TRANSCRIPT,
+    CAPTIONED_TRANSCRIPT.replace('영역별 취득학점\n', ''),
+    TRANSCRIPT_FIXTURE.replace('개설학과 교과목코드', '영역별 취득학점\n개설학과 교과목코드'),
+  ])('상단 표 제목과 하단 중복 제목 때문에 과목을 합계로 읽지 않는다', (text) => {
+    const result = parseTranscript(text);
+    expect(result.rows).toHaveLength(6);
+    expect(result.reportedTotalEarnedUnits).toBe(2000);
+    expect(validateTranscript(result)).toEqual({ parts: { grades: true, summary: true }, problems: [], canSave: true });
+  });
+  it.each([
+    CAPTIONED_TRANSCRIPT.replace('5.0 3.0', '6.0 3.0'),
+    CAPTIONED_TRANSCRIPT.replace('1전공 이중전공', '미상영역 이중전공'),
+    CAPTIONED_TRANSCRIPT.slice(0, CAPTIONED_TRANSCRIPT.indexOf('이수구분별 취득학점 계')),
+  ])('제목을 구분해도 잘못되거나 누락된 합계는 차단한다', (text) => {
+    expect(validateTranscript(parseTranscript(text)).canSave).toBe(false);
+  });
+  it.each(['총계', '합계', '계', '총 학점', '총 취득학점'])('확인 가능한 총계 열 표기를 대응한다: %s', (totalLabel) => {
+    const result = parseTranscript(FOOTER_TRANSCRIPT.replace('\t합계', `\t${totalLabel}`));
+    expect(validateTranscript(result).canSave).toBe(true);
+    expect(result.rows).toHaveLength(6);
+    expect(result.computedTotalUnits).toBe(2000);
+    expect(result.warnings).toEqual([]);
+  });
+  it('제목·행 제목·열 이름·값이 여러 줄에 나뉜 표도 같은 결과', () => {
+    const result = parseTranscript(FOOTER_TRANSCRIPT.replace('영역별 취득학점', '영역별\n취득학점').replaceAll('\t', '\n'));
+    expect(validateTranscript(result).canSave).toBe(true);
+    expect(result.reportedTotalEarnedUnits).toBe(2000);
+  });
+  it('영역과 학점이 한 쌍씩 반복되는 표도 대응한다', () => {
+    const text = FOOTER_TRANSCRIPT.slice(0, FOOTER_TRANSCRIPT.indexOf('영역별 취득학점'))
+      + '영역별 취득학점\n1전공\t5\n이중전공\t3\n교양\t8\n자선\t4\n합계\t20';
+    const result = parseTranscript(text);
+    expect(validateTranscript(result).canSave).toBe(true);
+    expect(result.reportedEarnedByArea).toEqual({ primary: 500, double: 300, liberalArts: 800, freeChoice: 400 });
+  });
+  it('안내문에 합계 관련 단어가 있어도 그곳에서 과목 목록을 자르지 않는다', () => {
+    const text = TITLELESS_TRANSCRIPT.replace('2021 - 1', '※ 이수구분별 합계 정보는 화면 하단에서 확인 가능합니다.\n2021 - 1');
+    expect(validateTranscript(parseTranscript(text)).canSave).toBe(true);
+  });
+  it.each([
+    FOOTER_TRANSCRIPT.replace('취득학점\t5.0', '취득학점\t6.0'),
+    FOOTER_TRANSCRIPT.replace('\t기초', '\t미상영역'),
+    FOOTER_TRANSCRIPT.replace('취득학점\t5.0\t3.0', '취득학점\t5.0'),
+    FOOTER_TRANSCRIPT + '\n해석할 수 없는 합성 행',
+    FOOTER_TRANSCRIPT.replace('※ 이수구분별 합계 정보는 화면 하단에서 확인 가능합니다.', '※ 해석할 수 없는 합성 안내문'),
+  ])('안내문·표 형식을 지원해도 미상 값·누락·합계 불일치는 차단한다', (text) => {
+    expect(validateTranscript(parseTranscript(text)).canSave).toBe(false);
+  });
+});
+
+describe('전체 영역 복사와 오류 진단', () => {
+  it.each([CONTROLS_TRANSCRIPT, CONTROLS_TRANSCRIPT.replaceAll(' ', '\t').replaceAll('\n', '\r\n')])('확인된 메뉴 문구만 제외하고 성적과 합계를 검증한다', (text) => {
+    const result = parseTranscript(text);
+    expect(result.rows).toHaveLength(6);
+    expect(result.computedTotalUnits).toBe(2000);
+    expect(validateTranscript(result)).toEqual({ parts: { grades: true, summary: true }, problems: [], canSave: true });
+  });
+  it.each(['검색조건 추가 내용', '년도/학기 선택 2026', '+ 전체보기(View all) 누락 과목'])('메뉴 문구와 비슷한 미상 행은 계속 차단한다: %s', (line) => {
+    const result = parseTranscript(`${line}\n${CONTROLS_TRANSCRIPT}`);
+    expect(result.warnings).toContainEqual(expect.objectContaining({ code: 'unparsedLine', lineNumber: 1 }));
+    expect(validateTranscript(result).canSave).toBe(false);
+  });
+  it('제외한 안내문과 메뉴도 세어 원래 입력의 문제 줄 번호를 진단문에 표시한다', () => {
+    const input = `※ 이수구분별 합계 정보는 화면 하단에서 확인 가능합니다.\r\n검색조건\r\n해석 불가 합성 행\r\n${CONTROLS_TRANSCRIPT}`;
+    const result = parseTranscript(input);
+    const report = formatTranscriptDiagnostic(input, result, validateTranscript(result).problems);
+    expect(report).toContain('[unparsedLine] 3번째 줄 해석하지 못한 줄이 있어요: “해석 불가 합성 행”');
+    expect(report).toContain('검증: 저장 차단');
+    expect(report).toContain('총 취득학점: 과목 합 20 / 하단 총계 20');
+    expect(report).toContain('분석: 6행 (인정학점 2행)');
+    expect(report).not.toContain('T90001');
+    expect(report).not.toContain('개설학과 교과목코드');
+  });
+  it('분석 결과가 없어도 실행 오류를 진단하며 입력 원문은 넣지 않는다', () => {
+    const report = formatTranscriptDiagnostic('이름: 합성학생\n학번: 202612345', null, ['분석 Worker를 시작하지 못했어요.']);
+    expect(report).toContain('분석: 결과 없음');
+    expect(report).toContain('분석 Worker를 시작하지 못했어요.');
+    expect(report).not.toContain('합성학생');
+    expect(report).not.toContain('202612345');
   });
 });

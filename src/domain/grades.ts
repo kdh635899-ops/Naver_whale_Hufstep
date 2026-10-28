@@ -12,7 +12,7 @@ export const LETTER_GRADES: LetterGrade[] = ['A+', 'A0', 'B+', 'B0', 'C+', 'C0',
 export function normalizeGrade(raw: string, aliases: Record<string, LetterGrade>): LetterGrade | undefined {
   const t = raw.trim();
   if ((LETTER_GRADES as string[]).includes(t)) return t as LetterGrade;
-  return aliases[t];
+  return Object.hasOwn(aliases, t) ? aliases[t] : undefined;
 }
 
 type InclusionInput = Pick<Course, 'status' | 'grade' | 'gradingMode' | 'recordKind'>;

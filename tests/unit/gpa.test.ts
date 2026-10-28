@@ -1,11 +1,25 @@
 import { describe, expect, it } from 'vitest';
-import { calculateScenario, computeGpa, formatGpa } from '../../src/domain/gpa/gpa';
+import { calculateScenario, computeGpa, formatGpa, graduationGpa } from '../../src/domain/gpa/gpa';
+import { parseTranscript } from '../../src/domain/parser/parseTranscript';
+import { INCOMPLETE_TRANSCRIPTS } from '../fixtures/importTranscript';
 import type { GradeScenario } from '../../src/domain/types';
 import { course, T26_2 } from '../fixtures';
 
 const scenario = (entries: GradeScenario['entries']): GradeScenario => ({ id: 's', term: T26_2, baselineSnapshotId: 'b', entries });
 
 describe('평점 계산 (정수)', () => {
+  it.each(Object.entries(INCOMPLETE_TRANSCRIPTS))('%s의 완전성을 계산기와 졸업평점에 함께 전달한다', (_name, text) => {
+    const parsed = parseTranscript(text);
+    const courses = [course({ grade: 'A0' })];
+    const result = calculateScenario(courses, null, undefined, parsed.completeness);
+    expect(result.completeness).toEqual(parsed.completeness);
+    expect(result.baseline.gpa).toMatchObject({ complete: false, hundredths: null });
+    expect(result.projected.gpa.hundredths).toBeNull();
+    expect(graduationGpa(courses, { id: 'synthetic', importedAt: '', source: 'studentPaste', courseIds: [], reportedEarnedByArea: parsed.reportedEarnedByArea, warnings: parsed.warnings, completeness: parsed.completeness }).status).toBe('insufficient');
+  });
+  it('등급이 미상인 과목을 빼고 정상 평점으로 확정하지 않는다', () => {
+    expect(computeGpa([course({ grade: 'A0' }), course()])).toMatchObject({ hundredths: null, complete: false });
+  });
   it('27/10 = 2.70', () => {
     const g = computeGpa([course({ grade: 'A0' }), course({ grade: 'B+', credits: 2 }), course({ grade: 'C0' }), course({ grade: 'D0', credits: 2 })]);
     expect(formatGpa(g.hundredths)).toBe('2.70');

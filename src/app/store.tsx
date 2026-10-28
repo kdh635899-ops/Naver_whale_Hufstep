@@ -119,12 +119,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       void notifyBackground({ type: 'reconcile' });
       return true;
     } catch (e) {
-      setSaveError(`저장하지 못했어요. 기존 기록은 그대로예요. (${(e as Error).message})`);
+      setSaveError(`저장하지 못했어요. 기존 기록은 그대로예요. (${e instanceof Error ? e.message : '저장소 오류'})`);
       return false;
     }
   }, [mode]);
 
-  // 현재 학기는 달력으로 자동 갱신한다 (화면에서 고르는 곳이 없다). 새 학기 성적·수강 과목은 종정시 입력(초기화 → 저장)으로 가져온다.
+  // 현재 학기는 달력으로 자동 갱신한다 (화면에서 고르는 곳이 없다). 새 학기 성적은 종정시 입력에서 병합 저장한다.
   const curYear = state.profile?.currentTerm.academicYear;
   const curSem = state.profile?.currentTerm.semester;
   const dayKey = dateKey(now);

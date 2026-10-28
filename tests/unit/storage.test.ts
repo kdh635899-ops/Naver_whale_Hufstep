@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { emptyState, SCHEMA_VERSION, withoutAcademicData } from '../../src/domain/state';
 import { buildDemoState } from '../../src/data/demo';
 import {
@@ -18,6 +18,20 @@ describe('IndexedDB 저장소', () => {
   });
   it('처음이면 null', async () => {
     expect(await loadState()).toBeNull();
+  });
+  it('트랜잭션이 취소되고 error가 null이어도 Error를 전달하고 기존 값은 유지한다', async () => {
+    const before = buildDemoState(new Date(2026, 9, 28));
+    await saveState(before);
+    const put = IDBObjectStore.prototype.put;
+    const spy = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementation(function (this: IDBObjectStore, ...args) {
+      const request = put.apply(this, args);
+      this.transaction.abort();
+      return request;
+    });
+    try {
+      await expect(saveState({ ...before, courses: [] })).rejects.toBeInstanceOf(Error);
+      expect(await loadState()).toEqual(before);
+    } finally { spy.mockRestore(); }
   });
   it('검사에 실패한 상태는 저장하지 않고 기존 정상 데이터를 유지', async () => {
     const good = { ...emptyState(), profile: PROFILE };

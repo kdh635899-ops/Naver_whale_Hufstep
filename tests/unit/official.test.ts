@@ -583,7 +583,7 @@ describe('기존 학생 데이터와 데모', () => {
 describe('등록부 별칭으로 코드 없는 전공필수 대조', () => {
   const run = (departmentId: string, courses: ReturnType<typeof course>[], rules = catalog.officialRules) => {
     const p: StudentProfile = {
-      ...base, homeCampus: departmentById(departmentId)!.campus, cohortYear: 2023, entryType: 'transferBachelor',
+      ...base, homeCampus: departmentById(departmentId)!.campus, cohortYear: 2024, entryType: 'freshman',
       primaryDepartmentId: departmentId, programType: 'single', secondaryDepartmentId: undefined,
       facts: { foreignLanguageSpecialAdmission: false, pureForeignAdmission: false },
     };
@@ -635,7 +635,7 @@ describe('등록부 별칭으로 코드 없는 전공필수 대조', () => {
     expect(departmentById('seoul-e2e6ddcb13')!.aliases).toEqual([]); // 일본어학전공은 상위 학부 관계 미기록
   });
 
-  it('2023학번 학사편입 말레이·인도네시아어과: 전필 11과목 중 7과목 이수·4과목 미이수 유지', () => {
+  it('가상 수강 사례: 코드·이름 대조를 함께 사용해 전필 이수 여부를 판정', () => {
     const dept = '말레이·인도네시아어과';
     const grades = [
       taken('인도네시아세계역사.문화:인도네시아,동티모르,필리핀', dept, 'B03493'),
