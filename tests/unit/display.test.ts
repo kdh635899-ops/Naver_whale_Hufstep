@@ -139,8 +139,9 @@ describe('과목 수정: 전공필수 체크 하나로 합치기', () => {
 });
 
 describe('학교 확인이 필요한 요건: 접힌 한 줄 분류 + 문의처', () => {
-  it('화면용 분류는 네 가지뿐이다', () => {
+  it('화면용 분류에 홈페이지 기준을 포함한다', () => {
     expect(Object.values(DISPLAY_REASON_LABEL)).toEqual([
+      '학과 안내(홈페이지·편람) 기준이에요',
       '자료마다 달라서 필수로 계산했어요', '학과 내규가 있을 수 있어요',
       '합격 기준은 학과 확인 필요', '학번별 기준이 확실하지 않아요',
     ]);
@@ -200,10 +201,10 @@ describe('학교 확인이 필요한 요건: 접힌 한 줄 분류 + 문의처',
     expect(OFFICIAL_SECTIONS).toContain('aria-expanded={open}');
     expect(OFFICIAL_SECTIONS).not.toContain('r.notes.map((n) => NOTE_LABEL[n.kind])');
   });
-  it('배포 데이터: 조사 미확정 규칙 55건 모두 네 가지 중 하나로 분류돼 전달됐다', () => {
+  it('배포 데이터: 조사 미확정 규칙 25건 모두 화면용 분류가 전달됐다', () => {
     const unconfirmed = catalog.officialRules.filter((r) => r.state === 'unconfirmed');
-    expect(unconfirmed).toHaveLength(55);
-    expect(unconfirmed.filter((r) => r.displayReason)).toHaveLength(55);
+    expect(unconfirmed).toHaveLength(25);
+    expect(unconfirmed.filter((r) => r.displayReason)).toHaveLength(25);
     for (const r of unconfirmed) {
       expect(DISPLAY_REASON_LABEL[r.displayReason!.key]).toBe(r.displayReason!.label);
     }
@@ -236,12 +237,12 @@ describe('학사현황에서 출처 표시 제거', () => {
 });
 
 describe('충돌은 엄격하게 계산하고 부전공 전필 제외는 유지한다', () => {
-  it('실제 GBT·이란학과 충돌 과목을 버리지 않고 필수 식으로 전달한다', () => {
+  it('메일 확인된 GBT 캡스톤은 제외하고 이란학과 필수과목은 유지한다', () => {
     const find = (id: string) => catalog.officialRules.find((r) => r.id === id)!;
     const gbt = find('global-xls-gbt-capstone-primary');
-    expect(gbt.status).toBe('conflict');
-    expect(gbt.courses).toMatchObject({ op: 'ALL', items: [{ code: 'P05406' }] });
-    expect(find('stage2-gbt-capstone-required-conflict').courses).toMatchObject({ op: 'ALL', items: [{ name: '졸업프로젝트(캡스톤디자인)' }] });
+    expect(gbt.status).toBe('verified');
+    expect(gbt.courses).toBeUndefined();
+    expect(find('stage2-gbt-capstone-required-conflict').courses).toBeUndefined();
     expect(find('remaining-iran-courses-2025').courses).toMatchObject({ op: 'ALL', items: [{ code: 'B09101' }, { code: 'B09102' }] });
     expect(find('ingenium-credits-freshman').requiredUnitsByArea.primary).toBe(11800);
     expect(find('biods-internal-credit-conflict').requiredUnitsByArea.double).toBe(5700);
@@ -255,12 +256,12 @@ describe('충돌은 엄격하게 계산하고 부전공 전필 제외는 유지�
     expect(JSON.stringify([verified, conflict])).toBe(snapshot);
     expect(r.coverage.find((c) => c.category === 'requiredCourses')?.determinable).toBe(false);
   });
-  it('중국어통번역학과 부전공의 충돌 전필은 해당 없음으로 남긴다', () => {
+  it('중국어통번역학과 부전공의 확인된 전필 제외 규칙은 필수 식에 넣지 않는다', () => {
     const p: StudentProfile = { ...german, programType: 'minor', homeCampus: 'global', primaryDepartmentId: 'global-0a02a07bb4',
       secondaryDepartmentId: 'global-3b5bd778ef', facts: { foreignLanguageSpecialAdmission: false, approvedRequiredCourseWaiver: false } };
     const r = report(catalog.officialRules, p);
     const row = r.coverage.find((c) => c.category === 'requiredCourses' && c.scope === 'secondary')!;
-    expect(row.basis).toBe('none');
+    expect(row.basis).toBe('confirmed');
     expect(row.notes.filter((n) => n.ruleIds.includes('remaining-chinese-global-minor-conflict')).every((n) => n.notApplicable)).toBe(true);
     expect(r.courseRules.map((e) => e.rule.id)).not.toContain('remaining-chinese-global-minor-conflict');
   });

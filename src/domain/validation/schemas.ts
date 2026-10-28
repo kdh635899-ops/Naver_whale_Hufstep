@@ -284,7 +284,7 @@ export const officialRuleSchema: z.ZodType<OfficialRule> = z.object({
   reasons: z.array(z.string().max(400)),
   note: z.string().max(600).optional(),
   displayReason: z.object({
-    key: z.enum(['conflict', 'minorScope', 'threshold', 'cohort']),
+    key: z.enum(['conflict', 'minorScope', 'threshold', 'cohort', 'homepage']),
     label: z.string().min(1).max(60),
     inquiryId: z.string().max(20).optional(),
   }).strict().optional(),

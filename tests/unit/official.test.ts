@@ -26,9 +26,9 @@ const rule = (id: string) => catalog.officialRules.find((r) => r.id === id)!;
 const ANSWERS = { teacherTraining: false, pureForeignAdmission: false, studentCollegeAtEntry: null } as const;
 
 describe('공식 데이터 연결', () => {
-  it('전달본 규칙 수: 호환 15 / 조건 처리 626 / 조사 미확정 55 (제외 243은 싣지 않음), 호환 묶음 23 (2026-10-25 학과 단위 검토 105건 반영)', () => {
+  it('전달본 규칙 수: 호환 15 / 조건 처리 656 / 조사 미확정 25 (제외 243), 호환 묶음 23 (2026-10-29 메일 반영)', () => {
     const by = (s: string) => catalog.officialRules.filter((r) => r.state === s).length;
-    expect([by('compatible'), by('pending'), by('unconfirmed')]).toEqual([15, 626, 55]);
+    expect([by('compatible'), by('pending'), by('unconfirmed')]).toEqual([15, 656, 25]);
     expect(catalog.bundles).toHaveLength(23);
     expect(catalog.rejected).toEqual([]);
     expect(new Set(catalog.officialRules.map((r) => r.id)).size).toBe(catalog.officialRules.length);
@@ -114,13 +114,13 @@ describe('변환 중 조건·필수과목 구조 보존 (데이터 프로젝트 
   });
 });
 
-describe('조건 처리 626건: 각 기록의 앱 처리 방식이 정해져 있다', () => {
+describe('조건 처리 656건: 각 기록의 앱 처리 방식이 정해져 있다', () => {
   it('바로 사용 / 학생 입력 시 사용 / 미지원(구체 이유) 중 하나', () => {
     const pending = catalog.officialRules.filter((r) => r.state === 'pending').map((r) => ({ r, k: classifyRuleSupport(r) }));
     const count = (c: string) => pending.filter((x) => x.k.cls === c).length;
-    expect(count('usable') + count('usableWithInput') + count('unsupported')).toBe(626);
+    expect(count('usable') + count('usableWithInput') + count('unsupported')).toBe(656);
     // 실제 시행일·조항별 시작일을 반영한 정적 분류. LD 시행 전 소급은 답변 후에도 학교 확인이 필요할 수 있다.
-    expect([count('usable'), count('usableWithInput'), count('unsupported')]).toEqual([214, 410, 2]);
+    expect([count('usable'), count('usableWithInput'), count('unsupported')]).toEqual([229, 425, 2]);
     for (const { r, k } of pending.filter((x) => x.k.cls === 'unsupported')) {
       expect(k.blockers.length + k.unsupportedFields.length, r.id).toBeGreaterThan(0);
     }
@@ -269,9 +269,9 @@ describe('실제 규칙 선택 (캠퍼스·학번·역할·입학유형)', () =>
       expect(waived.questions.map((x) => x.field)).not.toContain('approvedRequiredCourseWaiver');
     });
   });
-  it('원문 제목이 없는 규칙(18건)은 내부 ID 대신 학과명 + 요건 종류로 표시', () => {
+  it('원문 제목이 없는 규칙(17건)은 내부 ID 대신 학과명 + 요건 종류로 표시', () => {
     const untitled = catalog.officialRules.filter((r) => !r.title);
-    expect(untitled.length).toBe(18);
+    expect(untitled.length).toBe(17);
     for (const r of untitled) {
       const t = ruleTitle(r, departmentFacts(r.departmentId!)?.name);
       expect(t, r.id).not.toContain(r.id);
@@ -279,20 +279,14 @@ describe('실제 규칙 선택 (캠퍼스·학번·역할·입학유형)', () =>
     }
     expect(ruleTitle({ ...rule('core-malay-flex-primary'), title: undefined }, '말레이·인도네시아어과')).toBe('말레이·인도네시아어과 졸업 인증 기준');
   });
-  it('충돌 상태는 유지하면서 이수가 필요한 쪽으로 계산 (말레이 2021 지역과지역학)', () => {
+  it('학과 확인 후 말레이 2021 지역과지역학은 필수과목과 문의 안내에서 제외', () => {
     const p: StudentProfile = { ...base, primaryDepartmentId: 'seoul-malay-indonesian', cohortYear: 2021, facts: { ...ANSWERS, foreignLanguageSpecialAdmission: false, approvedRequiredCourseWaiver: false, graduationTerm: '2026-2' } };
     const r = report(p);
-    const conflict = r.evals.find((e) => e.rule.id === 'core-malay-regional-2021-scope-conflict')!;
-    expect(conflict.cls).toBe('unconfirmed');
-    expect(r.courseRules.map((e) => e.rule.id)).toContain(conflict.rule.id);
-    const required = evaluateCourseRules(r, [], null).find((e) => e.eval.rule.id === conflict.rule.id)!;
-    expect(required.root.children![0]).toMatchObject({ level: 0, node: { name: '지역과지역학' } });
-    const checked = evaluateCourseRules(r, [], null, { confirmedLeafIds: [required.root.children![0].node.op === 'course' ? required.root.children![0].node.id : ''] })
-      .find((e) => e.eval.rule.id === conflict.rule.id)!;
-    expect(checked.status).toBe('studentConfirmed');
-    const row = r.coverage.find((x) => x.category === 'requiredCourses' && x.scope === 'primary')!;
-    expect(row.determinable).toBe(false);
-    expect(row.notes.find((n) => n.ruleIds.includes(conflict.rule.id))?.text).toMatch(/근거 충돌/);
+    const removed = r.evals.find((e) => e.rule.id === 'core-malay-regional-2021-scope-conflict')!;
+    expect(removed.cls).toBe('confirmed');
+    expect(removed.rule.courses).toBeUndefined();
+    expect(r.courseRules.map((e) => e.rule.id)).not.toContain(removed.rule.id);
+    expect(r.coverage.flatMap((x) => x.notes).some((n) => n.ruleIds.includes(removed.rule.id))).toBe(false);
   });
   describe('졸업 학기: 공지 게시 학기와 그 학기 한정 조건을 구분', () => {
     const malay = { ...base, primaryDepartmentId: 'seoul-malay-indonesian', cohortYear: 2024 };

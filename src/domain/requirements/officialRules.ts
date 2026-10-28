@@ -168,8 +168,9 @@ const noneCore = (cat: string): CoreCategory | undefined => (cat === 'commonLang
 
 export type NoteKind = 'needsInput' | 'unconfirmed' | 'unsupported' | 'gap' | 'partialList' | 'conflict' | 'schoolDefault' | 'schoolCommonOnly';
 
-/** 학생에게 보여 줄 네 가지 한 줄 분류. 규칙에 분류가 실려 오지 않으면 이유 종류로 정한다. */
+/** 학생에게 보여 줄 한 줄 분류. 규칙에 분류가 실려 오지 않으면 이유 종류로 정한다. */
 export const DISPLAY_REASON_LABEL = {
+  homepage: '학과 안내(홈페이지·편람) 기준이에요',
   conflict: '자료마다 달라서 필수로 계산했어요',
   minorScope: '학과 내규가 있을 수 있어요',
   threshold: '합격 기준은 학과 확인 필요',
