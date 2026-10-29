@@ -298,7 +298,7 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(row).toBeVisible();
   await row.click();
   const item = primary.locator('.sc-item').filter({ hasText: '지역과지역학' });
-  await expect(item).not.toContainText('이수 완료'); // 이수하지 않은 줄에는 아무 표시도 없다
+  await expect(item.locator('.sc-pill.off')).toHaveText('이수'); // 이수하지 않은 줄의 이수 칸은 회색
   await expect(primary.locator('.tg')).toHaveCount(0); // 필수과목에는 학생이 체크하는 칸이 없다
 
   // 과목을 추가하면(공식 코드로 대조) 이수로 바뀐다
@@ -317,7 +317,7 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(dlg).toBeHidden();
   await tab('학사 현황').click();
   await primary.getByRole('button', { name: /^\d+\/11과목/ }).click();
-  await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' })).toContainText('이수 완료');
+  await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' }).locator('.sc-done')).toContainText('이수 완료');
 
   // 졸업 시험 및 요건: 정해진 목록에서 학생이 초록 체크박스로 직접 체크한다 (필수과목과 달리)
   const exam = page.locator('#st-exams .sc').first();
@@ -343,6 +343,52 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await box.click();
   await expect(box).toHaveAttribute('aria-checked', 'false');
   expect(JSON.parse(await readState()).certConfirmations.length).toBe(0);
+
+  // 직접 고치기 (필수과목): 추가하면 전체 과목 수가 늘고, 이름을 고치고, 지우면 다시 줄어든다
+  const total = Number((await primary.locator('.sc-row span').first().innerText()).match(/\/(\d+)과목/)![1]);
+  await primary.getByRole('button', { name: '졸업 필수 과목 추가하기' }).click();
+  const add = page.getByRole('dialog', { name: '졸업 필수 과목 추가' });
+  await add.getByRole('button', { name: '해당 과목 추가하기' }).click();
+  await expect(add.getByRole('alert')).toContainText('과목명'); // 비어 있으면 더하지 않는다
+  await add.getByLabel('과목명').fill('직접 넣은 과목');
+  await add.getByRole('button', { name: '해당 과목 추가하기' }).click();
+  await expect(add).toBeHidden();
+  await expect(primary.locator('.sc-item').filter({ hasText: '직접 넣은 과목' })).toBeVisible();
+  await expect(primary.locator('.sc-row span').first()).toContainText(`/${total + 1}과목`);
+  await primary.getByRole('button', { name: '이름 고치기' }).click();
+  const nm = primary.getByLabel('직접 넣은 과목 이름');
+  await nm.fill('고친 과목');
+  await nm.press('Enter');
+  await primary.getByRole('button', { name: '지우기' }).click();
+  await primary.getByRole('button', { name: '고친 과목 삭제' }).click();
+  await expect(primary.locator('.sc-item').filter({ hasText: '고친 과목' })).toHaveCount(0);
+  await expect(primary.locator('.sc-row span').first()).toContainText(`/${total}과목`);
+  // 이수 칸을 누르면 직접 이수로 표시되고 숫자에 반영된다 (다시 누르면 해제)
+  await primary.getByRole('button', { name: '지우기' }).click(); // 지우기 모드 끄기
+  const met0 = Number((await primary.locator('.sc-row span').first().innerText()).match(/^(\d+)\//)![1]);
+  const off = primary.locator('button.sc-pill.off').first();
+  await off.click();
+  await expect(primary.locator('.sc-row span').first()).toContainText(`${met0 + 1}/`);
+  await primary.locator('button.sc-done').first().click();
+  await expect(primary.locator('.sc-row span').first()).toContainText(`${met0}/`);
+
+  // 졸업 요건 구분을 새로 만들고, 그 안에 시험 정보를 더한다
+  await page.getByRole('button', { name: '졸업 요건 추가하기' }).click();
+  const kind = page.getByRole('dialog', { name: '졸업 요건 구분' });
+  await kind.getByRole('radio', { name: '공통' }).click();
+  await kind.getByRole('button', { name: '해당 구분 추가하기' }).click();
+  const fresh = page.locator('#st-exams .sc').last(); // 새로 만든 구분은 맨 아래에 붙는다
+  await expect(fresh).toContainText('확인할 시험이 없어요');
+  await fresh.getByRole('button', { name: '졸업 시험 추가하기' }).click();
+  const exm = page.getByRole('dialog', { name: '졸업 시험 추가' });
+  await exm.getByLabel('시험명').fill('FLEX');
+  await exm.getByLabel('점수 요건').fill('600점 이상');
+  await exm.getByRole('button', { name: '해당 시험 정보 추가하기' }).click();
+  await expect(fresh.locator('.sc-item')).toContainText('FLEX');
+  await expect(fresh.locator('.sc-item .sub')).toHaveText('600점 이상');
+  await fresh.getByRole('button', { name: '지우기' }).click();
+  await fresh.getByRole('checkbox', { name: 'FLEX 삭제' }).click();
+  await expect(fresh.locator('.sc-item')).toHaveCount(0);
 });
 
 test('학점 계산: 평점 카드·학년 탭·이번 학기 카드에서 예상 등급을 넣으면 예상 누적 평점이 나온다', async () => {

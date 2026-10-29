@@ -2,25 +2,27 @@
 // 값은 모두 종정시에서 저장한 데이터 + 졸업요건 규칙으로 계산한다. 필수과목은 이수한 줄에 '이수 완료'만 붙고(학생이 체크하는 칸은 없다),
 // 세부 과목을 모두 이수하면 카드 전체가 '이수 완료'가 된다. 졸업시험·요건은 학과마다 달라서 학생이 스스로 표시하는 체크리스트로만 보여 준다.
 // 졸업 충족을 확정하지 않는다.
-import { useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { stairCharacter, STAIRS_IMG } from '../../app/stairs';
 import { useStore } from '../../app/store';
 import { departmentName } from '../../data';
 import { shortTitle } from '../../domain/requirements/displayTitle';
-import { ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
+import { normalizeCourseName, ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
+import { emptyEdits, gradeCourses, newId, type AppState } from '../../domain/state';
 import { formatUnits } from '../../domain/terms';
-import type { BundleScope, CertificationRequirement, CourseExpr } from '../../domain/types';
+import type { BoxKind, BundleScope, CertificationRequirement, CourseExpr, StatusEdits } from '../../domain/types';
 import { AREA_LABEL, CAMPUS_LABEL, ENTRY_LABEL } from '../common';
+import { BoxPrompt, FieldPrompt } from './AddPrompt';
 import { assessmentCriteria } from './OfficialSections';
 import { useProgress } from './useProgress';
 
 type Section = 'credits' | 'courses' | 'exams';
 const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '01 이수학점' }, { key: 'courses', label: '02 필수과목' }, { key: 'exams', label: '03 졸업시험' }];
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
-interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number }
+interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number; extra?: boolean; toggle?: boolean }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
 /** title = 접힌 줄에 보이는 짧은 제목(길면 …), head = 펼친 목록에 보이는 줄이지 않은 제목, full = 전체 제목, detail·rest = 기준·설명(모두 보여 준다) */
-interface ExamItem { id: string; title: string; head: string; full: string; detail: string; rest: string; confirmed: boolean }
+interface ExamItem { id: string; title: string; head: string; full: string; detail: string; rest: string; confirmed: boolean; extra?: boolean }
 interface ExamCard { key: string; who: string; dept: string; items: ExamItem[] }
 
 /** [이수한 수, 필요한 수]: 택일(OR)은 1, AT_LEAST는 count로 센다 (택일 후보를 모두 필수처럼 세지 않는다) */
@@ -45,6 +47,26 @@ export function StatusScreen() {
   const confirmed = new Set(state.certConfirmations.map((c) => c.requirementId));
   const secondLabel = profile.programType === 'double' ? '이중전공' : '부전공';
   const secondary = profile.secondaryDepartmentId;
+  const edits = state.statusEdits ?? emptyEdits();
+  const [mode, setMode] = useState<Record<string, 'edit' | 'delete' | undefined>>({});
+  const [prompt, setPrompt] = useState<{ kind: 'course' | 'exam'; card: string } | { kind: 'box' } | null>(null);
+  const toggleMode = (k: string, m: 'edit' | 'delete') => setMode((o) => ({ ...o, [k]: o[k] === m ? undefined : m }));
+  const setEdits = (fn: (e: StatusEdits) => StatusEdits, more?: (s: AppState) => Partial<AppState>) =>
+    save((s) => ({ ...s, ...more?.(s), statusEdits: fn(s.statusEdits ?? emptyEdits()) }));
+  const cleanName = (v: string) => v.trim().replace(/\s+/g, ' ');
+  const renameCourse = (it: ReqItem, v: string) => {
+    const name = cleanName(v);
+    if (name) void setEdits((e) => it.extra ? { ...e, extraCourses: e.extraCourses.map((x) => (x.id === it.id ? { ...x, name } : x)) } : { ...e, renamed: { ...e.renamed, [it.id]: name } });
+  };
+  const removeCourse = (it: ReqItem) => void setEdits((e) => it.extra ? { ...e, extraCourses: e.extraCourses.filter((x) => x.id !== it.id) } : { ...e, removed: [...e.removed, it.id] });
+  const renameExam = (it: ExamItem, v: string) => {
+    const name = cleanName(v);
+    if (name) void setEdits((e) => it.extra ? { ...e, extraExams: e.extraExams.map((x) => (x.id === it.id ? { ...x, title: name } : x)) } : { ...e, renamed: { ...e.renamed, [it.id]: name } });
+  };
+  const removeExam = (it: ExamItem) => void setEdits(
+    (e) => it.extra ? { ...e, extraExams: e.extraExams.filter((x) => x.id !== it.id) } : { ...e, removed: [...e.removed, it.id] },
+    (s) => ({ certConfirmations: s.certConfirmations.filter((c) => c.requirementId !== it.id) }),
+  );
 
   const toggleConfirm = (id: string) => void save((s) => ({
     ...s,
@@ -71,7 +93,7 @@ export function StatusScreen() {
   const walk = (p: NodeProgress, depth: number, out: ReqItem[]) => {
     const n = p.node as CourseExpr;
     if (n.op === 'course') {
-      out.push({ id: n.id, label: n.name, done: p.level > 0, depth });
+      out.push({ id: n.id, label: n.name, done: p.level > 0, depth, toggle: true });
       return;
     }
     const head = n.op === 'AT_LEAST' ? `다음 중 ${n.count}과목 이상` : n.op === 'OR' ? '다음 중 1과목' : null;
@@ -84,14 +106,40 @@ export function StatusScreen() {
     const [m, t] = countOf(cp.root);
     card.met += m; card.total += t;
   }
+  // 학생이 고친 내용: 지운 과목은 세지 않고, 더한 과목은 같은 이름의 이수 과목이 있으면 이수로 센다
+  const removedIds = new Set(edits.removed);
+  const taken = new Set(gradeCourses(state.courses).filter((c) => c.status === 'completed').map((c) => normalizeCourseName(c.name)));
+  for (const card of Object.values(cards)) {
+    const kept: ReqItem[] = [];
+    for (const it of card.items) {
+      if (!it.group && removedIds.has(it.id)) {
+        card.total = Math.max(0, card.total - 1);
+        if (it.done) card.met = Math.max(0, card.met - 1);
+        continue;
+      }
+      kept.push({ ...it, label: edits.renamed[it.id] ?? it.label });
+    }
+    for (const x of edits.extraCourses.filter((c) => c.card === card.key)) {
+      const done = taken.has(normalizeCourseName(x.name)) || confirmed.has(x.id);
+      kept.push({ id: x.id, label: x.name, done, depth: 0, extra: true, toggle: true });
+      card.total += 1;
+      card.met += done ? 1 : 0;
+    }
+    card.items = kept;
+  }
   const reqCards = [cards.primary, ...(secondary ? [cards.secondary] : []), ...(cards.common.items.length ? [cards.common] : [])];
 
   // ---- 03 졸업 시험 및 요건 카드 만들기 ----
-  const examCards: Record<'primary' | 'secondary' | 'common', ExamCard> = {
+  const examCards: Record<string, ExamCard> = {
     primary: { key: 'primary', who: '주전공', dept: cards.primary.dept, items: [] },
     secondary: { key: 'secondary', who: secondLabel, dept: cards.secondary.dept, items: [] },
     common: { key: 'common', who: '학교 공통', dept: '', items: [] },
   };
+  const boxInfo = (k: BoxKind) => k === 'common' ? { who: '학교 공통', dept: '' }
+    : k === 'primary' ? { who: '주전공', dept: cards.primary.dept } : k === 'double' ? { who: '이중전공', dept: cards.secondary.dept }
+    : k === 'minor' ? { who: '부전공', dept: cards.secondary.dept } : k === 'advanced' ? { who: '전공심화', dept: cards.primary.dept }
+    : { who: '단일전공', dept: cards.primary.dept };
+  for (const b of edits.boxes) examCards[b.id] = { key: b.id, ...boxInfo(b.kind), items: [] };
   const certDetail = (c: CertificationRequirement) => c.kind === 'departmentExam' ? `통과 기준: ${c.passCriteria}`
     : c.kind === 'externalCertificate' ? c.acceptedTests.map((t) => `${t.name}: ${t.passCriteria}`).join(' / ') : c.description;
   for (const { scope, cert } of resolved?.certifications ?? []) {
@@ -107,7 +155,40 @@ export function StatusScreen() {
       detail: assessmentCriteria(e.rule.detail as Record<string, unknown> | null | undefined), rest: st.rest, confirmed: confirmed.has(e.rule.id),
     });
   }
-  const examList = [examCards.primary, ...(secondary ? [examCards.secondary] : []), examCards.common].filter((c) => c.items.length);
+  for (const card of Object.values(examCards)) {
+    card.items = card.items.filter((i) => !removedIds.has(i.id)).map((i) => {
+      const n = edits.renamed[i.id];
+      return n ? { ...i, title: n, head: n, full: n, rest: '' } : i;
+    });
+    for (const x of edits.extraExams.filter((e) => e.card === card.key)) {
+      card.items.push({ id: x.id, title: x.title, head: x.title, full: x.title, detail: x.detail, rest: '', confirmed: confirmed.has(x.id), extra: true });
+    }
+  }
+  const examList = [examCards.primary, ...(secondary ? [examCards.secondary] : []), examCards.common].filter((c) => c.items.length)
+    .concat(edits.boxes.map((b) => examCards[b.id])); // 직접 만든 구분은 비어 있어도 보인다
+
+  // ---- 항목 더하기 ----
+  const addCourse = (card: string, name: string): string | null => {
+    const list = reqCards.find((c) => c.key === card)?.items ?? [];
+    if (list.some((it) => !it.group && normalizeCourseName(it.label) === normalizeCourseName(name))) return '이미 있는 과목이에요.';
+    void setEdits((e) => ({ ...e, extraCourses: [...e.extraCourses, { id: newId('xc'), card, name }] }));
+    setPrompt(null); setMode((o) => ({ ...o, [`req:${card}`]: undefined })); setOpen((o) => ({ ...o, [`req:${card}`]: true }));
+    return null;
+  };
+  const addExam = (card: string, title: string, detail: string): string | null => {
+    const list = examList.find((c) => c.key === card)?.items ?? [];
+    if (list.some((it) => normalizeCourseName(it.full) === normalizeCourseName(title))) return '이미 있는 시험이에요.';
+    void setEdits((e) => ({ ...e, extraExams: [...e.extraExams, { id: newId('xe'), card, title, detail }] }));
+    setPrompt(null); setMode((o) => ({ ...o, [`exam:${card}`]: undefined })); setOpen((o) => ({ ...o, [`exam:${card}`]: true }));
+    return null;
+  };
+  const addBox = (kind: BoxKind) => {
+    const bid = newId('bx');
+    void setEdits((e) => ({ ...e, boxes: [...e.boxes, { id: bid, kind }] }));
+    setPrompt(null); setOpen((o) => ({ ...o, [`exam:${bid}`]: true }));
+  };
+  const coursePrompt = prompt && 'card' in prompt && prompt.kind === 'course' ? prompt : null;
+  const examPrompt = prompt && 'card' in prompt && prompt.kind === 'exam' ? prompt : null;
 
   // ---- 상단 요약 ----
   const required = progress.total.required;
@@ -178,22 +259,32 @@ export function StatusScreen() {
                       : <span className="sc-state todo"><i className="icon ic-dash" aria-hidden="true" />미이수</span>}
                   </div>
                 </div>
-                <button type="button" className={`sc-row${c.total > 0 && !done ? ' todo' : ''}${open[k] ? ' open' : ''}`} aria-expanded={!!open[k]} disabled={c.total === 0} onClick={() => flip(k)}>
+                <button type="button" className={`sc-row${c.total > 0 && !done ? ' todo' : ''}${open[k] ? ' open' : ''}`} aria-expanded={!!open[k]} onClick={() => flip(k)}>
                   <span>{c.total === 0 ? '확인할 과목이 없어요' : `${c.met}/${c.total}과목`}</span><i className="icon ic-chevron" aria-hidden="true" />
                 </button>
                 {open[k] && (
-                  <ul className="sc-list-in">
+                  <Panel filled={c.items.length > 0} mode={mode[k]} onMode={(m) => toggleMode(k, m)} addLabel="졸업 필수 과목 추가하기" onAdd={() => setPrompt({ kind: 'course', card: c.key })}>
                     {c.items.map((it, i) => (
                       <li key={`${it.id}-${i}`} className={`sc-item${it.done ? ' met' : ''}${it.depth > 0 ? ' nest' : ''}`}>
                         {it.group ? <span className="grp">{it.label}</span> : (
                           <>
-                            <span className="tx">{it.label}</span>
-                            {it.done && <span className="sc-done"><i className="icon ic-check" aria-hidden="true" />이수 완료</span>}
+                            {mode[k] === 'edit'
+                              ? <NameInput value={it.label} label={`${it.label} 이름`} onCommit={(v) => renameCourse(it, v)} />
+                              : <span className="tx">{it.label}</span>}
+                            {mode[k] === 'delete'
+                              ? <button type="button" className="sc-pill del" aria-label={`${it.label} 삭제`} onClick={() => removeCourse(it)}>삭제</button>
+                              : it.done
+                                ? (it.toggle && confirmed.has(it.id)
+                                  ? <button type="button" className="sc-done" aria-pressed="true" aria-label={`${it.label} 이수 표시 해제`} onClick={() => toggleConfirm(it.id)}><i className="icon ic-check" aria-hidden="true" />이수 완료</button>
+                                  : <span className="sc-done"><i className="icon ic-check" aria-hidden="true" />이수 완료</span>)
+                                : it.toggle
+                                  ? <button type="button" className="sc-pill off" aria-pressed="false" aria-label={`${it.label} 이수 표시`} onClick={() => toggleConfirm(it.id)}>이수</button>
+                                  : <span className="sc-pill off">이수</span>}
                           </>
                         )}
                       </li>
                     ))}
-                  </ul>
+                  </Panel>
                 )}
               </div>
             );
@@ -203,10 +294,12 @@ export function StatusScreen() {
 
       <section id="st-exams" className="st-section" aria-labelledby="h-exams">
         <h2 id="h-exams" className="num-head"><b>03</b>졸업 시험 및 요건</h2>
-        {examList.length === 0 ? <p className="st-empty">확인할 졸업시험·요건이 없어요.</p> : (
+        {examList.length === 0 && <p className="st-empty">확인할 졸업시험·요건이 없어요.</p>}
+        {examList.length > 0 && (
           <div className="sc-list">
             {examList.map((c) => {
-              const done = c.items.every((i) => i.confirmed);
+              const has = c.items.length > 0;
+              const done = has && c.items.every((i) => i.confirmed);
               const k = `exam:${c.key}`;
               return (
                 <div key={c.key} className="sc">
@@ -214,32 +307,75 @@ export function StatusScreen() {
                     <p className="who">{c.who}</p>
                     <div className="line">
                       <span className="dept">{c.dept}</span>
-                      {done ? <span className="sc-state done"><i className="icon ic-check" aria-hidden="true" />응시 완료</span>
+                      {!has ? <span className="sc-state">—</span> : done ? <span className="sc-state done"><i className="icon ic-check" aria-hidden="true" />응시 완료</span>
                         : <span className="sc-state todo"><i className="icon ic-dash" aria-hidden="true" />미응시</span>}
                     </div>
                   </div>
-                  <button type="button" className={`sc-row${done ? '' : ' todo'}${open[k] ? ' open' : ''}`} aria-expanded={!!open[k]} onClick={() => flip(k)}>
-                    <span title={c.items[0].full}>{c.items[0].title}{c.items.length > 1 ? ` 외 ${c.items.length - 1}건` : ''}</span><i className="icon ic-chevron" aria-hidden="true" />
+                  <button type="button" className={`sc-row${has && !done ? ' todo' : ''}${open[k] ? ' open' : ''}`} aria-expanded={!!open[k]} onClick={() => flip(k)}>
+                    {has ? <span title={c.items[0].full}>{c.items[0].title}{c.items.length > 1 ? ` 외 ${c.items.length - 1}건` : ''}</span> : <span>확인할 시험이 없어요</span>}
+                    <i className="icon ic-chevron" aria-hidden="true" />
                   </button>
                   {open[k] && (
-                    <ul className="sc-list-in">
+                    <Panel filled={has} mode={mode[k]} onMode={(m) => toggleMode(k, m)} addLabel="졸업 시험 추가하기" onAdd={() => setPrompt({ kind: 'exam', card: c.key })}>
                       {c.items.map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed} aria-label={`${it.full} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
-                            {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
+                          <button type="button" className="cbx" role="checkbox" aria-checked={mode[k] === 'delete' ? false : it.confirmed}
+                            aria-label={mode[k] === 'delete' ? `${it.full} 삭제` : `${it.full} 응시·통과 체크`}
+                            onClick={() => (mode[k] === 'delete' ? removeExam(it) : toggleConfirm(it.id))}>
+                            {it.confirmed && mode[k] !== 'delete' && <i className="icon ic-check" aria-hidden="true" />}
                           </button>
-                          <span className="tx">{it.head}{it.detail && <span className="sub">{it.detail}</span>}{it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}</span>
+                          <span className="tx">
+                            {mode[k] === 'edit' ? <NameInput value={it.head} label={`${it.full} 이름`} onCommit={(v) => renameExam(it, v)} /> : it.head}
+                            {it.detail && <span className="sub">{it.detail}</span>}
+                            {it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}
+                          </span>
                         </li>
                       ))}
-                    </ul>
+                    </Panel>
                   )}
                 </div>
               );
             })}
           </div>
         )}
+        <button type="button" className="sc-addbox" onClick={() => setPrompt({ kind: 'box' })}><i className="icon ic-plus" aria-hidden="true" />졸업 요건 추가하기</button>
       </section>
 
+      {coursePrompt && <FieldPrompt title="졸업 필수 과목 추가" fields={[{ label: '과목명', required: true, max: 60 }]} submitLabel="해당 과목 추가하기"
+        onClose={() => setPrompt(null)} onSubmit={([name]) => addCourse(coursePrompt.card, name)} />}
+      {examPrompt && <FieldPrompt title="졸업 시험 추가" fields={[{ label: '시험명', required: true, max: 60 }, { label: '점수 요건', required: false, max: 100 }]} submitLabel="해당 시험 정보 추가하기"
+        onClose={() => setPrompt(null)} onSubmit={([title, detail]) => addExam(examPrompt.card, title, detail)} />}
+      {prompt?.kind === 'box' && <BoxPrompt onClose={() => setPrompt(null)} onSubmit={addBox} />}
     </div>
+  );
+}
+
+/** 열린 목록: 연필(이름 고치기)·휴지통(지우기) 도구, 줄들, '추가하기'. 항목이 없으면 추가하기만 (Figma 229:709 · 232:838) */
+function Panel({ filled, mode, onMode, addLabel, onAdd, children }: {
+  filled: boolean; mode: 'edit' | 'delete' | undefined; onMode: (m: 'edit' | 'delete') => void; addLabel: string; onAdd: () => void; children: ReactNode;
+}) {
+  return (
+    <div className={`sc-list-in${filled ? '' : ' empty'}`}>
+      {filled && (
+        <div className="sc-tools">
+          <button type="button" className="sc-tool" aria-label="이름 고치기" aria-pressed={mode === 'edit'} onClick={() => onMode('edit')}><i className="icon ic-pencil" aria-hidden="true" /></button>
+          <button type="button" className="sc-tool" aria-label="지우기" aria-pressed={mode === 'delete'} onClick={() => onMode('delete')}><i className="icon ic-trash" aria-hidden="true" /></button>
+        </div>
+      )}
+      {filled && <ul className="sc-rows">{children}</ul>}
+      <button type="button" className="sc-add" onClick={onAdd}><i className="icon ic-plus" aria-hidden="true" />{addLabel}</button>
+    </div>
+  );
+}
+
+/** 이름 고치기: 칸을 벗어나거나 Enter를 누르면 저장한다. 비워 두면 원래 이름으로 돌아간다. */
+function NameInput({ value, label, onCommit }: { value: string; label: string; onCommit: (v: string) => void }) {
+  const [v, setV] = useState(value);
+  useEffect(() => setV(value), [value]);
+  return (
+    <input className="nm-in" aria-label={label} value={v} maxLength={60} spellCheck={false}
+      onChange={(e) => setV(e.target.value)}
+      onBlur={() => { if (v.trim() && v.trim() !== value) onCommit(v); else setV(value); }}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
   );
 }

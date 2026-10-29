@@ -345,3 +345,20 @@ export interface CourseEquivalence {
   sourceIds: string[];
   status: Verification;
 }
+
+/** 학사 현황 03 '졸업 요건 구분'의 종류 (직접 만들 때 고른다) */
+export type BoxKind = 'common' | 'primary' | 'double' | 'minor' | 'advanced' | 'single';
+
+/** 학사 현황 02·03에서 학생이 고친 내용. 기본 목록(종정시·졸업요건 규칙) 위에 덮어 씌운다. */
+export interface StatusEdits {
+  /** 항목 ID → 바꾼 이름 */
+  renamed: Record<string, string>;
+  /** 지운 기본 항목 ID */
+  removed: string[];
+  /** 직접 더한 필수 과목. card = 'primary' | 'secondary' | 'common' */
+  extraCourses: { id: string; card: string; name: string }[];
+  /** 직접 더한 졸업 시험·요건. card = 'primary' | 'secondary' | 'common' | 직접 만든 구분의 ID */
+  extraExams: { id: string; card: string; title: string; detail: string }[];
+  /** 직접 만든 졸업 요건 구분 */
+  boxes: { id: string; kind: BoxKind }[];
+}
