@@ -1,7 +1,7 @@
 // 종정시 입력 (Figma, §3.3, §6). 학생이 직접 복사해 붙여넣은 text/plain만 이 기기에서 분석한다.
 // '종정시 정보 저장' 한 번으로: 분석 → 빠졌거나 애매한 것이 있으면 빨간 글씨로 알리고 저장을 막음 → 이상 없으면 저장하고 학사 현황으로.
 // 반영 기본값(사람이 고르던 선택): 직접 추가한 같은 과목은 연결, 내가 고친 값은 유지, 이번에 없는 과목은 지우지 않는다.
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog } from '../../data';
 import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
@@ -86,8 +86,7 @@ function Guide() {
 }
 
 function PasteSave() {
-  const { state, save, now, setView } = useStore();
-  const [text, setText] = useState('');
+  const { state, save, now, setView, pasteText: text, setPasteText: setText } = useStore(); // 붙여넣은 글은 화면을 옮겨도 남는다
   const [busy, setBusy] = useState(false);
   const [checked, setChecked] = useState(false);
   const [found, setFound] = useState<Record<PartKey, boolean>>({ grades: false, summary: false });
@@ -97,16 +96,9 @@ function PasteSave() {
   const pasteRef = useRef<HTMLTextAreaElement>(null);
   // 이미 저장한 종정시 정보가 있으면 새로 붙여넣기 전에 '초기화'부터 해야 한다 (처음에는 '종정시 정보 저장' 버튼만 보인다)
   const hasSaved = state.snapshots.length > 0 || state.courses.some((c) => c.origin === 'paste');
-  const [armed, setArmed] = useState(false); // 초기화는 두 번 눌러야 실행 (실수로 지우지 않게)
-  useEffect(() => {
-    if (!armed) return;
-    const timer = window.setTimeout(() => setArmed(false), 4000);
-    return () => window.clearTimeout(timer);
-  }, [armed]);
 
+  /** 초기화: 한 번 누르면 바로 지운다. 저장된 종정시 정보와 입력창의 붙여넣은 글이 함께 사라져 새로 붙여넣을 수 있다 */
   async function onReset() {
-    if (!armed) { setArmed(true); return; }
-    setArmed(false);
     // 종정시에서 가져온 과목·요약만 지운다. 직접 추가한 과목과 그 시간표·메모는 남긴다.
     const gone = new Set(state.courses.filter((c) => c.origin === 'paste').map((c) => c.id));
     const ok = await save((s) => ({ ...s, courses: s.courses.filter((c) => !gone.has(c.id)), snapshots: [], ...dropCourseRefs(s, gone) }));
@@ -158,7 +150,7 @@ function PasteSave() {
       const plan = planMerge(state, r);
       const decisions: MergeDecisions = { ...NO_DECISIONS, link: Object.fromEntries(plan.linkCandidates.map((l) => [l.rowKey, true])) };
       if (await save(applyMerge(state, r, plan, decisions, now))) {
-        setText(''); // 원문은 저장하지 않는다
+        // 붙여넣은 글은 입력창에 그대로 남긴다 (초기화를 눌러야 지워진다). 저장소에는 쓰지 않는다.
         setChecked(false);
         setDone(true); // 'HUFStep 시작하기'를 누르면 학사 현황으로
       }
@@ -176,7 +168,7 @@ function PasteSave() {
     <div>
       <label htmlFor="paste" className="fig-label" style={{ display: 'block' }}>종정시 정보 붙여넣기</label>
       <textarea id="paste" className="paste" ref={pasteRef} value={text} spellCheck={false} disabled={hasSaved}
-        placeholder="종정시에서 복사한 성적 정보를 여기에 붙여 넣어주세요."
+        placeholder={hasSaved ? '저장된 종정시 정보가 있어요. 초기화를 누르면 새 정보를 붙여 넣을 수 있어요.' : '종정시에서 복사한 성적 정보를 여기에 붙여 넣어주세요.'}
         onChange={(e) => setText(e.target.value)} />
       <p className="parts">
         {PARTS.map((p) => <span key={p.key} className={partClass(p.key)}>{p.label}</span>)}
@@ -191,9 +183,7 @@ function PasteSave() {
           {busy ? '확인하는 중…' : '종정시 정보 저장'}
         </button>
         {hasSaved && (
-          <button type="button" className="btn cta-reset" aria-label={armed ? '한 번 더 누르면 저장된 종정시 정보를 지워요' : '저장된 종정시 정보 초기화'} onClick={() => void onReset()}>
-            {armed ? '한 번 더' : '초기화'}
-          </button>
+          <button type="button" className="btn cta-reset" aria-label="저장된 종정시 정보 초기화" onClick={() => void onReset()}>초기화</button>
         )}
       </div>
     </div>

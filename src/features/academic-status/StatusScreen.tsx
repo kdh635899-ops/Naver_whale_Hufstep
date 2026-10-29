@@ -37,7 +37,7 @@ function countOf(p: NodeProgress): [number, number] {
 }
 
 export function StatusScreen() {
-  const { state, save, setView, resolved, report, now } = useStore();
+  const { state, save, resolved, report, now } = useStore();
   const { progress, courseProgress } = useProgress();
   const [sec, setSec] = useState<Section>('credits');
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -240,7 +240,6 @@ export function StatusScreen() {
         )}
       </section>
 
-      <button type="button" className="btn cta" style={{ marginTop: 40 }} onClick={() => setView('assessments')}>종정시 정보 저장</button>
     </div>
   );
 }

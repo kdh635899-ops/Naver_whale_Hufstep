@@ -36,6 +36,9 @@ interface Store {
   /** 알림 클릭 등으로 열어야 할 날짜별 평가 목록 */
   todayRoute: string | null;
   consumeTodayRoute: () => void;
+  /** 종정시 입력창에 붙여넣은 글. 화면을 옮겨 다녀도 남지만 저장소에는 쓰지 않는다 (사이드바를 닫으면 사라진다) */
+  pasteText: string;
+  setPasteText: (t: string) => void;
   resolved: ReturnType<typeof resolveRequirements>;
   /** 실제 모드의 공식 규칙 평가 (데모 모드에서는 null — 공식 데이터와 섞지 않음) */
   report: OfficialReport | null;
@@ -59,6 +62,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [saveError, setSaveError] = useState('');
   const [editor, openEditor] = useState<EditorTarget | null>(null);
   const [todayRoute, setTodayRoute] = useState<string | null>(null);
+  const [pasteText, setPasteText] = useState('');
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -167,6 +171,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setLoadError('');
     setStatus('ready');
     setViewState('status');
+    setPasteText('');
   }, []);
 
   const today = dateKey(now);
@@ -188,7 +193,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value: Store = {
     status, loadError, mode, state, now, today, view, setView, save, saveError, clearSaveError: () => setSaveError(''),
-    startDemo, exitDemo, resetAll, editor, openEditor, todayRoute, consumeTodayRoute: () => setTodayRoute(null), resolved, report,
+    startDemo, exitDemo, resetAll, editor, openEditor, todayRoute, consumeTodayRoute: () => setTodayRoute(null), pasteText, setPasteText, resolved, report,
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

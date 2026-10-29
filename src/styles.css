@@ -4,8 +4,8 @@
   font-family: 'Pretendard';
   font-weight: 45 920;
   font-style: normal;
-  font-display: swap;
-  src: local('Pretendard Variable'), local('Pretendard'), url('./fonts/PretendardVariable.woff2') format('woff2');
+  font-display: block;
+  src: url('./fonts/PretendardVariable.woff2') format('woff2');
 }
 :root {
   /* 피그마 디자인 토큰 (디자인 시스템 프레임 기준) */
@@ -38,7 +38,8 @@
   --danger: #b3261e;
   --radius: 14px;
   --focus: 0 0 0 3px rgba(26, 79, 143, 0.35);
-  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  --font-ui: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', system-ui, sans-serif;
+  font-family: var(--font-ui);
   color-scheme: only light; /* 기기 테마(다크 모드)와 관계없이 라이트 — 입력칸·스크롤바도 밝게 */
   color: var(--text);
   background: var(--bg);
@@ -46,6 +47,8 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
+/* 웨일 사이드바는 body에 자체 기본 글꼴(Segoe UI·Arial·맑은 고딕)을 먼저 입혀 :root의 글꼴이 상속되지 않는다 → body와 입력 요소에 직접 지정해 Pretendard로 고정한다 */
+body, button, input, select, textarea { font-family: var(--font-ui); }
 body { min-width: 300px; font-size: 14px; line-height: 1.5; overflow-x: hidden; }
 body.sheet-open { overflow: hidden; }
 h1, h2, h3, h4, p { margin: 0; }
@@ -62,7 +65,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .logo { display: block; width: 40px; height: 40px; border-radius: 9px; object-fit: cover; flex: none; } /* 학년별 로고(Figma 40×40, 모서리 9) */
 .brand { flex: 1; min-width: 0; }
 /* 로고 글꼴(Y Spotlight)은 파일을 쓰지 않는다 → 로고 이미지가 오기 전까지 임시 텍스트 로고 */
-.brand-name { font-weight: 700; font-size: 17px; line-height: 1.2; letter-spacing: -0.3px; }
+.brand-name { height: 24px; padding-top: 3px; line-height: 0; } /* 로고 글씨는 그림(Wordmark): Figma 17px 크기 */
 .brand-sub { font-size: 11px; line-height: 1.5; color: #c8d8eb; }
 
 /* 탭: Figma 78×60, 아이콘 17px + 라벨 10px, 선택은 남색 1px 밑줄. 아이콘은 SVG 마스크라 글자색을 따른다 */
@@ -295,7 +298,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 .gd-mk b { top: 0; }
 .gd-drag { position: absolute; pointer-events: none; }
 .gd-drag b { left: 0; }
-.gd-drag img { position: absolute; left: 100%; top: 0; width: calc(7.36 * var(--u)); height: calc(115.5 * var(--u)); max-width: none; }
+.gd-drag img { position: absolute; left: 100%; top: 0; width: calc(7.36 * var(--u)); max-width: none; }
 .gd-text { font-size: calc(13 * 100cqw / 346); font-weight: 600; line-height: calc(24 * 100cqw / 346); color: #000; word-break: break-word; }
 .gd-text p { margin: 0 0 calc(24 * 100cqw / 346); }
 .gd-text p:last-child { margin-bottom: 0; }
@@ -345,7 +348,7 @@ details > summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
 /* ===== Figma 화면 공통 (와이어프레임 기준) ===== */
 html, body { background: #fff; }
 .icon { display: inline-block; flex: none; background: currentColor; -webkit-mask: center / contain no-repeat; mask: center / contain no-repeat; }
-.ic-setting { width: 18px; height: 18px; -webkit-mask-image: url('./icons/setting.svg'); mask-image: url('./icons/setting.svg'); }
+.ic-setting { width: 27px; height: 27px; -webkit-mask-image: url('./icons/setting.svg'); mask-image: url('./icons/setting.svg'); }
 .ic-check { width: 24px; height: 24px; -webkit-mask-image: url('./icons/check.svg'); mask-image: url('./icons/check.svg'); }
 .ic-dash { width: 16px; height: 16px; -webkit-mask-image: url('./icons/dash.svg'); mask-image: url('./icons/dash.svg'); }
 .ic-chevron { width: 17px; height: 17px; transition: transform 0.15s; -webkit-mask-image: url('./icons/row-chevron.svg'); mask-image: url('./icons/row-chevron.svg'); }
@@ -360,7 +363,8 @@ html, body { background: #fff; }
 
 /* 스플래시 */
 .splash { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; }
-.splash-name { margin-top: 22px; font-size: 29px; font-weight: 700; line-height: 43.5px; letter-spacing: -1.45px; color: #062b62; }
+.splash-name { margin-top: 22px; line-height: 0; color: #062b62; } /* Figma 29px 크기 */
+.splash-name .wordmark { height: 29.7px; }
 .splash-sub { margin-top: 7px; font-size: 14px; line-height: 21px; color: #667b91; }
 
 /* 마이페이지 */
@@ -370,7 +374,7 @@ html, body { background: #fff; }
 .pc-name { font-size: 15px; font-weight: 700; line-height: 22.5px; overflow-wrap: anywhere; }
 .pc-sub { font-size: 10px; line-height: 15px; color: #cbd9e9; }
 .sec-gap { margin-top: 28px; }
-.icon-link { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; background: none; color: var(--navy-900); cursor: pointer; border-radius: 8px; }
+.icon-link { display: inline-grid; place-items: center; width: 40px; height: 40px; margin: -6px 0; padding: 0; border: 0; background: none; color: var(--navy-900); cursor: pointer; border-radius: 8px; }
 .info-table { margin: 0; border: 1px solid var(--line-soft); border-radius: 20px; overflow: hidden; }
 .info-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 55px; padding: 10px 10px 10px 20px; border-top: 1px solid var(--line-soft); font-size: 13px; line-height: 27px; }
 .info-row:first-child { border-top: 0; }
@@ -575,7 +579,8 @@ button.sc-state { cursor: pointer; }
 .cta-row .btn.cta { flex: 1 1 auto; min-width: 0; }
 .cta-row .btn.cta:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn.cta-reset { flex: 0 0 100px; min-height: 60px; padding: 0 8px; border: 1.5px solid var(--navy-900); border-radius: var(--r-button); background: #fff; color: var(--navy-900); font-size: 18px; font-weight: 700; line-height: 1.25; }
-.paste:disabled { background: var(--panel); color: #7d7d7d; cursor: not-allowed; }
+.paste:disabled { background: #fff; color: #000; -webkit-text-fill-color: #000; opacity: 1; cursor: default; resize: none; }
+.paste:disabled::placeholder { color: #7d7d7d; -webkit-text-fill-color: #7d7d7d; }
 
 /* 학사 현황: 필수과목 줄의 '이수 완료', 졸업시험 체크박스 */
 .sc-done { display: inline-flex; align-items: center; gap: 2px; flex: none; color: var(--done); font-size: 14px; font-weight: 600; line-height: 27px; }
@@ -585,3 +590,7 @@ button.sc-state { cursor: pointer; }
 .cbx .ic-check { width: 14px; height: 14px; }
 .cbx:focus-visible { box-shadow: var(--focus); }
 .sc-item .cbx + .tx { margin-left: 8px; } /* 체크 칸과 글자 사이를 조금 더 벌린다 */
+/* 로고 글씨 'HUFStep' (그림): 높이만 정하면 가로는 비율대로. 기본 17px 크기(헤더), 색은 글자색을 따른다 */
+.wordmark { display: inline-block; height: 17.5px; aspect-ratio: 73.8 / 17.5; background: currentColor; -webkit-mask: url('./assets/logo/wordmark.svg') center / contain no-repeat; mask: url('./assets/logo/wordmark.svg') center / contain no-repeat; vertical-align: top; }
+/* 제목 안의 로고 글씨: 28px 글자와 같은 크기, 글줄 바닥(글자 밑선)을 맞춘다 (p의 꼬리가 밑선 아래로 내려온다) */
+.wordmark.in-title { height: 28.8px; vertical-align: -6.9px; color: var(--navy-900); }

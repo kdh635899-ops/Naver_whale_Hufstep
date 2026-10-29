@@ -110,6 +110,23 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   // Figma: 칩은 이중전공·부전공·전공심화 3개 (없음 없음), 이중전공이 처음 선택돼 있다. 첫 화면 로고는 메인 로고 이미지
   await expect(page.locator('.opt-chips label')).toHaveText(['이중전공', '부전공', '전공심화']);
   await expect(page.getByRole('radio', { name: '이중전공' })).toBeChecked();
+  // 글꼴은 앱에 넣은 Pretendard 파일로 불러온다 (PC에 깔린 글꼴에 기대지 않는다)
+  // 웨일이 body에 자체 기본 글꼴(Segoe UI 등)을 입히므로, 화면 전체(body·제목·입력칸)가 실제로 Pretendard인지 확인한다
+  const fonts = await page.evaluate(async () => {
+    await document.fonts.load('600 16px Pretendard');
+    const ff = (q: string) => getComputedStyle(document.querySelector(q)!).fontFamily;
+    return { loaded: [...document.fonts].some((f) => f.family.includes('Pretendard') && f.status === 'loaded'), body: ff('body'), h1: ff('h1'), input: ff('input') };
+  });
+  expect(fonts.loaded).toBe(true);
+  for (const f of [fonts.body, fonts.h1, fonts.input]) expect(f.startsWith('Pretendard')).toBe(true);
+  // 'HUFStep' 로고 글씨는 글꼴이 아니라 그림(SVG 마스크)이라 PC 글꼴과 상관없이 똑같다
+  const wm = page.locator('h1 .wordmark');
+  await expect(wm).toHaveAttribute('aria-label', 'HUFStep');
+  await expect(wm).toHaveCSS('background-color', 'rgb(6, 43, 98)');
+  const wmBox = (await wm.boundingBox())!;
+  expect(Math.abs(wmBox.height - 28.8)).toBeLessThan(0.6);
+  expect(Math.abs(wmBox.width / wmBox.height - 73.8 / 17.5)).toBeLessThan(0.02);
+  expect(await wm.evaluate((el) => getComputedStyle(el).maskImage.includes('wordmark'))).toBe(true);
   const [c1, c2] = await page.locator('.opt-chips label').all();
   const b1 = (await c1.boundingBox())!, b2 = (await c2.boundingBox())!;
   expect(b1.width).toBeGreaterThan(85); // 한 줄을 셋이 나눠 채운다 (390px에서 약 100)
@@ -129,6 +146,9 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await page.getByRole('button', { name: '학사정보 저장' }).click();
   // 정보를 저장한 뒤부터 헤더 로고가 학년을 따른다 (3학년 = 머리에 전구)
   const headLogo = page.locator('.app-header img.logo');
+  await expect(page.locator('.app-header .brand .wordmark')).toHaveCSS('background-color', 'rgb(255, 255, 255)'); // 헤더 로고 글씨는 흰색 17px 크기
+  const hb = (await page.locator('.app-header .brand .wordmark').boundingBox())!;
+  expect(Math.abs(hb.width - 73.8)).toBeLessThan(0.6);
   await expect(headLogo).toHaveAttribute('data-year', '3');
   expect(await headLogo.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
 
@@ -227,18 +247,24 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   expect(JSON.parse(saved).courses).toHaveLength(6);
   expect(saved).not.toContain('이수구분별 취득학점 계'); // 원문은 저장하지 않는다
 
-  // 저장된 정보가 있으면 붙여넣기·저장은 잠기고 '초기화'가 나타난다. 초기화(두 번 눌러 확인) 후에만 다시 저장할 수 있다.
+  // 저장된 정보가 있으면 붙여넣기·저장은 잠기고 '초기화'가 나타난다. 입력창에는 붙여넣은 글이 그대로 남아 있다(다른 탭을 다녀와도).
+  // 초기화는 한 번 누르면 바로 지워지고, 입력창도 함께 비워져 새로 붙여넣을 수 있다.
   await tab('종정시 입력').click();
   await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeDisabled();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toHaveValue(FULL_TRANSCRIPT);
+  await tab('시간표').click();
+  await tab('종정시 입력').click();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toHaveValue(FULL_TRANSCRIPT);
   await expect(page.getByRole('button', { name: '종정시 정보 저장' })).toBeDisabled();
   const reset = page.getByRole('button', { name: '저장된 종정시 정보 초기화' });
   const rb = (await reset.boundingBox())!; // Figma: 100×60, 남색 테두리 흰 바탕
   expect(Math.round(rb.width)).toBe(100);
   await expect(reset).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-  await reset.click(); // 첫 번째 누름은 확인만
-  expect(JSON.parse(await readState()).courses).toHaveLength(6);
-  await page.getByRole('button', { name: /한 번 더 누르면/ }).click();
+  await expect(page.getByRole('button', { name: '초기화' })).toHaveCount(1); // '한 번 더' 같은 버튼은 없다
+  await reset.click();
   await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeEnabled();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toHaveValue('');
+  await expect(page.getByText('한 번 더')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /초기화/ })).toHaveCount(0);
   expect(JSON.parse(await readState()).courses).toHaveLength(0);
   expect(JSON.parse(await readState()).snapshots).toHaveLength(0);
