@@ -15,7 +15,7 @@ import { dragRange, hhmm, hmToMinutes, overlapsAny } from '../../domain/timetabl
 import { previousTimetableCourse, timetableTargets } from '../../domain/timetableStatus';
 import { autoProjectedRetake } from '../../domain/retake';
 import type { Assessment, AssessmentMode, ClassTime, Course, CourseMemo } from '../../domain/types';
-import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, firstIssue, MEMO_MAX } from '../../domain/validation/schemas';
+import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, firstIssue, MAX_COURSE_NAME_LENGTH, MEMO_MAX } from '../../domain/validation/schemas';
 import { ConsentGate, Sheet } from '../common';
 import { RetakeRecordSelect } from '../courses/RetakeRecordSelect';
 
@@ -391,7 +391,7 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
       <ConsentGate>
         <form className="fg-form" onSubmit={(e) => { e.preventDefault(); void submit(); }} noValidate>
           <label className="fg-field">과목명
-            <input autoFocus list={listId} value={name} maxLength={120} autoComplete="off" onChange={(e) => { setName(e.target.value); setError(''); }} />
+            <input autoFocus list={listId} value={name} maxLength={MAX_COURSE_NAME_LENGTH} autoComplete="off" onChange={(e) => { setName(e.target.value); setError(''); }} />
             <datalist id={listId}>{pending.map((c) => <option key={c.id} value={c.name} />)}</datalist>
           </label>
           {requiredTargets.length > 0 && <p className="fg-course-hint">졸업 필수 과목 · {requiredTargets.map(({ leaf }) => leaf.name).join(', ')}</p>}

@@ -60,3 +60,21 @@ ${departmentName}\tBA10009\t합성 기초과목\t기초\t3\tF
 이수구분\t1전공\t이중전공\t2전공\t부전공\t실용외국어\t교양\t교직\t자선\t기초\t합계
 취득학점\t3\t2\t1.5\t1\t2\t7\t2\t0\t0\t18.5`;
 }
+
+// 팀원 오류에서 확인한 표기·긴 과목명만 재현한다. 학기·코드·학점·합계는 합성 자료다.
+export const LONG_ABROAD_NAME = '비교문화학: 버거 너머의 음식으로 읽는 미국의 역사와 문화(해외) (Comparative Cultural Studies: Beyond Burgers - Mapping U.S. History and Culture through Food)';
+export const WORKSHOP_NAME = '국제학생 워크숍: 웰컴 온 보드 (국제처 다문화 역량 강화 프로그램) (해외)\n(International Student Workshop: Welcome on Board)';
+export const TEAM_VARIANT_TRANSCRIPT = `2024 - 1
+가상학과\tT92001\t신입생세미나 (Seminar for Freshmen)\t1전공\t1\tPASS
+가상학과\tT92002\t체육(골프) (Physical Education (Golf))\t교양\t1\tPASS
+가상학과\tT92003\t국제경영론 (International Business Management)\t부전\t3\tB+
+가상학과\tT92004\tUX리서치입문 (Introduction to UX Research)\t이중\t3\tA0
+가상학과\tT92005\tUX와심리학법칙 (Psychological laws of UX)\t이 중\t3\tA+
+가상학과\tT92006\t외국어로서의 독일어: B1(해외)
+(German as a Foreign Language: B1)\t1전공\t3
+PASS
+\t\t${WORKSHOP_NAME}\t교양\t2\tPASS
+가상학과\tT92008\t${LONG_ABROAD_NAME}\t교양\t3\tPASS
+이수구분별 취득학점 계
+이수구분\t1전공\t이중전공\t부전공\t교양\t총 계
+취득학점\t4\t6\t3\t6\t19`;

@@ -7,11 +7,12 @@ export const GRADE_HUNDREDTHS: Partial<Record<LetterGrade, number>> = {
 export const LETTER_GRADES: LetterGrade[] = ['A+', 'A0', 'B+', 'B0', 'C+', 'C0', 'D+', 'D0', 'F', 'P', 'NP'];
 
 /**
- * 원문 등급 기호 → 표준 등급. 정책에 등록된 alias만 바꾸고, 모르는 기호는 undefined (F로 바꾸지 않음).
+ * 원문 등급 기호 → 표준 등급. PASS는 P로 읽고, 그 밖의 별칭은 정책을 따른다. 모르는 기호는 보류한다.
  */
 export function normalizeGrade(raw: string, aliases: Record<string, LetterGrade>): LetterGrade | undefined {
   const t = raw.trim();
   if ((LETTER_GRADES as string[]).includes(t)) return t as LetterGrade;
+  if (t === 'PASS') return 'P';
   return Object.hasOwn(aliases, t) ? aliases[t] : undefined;
 }
 

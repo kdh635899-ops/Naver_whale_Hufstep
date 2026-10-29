@@ -40,6 +40,26 @@ describe('§11.1 합성 fixture', () => {
 });
 
 describe('입력 형식 변형', () => {
+  it.each([' ', '\t'])('PASS와 부전 표기를 읽고 하단 합계·평점까지 대조한다 (%j)', (separator) => {
+    const text = [
+      '2024 - 1',
+      ['가상학과', 'T1001', '합성전공', '1전공', '2', 'PASS'].join(separator),
+      ['가상학과', 'T1002', '합성교양', '교양', '1', 'PASS'].join(separator),
+      ['가상학과', 'T1003', '합성부전', '부전', '3', 'B+'].join(separator),
+      '이수구분 1전공 교양 부전공 총계',
+      '2 1 3 6',
+    ].join('\n');
+    const result = parseTranscript(text);
+    expect(result.rows.map((r) => [r.rawGrade, r.grade, r.area])).toEqual([
+      ['PASS', 'P', 'primary'], ['PASS', 'P', 'liberalArts'], ['B+', 'B+', 'minor'],
+    ]);
+    expect(result.rows.slice(0, 2).every((r) => r.gradingMode === 'passFail'
+      && r.earnedInclusion === 'included' && r.gpaInclusion === 'excluded')).toBe(true);
+    expect(result.computedEarnedByArea).toEqual({ primary: 200, liberalArts: 100, minor: 300 });
+    expect(result.computedTotalUnits).toBe(600);
+    expect(computeGpa(asCourses(result.rows))).toMatchObject({ creditUnits: 300, hundredths: 350 });
+    expect(validateTranscript(result)).toMatchObject({ canSave: true, problems: [] });
+  });
   it('탭·CRLF·NBSP를 정규화하고 같은 결과', () => {
     const tabbed = TRANSCRIPT_FIXTURE
       .replace('가상학과 T90001 예시과목(1) (Example Subject (1)) 1전공 3 A0', '가상학과\tT90001\t예시과목(1) (Example Subject (1))\t1전공\t3\tA0\t\t\t')
@@ -161,6 +181,7 @@ describe('저장에 사용하는 공통 검증', () => {
     '이수구분 1전공 총계\n이수구분별 취득학점 계 3.001 3.001',
     '이수구분 1전공 총계\n이수구분별 취득학점 계 10001 10001',
     '이수구분 1전공 1전공 총계\n이수구분별 취득학점 계 3 3 6',
+    '이수구분 부전 부전공 총계\n이수구분별 취득학점 계 3 3 6',
     '이수구분 미상 총계\n이수구분별 취득학점 계 3 3',
     '이수구분 1전공 총계\n이수구분별 취득학점 계 3 4',
   ])('하단 표의 열·값·범위·자체 합계가 틀리면 불완전', (text) => {
@@ -231,13 +252,18 @@ describe('하단 안내문과 영역별 취득학점 표', () => {
 });
 
 describe('전체 영역 복사와 오류 진단', () => {
+  it.each(['이수영역 선택\t\t년도/학기 선택\t', '이수영역 선택 년도/학기 선택'])('실제 화면에서 한 줄로 복사되는 검색조건도 제외한다: %s', (line) => {
+    const result = parseTranscript(`검색조건\n년도/학기 선택\n${line}\n${FOOTER_TRANSCRIPT}`);
+    expect(result).toEqual(parseTranscript(FOOTER_TRANSCRIPT));
+    expect(validateTranscript(result).canSave).toBe(true);
+  });
   it.each([CONTROLS_TRANSCRIPT, CONTROLS_TRANSCRIPT.replaceAll(' ', '\t').replaceAll('\n', '\r\n')])('확인된 메뉴 문구만 제외하고 성적과 합계를 검증한다', (text) => {
     const result = parseTranscript(text);
     expect(result.rows).toHaveLength(6);
     expect(result.computedTotalUnits).toBe(2000);
     expect(validateTranscript(result)).toEqual({ parts: { grades: true, summary: true }, problems: [], canSave: true });
   });
-  it.each(['검색조건 추가 내용', '년도/학기 선택 2026', '+ 전체보기(View all) 누락 과목'])('메뉴 문구와 비슷한 미상 행은 계속 차단한다: %s', (line) => {
+  it.each(['검색조건 추가 내용', '년도/학기 선택 2026', '+ 전체보기(View all) 누락 과목', '이수영역 선택 년도/학기 선택 누락 과목'])('메뉴 문구와 비슷한 미상 행은 계속 차단한다: %s', (line) => {
     const result = parseTranscript(`${line}\n${CONTROLS_TRANSCRIPT}`);
     expect(result.warnings).toContainEqual(expect.objectContaining({ code: 'unparsedLine', lineNumber: 1 }));
     expect(validateTranscript(result).canSave).toBe(false);

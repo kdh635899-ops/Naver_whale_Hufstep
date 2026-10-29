@@ -34,7 +34,7 @@ npm run typecheck    # 타입 검사만
 npm run check:data   # src/data/*.json 스키마·참조 검사만
 npm run test:e2e     # 실제 웨일로 E2E (먼저 npm run build 필요)
 npm run dev          # Vite 개발 서버 (확장 API 없이 화면만 확인용)
-npm run icons        # public/icons/*.png 다시 생성
+npm run icons        # 앱 로고로 public/icons/*.png 다시 생성 (설치된 Chrome 사용)
 ```
 
 `test:e2e`는 `C:/Program Files/Naver/Naver Whale/Application/whale.exe`를 임시 프로필로 띄웁니다. 경로가 다르면 `WHALE_PATH` 환경 변수로 지정하세요. 평소 쓰는 웨일 프로필은 건드리지 않습니다.
@@ -44,10 +44,12 @@ npm run icons        # public/icons/*.png 다시 생성
 1. `npm install` → `npm run build` 로 `dist/` 폴더를 만듭니다.
 2. 웨일 주소창에 `whale://extensions` 입력 → 오른쪽 위 **개발자 모드** 켜기.
 3. **압축해제된 확장 앱을 로드합니다** → 이 저장소의 `dist` 폴더 선택.
-4. 웨일 사이드바에 HUFStep 아이콘(네이비 W)이 생깁니다. 눌러서 엽니다.
+4. 웨일 사이드바에 HUFStep 캐릭터 아이콘이 생깁니다. 눌러서 엽니다.
 5. 처음 열면 `내 조건 입력하고 시작하기` 또는 `가상 데이터로 둘러보기`를 고릅니다.
 
 코드를 고친 뒤에는 `npm run build` 후 확장앱 관리 화면에서 새로고침(↻)을 누릅니다.
+
+팀원에게 배포할 때는 새로 빌드한 `dist/`의 내용만 압축합니다. 받은 쪽은 압축을 풀어 기존에 불러온 확장앱 폴더에 덮어쓰고 새로고침한 뒤, 관리 화면의 버전이 새 배포본과 같은지 확인합니다. 성적 입력 오류를 다시 확인할 때는 열려 있던 앱 화면도 닫았다 열고 원문을 다시 붙여넣습니다.
 
 ## 권한
 

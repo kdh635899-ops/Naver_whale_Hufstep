@@ -5,7 +5,7 @@ import { emptyState, CONSENT_VERSION, type AppState } from '../../src/domain/sta
 import { applyMerge, planMerge } from '../../src/domain/merge/mergeImport';
 import { parseTranscript } from '../../src/domain/parser/parseTranscript';
 import { course, TRANSCRIPT_FIXTURE } from '../fixtures';
-import { CAPTIONED_TRANSCRIPT, CONTROLS_TRANSCRIPT, departmentTranscript, FOOTER_TRANSCRIPT, INCOMPLETE_TRANSCRIPTS, TITLELESS_TRANSCRIPT, WRAPPED_TRANSCRIPT } from '../fixtures/importTranscript';
+import { CAPTIONED_TRANSCRIPT, CONTROLS_TRANSCRIPT, departmentTranscript, FOOTER_TRANSCRIPT, INCOMPLETE_TRANSCRIPTS, LONG_ABROAD_NAME, TEAM_VARIANT_TRANSCRIPT, TITLELESS_TRANSCRIPT, WORKSHOP_NAME, WRAPPED_TRANSCRIPT } from '../fixtures/importTranscript';
 
 test.use({ baseURL: 'http://127.0.0.1:4173', viewport: { width: 390, height: 820 } });
 
@@ -93,17 +93,20 @@ test('편입생 기존 UI에서 단일전공 선택 → 저장 → 남은 25학�
   const form = page.getByRole('dialog', { name: '내 정보 수정' });
   await expect(form.locator('.field-legend')).toHaveText('이중전공 / 부전공 이수');
   await expect(form.getByRole('radio')).toHaveCount(4);
-  await form.getByLabel('입학유형').selectOption('freshman');
+  await form.getByRole('combobox', { name: '입학유형', exact: true }).click();
+  await form.getByRole('option', { name: '신입학', exact: true }).click();
   await expect(form.getByRole('radio')).toHaveCount(3);
-  await form.getByLabel('입학유형').selectOption('transferGeneral');
+  await form.getByRole('combobox', { name: '입학유형', exact: true }).click();
+  await form.getByRole('option', { name: '일반편입', exact: true }).click();
   await expect(form.getByRole('radio', { name: '단일전공', exact: true })).toBeVisible();
-  await form.getByLabel('입학유형').selectOption('transferBachelor');
+  await form.getByRole('combobox', { name: '입학유형', exact: true }).click();
+  await form.getByRole('option', { name: '학사편입', exact: true }).click();
   // 기존처럼 네 선택지를 한 줄에 두고, 입학유형은 학번·학년 뒤에 둔다.
   const chips = await form.locator('.opt-chips label').all();
   const rows = await Promise.all(chips.map(async (chip) => (await chip.boundingBox())!.y));
   expect(new Set(rows).size).toBe(1);
-  expect((await form.getByLabel('입학유형').boundingBox())!.y)
-    .toBeGreaterThan((await form.getByLabel('현재 학년').boundingBox())!.y);
+  expect((await form.getByRole('combobox', { name: '입학유형', exact: true }).boundingBox())!.y)
+    .toBeGreaterThan((await form.getByRole('combobox', { name: '현재 학년', exact: true }).boundingBox())!.y);
   await form.getByRole('radio', { name: '단일전공', exact: true }).check();
   await expect(form.getByRole('combobox', { name: /^부전공/ })).toHaveCount(0);
   await form.screenshot({ path: 'test-results/transfer-profile-minimal.png' });
@@ -120,7 +123,8 @@ test('편입생 기존 UI에서 단일전공 선택 → 저장 → 남은 25학�
   // 저장된 단일전공 프로필도 신입학으로 바꾸면 편입생 전용 선택이 숨겨진다.
   await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('button', { name: '마이페이지' }).click();
   await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
-  await form.getByLabel('입학유형').selectOption('freshman');
+  await form.getByRole('combobox', { name: '입학유형', exact: true }).click();
+  await form.getByRole('option', { name: '신입학', exact: true }).click();
   await expect(form.getByRole('radio', { name: '단일전공', exact: true })).toHaveCount(0);
   await expect(form.getByRole('radio', { name: '이중전공', exact: true })).toBeChecked();
 });
@@ -191,6 +195,29 @@ test('과목 위 제목과 하단 중복 제목이 복사되어도 과목과 합
   expect(saved.courses).toHaveLength(6);
   expect(saved.snapshots.at(-1)?.reportedTotalEarnedUnits).toBe(2000);
   expect(saved.snapshots.at(-1)?.completeness).toEqual({ earnedTotals: true, courses: true, gpa: true });
+});
+
+test('팀원 표기·해외 긴 과목명 붙여넣기 → 저장 → 재접속 → 재반영', async ({ page }) => {
+  await seed(page, initialState());
+  await paste(page, TEAM_VARIANT_TRANSCRIPT);
+  await expect(page.locator('.red-list')).toHaveCount(0);
+  await page.locator('.cta-row > .cta').click();
+  await expect(success(page)).toBeVisible();
+  const saved = await readState(page);
+  expect(saved.courses).toHaveLength(8);
+  expect(saved.courses.filter((c) => c.grade === 'P')).toHaveLength(5);
+  expect(saved.courses.filter((c) => c.area === 'double')).toHaveLength(2);
+  expect(saved.courses.find((c) => c.officialCode === 'T92008')?.name).toBe(LONG_ABROAD_NAME);
+  expect(saved.courses.find((c) => !c.officialCode)?.name).toBe(WORKSHOP_NAME);
+  expect(saved.snapshots.at(-1)?.reportedTotalEarnedUnits).toBe(1900);
+  expect(saved.snapshots.at(-1)?.completeness).toEqual({ earnedTotals: true, courses: true, gpa: true });
+  await page.reload();
+  await expect(page.locator('#paste')).toBeVisible();
+  expect((await readState(page)).courses).toEqual(saved.courses);
+  await paste(page, TEAM_VARIANT_TRANSCRIPT);
+  await page.locator('.cta-row > .cta').click();
+  await expect(success(page)).toBeVisible();
+  expect((await readState(page)).courses.map((c) => c.id)).toEqual(saved.courses.map((c) => c.id));
 });
 
 test('하단 안내문·영역별 취득학점 제목이 있어도 자동 분석하고 안전하게 병합한다', async ({ page }) => {

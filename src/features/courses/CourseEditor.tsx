@@ -9,7 +9,7 @@ import { autoProjectedRetake, initialReplacesCourseId, retakeCandidates } from '
 import { gradeCourses, newId } from '../../domain/state';
 import { formatUnits, termLabel, toUnits } from '../../domain/terms';
 import type { Course, CourseStatus, CreditArea, Grade, Term } from '../../domain/types';
-import { courseSchema, firstIssue } from '../../domain/validation/schemas';
+import { courseSchema, firstIssue, MAX_COURSE_NAME_LENGTH } from '../../domain/validation/schemas';
 import { AREA_LABEL, ConfirmButton, ConsentGate, Sheet, STATUS_LABEL } from '../common';
 import { RetakeRecordSelect } from './RetakeRecordSelect';
 
@@ -118,7 +118,7 @@ export function CourseEditor() {
       <ConsentGate>
         <form className="form" onSubmit={submit} noValidate>
           <label>과목명
-            <input value={name} maxLength={120} onChange={(e) => setName(e.target.value)} required />
+            <input value={name} maxLength={MAX_COURSE_NAME_LENGTH} onChange={(e) => setName(e.target.value)} required />
           </label>
           <div className="row2">
             <label>학년도

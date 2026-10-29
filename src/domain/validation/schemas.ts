@@ -9,6 +9,7 @@ import type { AppState } from '../state';
 import type { Cond } from '../requirements/conditions';
 
 export const MAX_RECORD_UNITS = 15000; // 인정학점 묶음 1건 상한 150학점 (일반 과목 상한은 grading policy)
+export const MAX_COURSE_NAME_LENGTH = 500; // 해외 과목의 한글·영문 병기 이름을 자르지 않고 저장한다.
 
 const campus = z.enum(['seoul', 'global']);
 const entryType = z.enum(['freshman', 'transferGeneral', 'transferBachelor']);
@@ -53,7 +54,7 @@ export const profileSchema: z.ZodType<StudentProfile> = z.object({
 export const courseSchema: z.ZodType<Course> = z.object({
   id,
   officialCode: z.string().max(30).optional(),
-  name: z.string().trim().min(1, '과목명을 입력해 주세요').max(120, '과목명은 120자까지예요'),
+  name: z.string().trim().min(1, '과목명을 입력해 주세요').max(MAX_COURSE_NAME_LENGTH, `과목명은 ${MAX_COURSE_NAME_LENGTH}자까지예요`),
   term: termSchema,
   // 0 = 시간표에서 이름과 시간만 넣어 만든 과목 (학점은 학점 계산에서 채움)
   creditUnits: z.number().int().nonnegative('학점은 0 이상이어야 해요').max(MAX_RECORD_UNITS),
@@ -73,12 +74,12 @@ export const courseSchema: z.ZodType<Course> = z.object({
   replacesCourseId: id.optional(),
   isRetake: z.boolean().optional(),
   sourceSnapshotId: id.optional(),
-  sourceRowKey: z.string().max(400).optional(),
+  sourceRowKey: z.string().max(MAX_COURSE_NAME_LENGTH + 100).optional(),
   overriddenFields: z.array(z.string().max(40)).max(20),
   updatedAt: isoStr,
 });
 
-const warning = z.object({ code: z.string().max(40), rowKey: z.string().max(400).optional(), message: z.string().max(400) });
+const warning = z.object({ code: z.string().max(40), rowKey: z.string().max(MAX_COURSE_NAME_LENGTH + 100).optional(), message: z.string().max(400) });
 
 export const snapshotSchema: z.ZodType<AcademicSnapshot> = z.object({
   id,

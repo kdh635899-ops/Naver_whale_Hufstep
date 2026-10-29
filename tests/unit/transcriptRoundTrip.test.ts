@@ -24,15 +24,19 @@ beforeEach(async () => { await clearEverything(); });
 
 describe('원문의 개별 항목 → 분석 → 저장소 복원 1:1 대조 (합성 자료)', () => {
   const original = departmentTranscript('대조용학과');
-  it.each([original, original.replaceAll('\t', ' '), original.replaceAll('\n', '\r\n')])('각 과목의 9개 항목과 순서를 저장소에서 다시 읽어 대조한다', async (input) => {
+  const passAndMinor = original.replaceAll('\t부전공\t', '\t부전\t').replace('\tP\n', '\tPASS\n');
+  it.each([original, original.replaceAll('\t', ' '), original.replaceAll('\n', '\r\n'), passAndMinor])('각 과목의 9개 항목과 순서를 저장소에서 다시 읽어 대조한다', async (input) => {
+    const expectedRows = input === passAndMinor
+      ? expected.map((row) => row.map((value, i) => i === 5 && value === '부전공' ? '부전' : value))
+      : expected;
     const parsed = parseTranscript(input);
     expect(validateTranscript(parsed).canSave).toBe(true);
-    expect(parsed.rows.map((r) => [r.term.academicYear, r.term.semester, r.officialCode ?? null, r.name, r.offeringDepartment ?? null, r.rawAreaLabel, r.creditUnits, r.grade, r.recordKind])).toEqual(expected);
+    expect(parsed.rows.map((r) => [r.term.academicYear, r.term.semester, r.officialCode ?? null, r.name, r.offeringDepartment ?? null, r.rawAreaLabel, r.creditUnits, r.grade, r.recordKind])).toEqual(expectedRows);
     const initial = emptyState();
     const merged = applyMerge(initial, parsed, planMerge(initial, parsed), { link: {}, conflictChoice: {}, removeMissing: false }, new Date('2026-10-29T00:00:00Z'));
     await saveState(merged);
     const restored = await loadState();
-    expect(restored?.courses.map((c) => [c.term.academicYear, c.term.semester, c.officialCode ?? null, c.name, c.offeringDepartmentName ?? null, c.rawAreaLabel, c.creditUnits, c.grade, c.recordKind])).toEqual(expected);
+    expect(restored?.courses.map((c) => [c.term.academicYear, c.term.semester, c.officialCode ?? null, c.name, c.offeringDepartmentName ?? null, c.rawAreaLabel, c.creditUnits, c.grade, c.recordKind])).toEqual(expectedRows);
     expect(new Set(restored!.courses.map((c) => c.id)).size).toBe(expected.length);
     expect(restored!.snapshots.at(-1)?.courseIds).toEqual(restored!.courses.map((c) => c.id));
   });

@@ -2,6 +2,8 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+.playwright-mcp/
+releases/
 
 # 개인 성적 데이터 (공개 저장소에 올리지 않음)
 tests/fixtures/malayTranscript.ts
@@ -11,3 +13,6 @@ docs/verification/
 
 # 로컬 도구 작업 기록
 .shrimp/
+
+# 로컬 카카오톡 사진
+/KakaoTalk_20261029_162009482.png

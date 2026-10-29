@@ -5,7 +5,7 @@ import { buildDemoState } from '../../src/data/demo';
 import {
   clearEverything, KEYS, kvGet, kvPut, loadState, migrate, MIGRATIONS, saveState, StateLoadError,
 } from '../../src/storage/repository';
-import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, profileSchema } from '../../src/domain/validation/schemas';
+import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, MAX_COURSE_NAME_LENGTH, profileSchema } from '../../src/domain/validation/schemas';
 import { course, PROFILE } from '../fixtures';
 
 beforeEach(async () => { await clearEverything(); });
@@ -122,7 +122,8 @@ describe('입력 검증', () => {
   it('학점·과목명·enum·날짜·메모 길이를 검사', () => {
     expect(courseSchema.safeParse({ ...course(), creditUnits: -1 }).success).toBe(false);
     expect(courseSchema.safeParse({ ...course(), creditUnits: 0 }).success).toBe(true); // 시간표에서 이름·시간만 넣어 만든 과목
-    expect(courseSchema.safeParse({ ...course(), name: 'x'.repeat(121) }).success).toBe(false);
+    expect(courseSchema.safeParse({ ...course(), name: 'x'.repeat(MAX_COURSE_NAME_LENGTH) }).success).toBe(true);
+    expect(courseSchema.safeParse({ ...course(), name: 'x'.repeat(MAX_COURSE_NAME_LENGTH + 1) }).success).toBe(false);
     expect(courseSchema.safeParse({ ...course(), area: 'hacker' }).success).toBe(false);
     expect(courseSchema.safeParse({ ...course(), creditUnits: 250 }).success).toBe(true); // 소수 학점 2.5
     const a = { id: 'a', courseId: 'c', phase: 'midterm', mode: 'exam', notes: '', origin: 'student', updatedAt: '' };

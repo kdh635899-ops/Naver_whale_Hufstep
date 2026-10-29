@@ -2,7 +2,7 @@
 import { deriveInclusion, defaultGradingMode, normalizeGrade } from '../grades';
 import { termKey, toUnits } from '../terms';
 import type { Course, CreditArea, Grade, LetterGrade, Term } from '../types';
-import { MAX_RECORD_UNITS } from '../validation/schemas';
+import { MAX_COURSE_NAME_LENGTH, MAX_RECORD_UNITS } from '../validation/schemas';
 
 export const MAX_BYTES = 1024 * 1024; // 1 MiB
 export const MAX_LINES = 2000;
@@ -10,6 +10,7 @@ export const MAX_LINES = 2000;
 /** 원문 이수구분 → 학점 반영 영역. 2전공과 이중전공은 합치지 않는다. */
 export const AREA_LABELS: Record<string, CreditArea> = {
   '1전공': 'primary', 이중전공: 'double', '2전공': 'second', 부전공: 'minor', 실용외국어: 'practicalLanguage',
+  부전: 'minor', 이중: 'double',
   교양: 'liberalArts', 교직: 'teaching', 자선: 'freeChoice', 기초: 'foundation',
 };
 
@@ -47,7 +48,8 @@ export interface ParseResult {
 
 export class ParseLimitError extends Error {}
 
-const AREA_ALT = Object.keys(AREA_LABELS).join('|');
+const AREA_ALT = Object.keys(AREA_LABELS).map((label) => label.split('').join(String.raw`\s*`)).join('|');
+const AREA_LABEL_RE = new RegExp(String.raw`(^|\s)(${AREA_ALT})(?=\s|$)`, 'g');
 const CREDIT = String.raw`\d{1,3}(?:\.\d{1,2})?`;
 const KNOWN_AREA_RE = new RegExp(String.raw`(?:^|\s)(${AREA_ALT})\s+(${CREDIT})(?=\s|$)`, 'g');
 const ANY_AREA_RE = new RegExp(String.raw`(?:^|\s)([^\s\d][^\s]*)\s+(${CREDIT})(?=\s|$)`, 'g');
@@ -57,9 +59,13 @@ const TERM_RE = /^(\d{4})\s*(?:학년도|년도|년)?\s*[-–]?\s*(1|2|여름|�
 const SUMMARY_TITLE = /(?:이\s*수\s*구\s*분\s*별\s*취\s*득\s*학\s*점(?:\s*계)?|영\s*역\s*별\s*취\s*득\s*학\s*점)/g;
 const SUMMARY_NOTE = /^※?이수구분별합계정보는화면하단에서확인가능합니다[.!]?$/;
 // 전체 영역을 복사하면 함께 들어오는, 확인된 화면 조작 문구만 제외한다.
-const PAGE_CONTROL = /^(?:검색조건|년도\/학기선택|이수영역선택|\+?전체보기\(Viewall\))$/;
+const PAGE_CONTROL = /^(?:검색조건|년도\/학기선택|이수영역선택(?:년도\/학기선택)?|\+?전체보기\(Viewall\))$/;
 
 const normalizeName = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim();
+const areaForLabel = (label: string): CreditArea | undefined => {
+  const compact = label.replace(/\s/g, '');
+  return Object.hasOwn(AREA_LABELS, compact) ? AREA_LABELS[compact] : undefined;
+};
 
 function lastMatch(re: RegExp, s: string): RegExpExecArray | null {
   re.lastIndex = 0;
@@ -77,7 +83,7 @@ function splitByAnchor(text: string): RawCourse | null {
   if (text.includes('\t')) {
     const cells = text.split('\t').map((c) => c.trim());
     for (let i = cells.length - 2; i >= 0; i--) {
-      if (Object.hasOwn(AREA_LABELS, cells[i]) && new RegExp(`^${CREDIT}$`).test(cells[i + 1])) {
+      if (areaForLabel(cells[i]) && new RegExp(`^${CREDIT}$`).test(cells[i + 1])) {
         return {
           pre: cells.slice(0, i).filter(Boolean).join(' '), areaLabel: cells[i], credit: cells[i + 1],
           post: cells.slice(i + 2).filter(Boolean).join(' '), knownArea: true,
@@ -131,16 +137,18 @@ export function parseTranscript(input: string, gradeAliases: Record<string, Lett
     || /^(?:이수구분별취득학점|영역별취득학점)/.test(lines.slice(i, i + 8).join('').replace(/\s/g, ''))));
   if (summaryStart >= 0) {
     const tokens = lines.slice(summaryStart).join('\n').replace(SUMMARY_TITLE, ' ')
+      .replace(AREA_LABEL_RE, (_match, space: string, label: string) => space + label.replace(/\s/g, ''))
       .replace(/총\s*(?:취득\s*)?학점|총\s+계/g, '총계')
       .replace(/(?:이\s*수\s*구\s*분|구\s*분|취\s*득\s*학\s*점)(?=\s|$)/g, ' ')
       .trim().split(/\s+/).filter(Boolean).map((t) => t === '합계' || t === '계' ? '총계' : t);
     const firstValue = tokens.findIndex((t) => /^[-+]?\d+(?:\.\d+)?$/.test(t));
-    const isLabel = (t: string) => t === '총계' || Object.hasOwn(AREA_LABELS, t);
+    const isLabel = (t: string) => t === '총계' || areaForLabel(t) !== undefined;
     const paired = tokens.length >= 4 && tokens.length % 2 === 0
       && tokens.every((t, i) => i % 2 === 0 ? isLabel(t) : /^[-+]?\d+(?:\.\d+)?$/.test(t));
     const labels = paired ? tokens.filter((_, i) => i % 2 === 0) : tokens.slice(0, firstValue < 0 ? tokens.length : firstValue);
     const values = paired ? tokens.filter((_, i) => i % 2 === 1) : firstValue < 0 ? [] : tokens.slice(firstValue);
-    const validLabels = labels.length > 1 && labels.includes('총계') && new Set(labels).size === labels.length
+    const validLabels = labels.length > 1 && labels.includes('총계')
+      && new Set(labels.map((label) => areaForLabel(label) ?? label)).size === labels.length
       && labels.every(isLabel);
     const validValues = values.length === labels.length
       && values.every((v) => /^\d+(?:\.\d{1,2})?$/.test(v) && Number(v) <= 10_000);
@@ -148,13 +156,13 @@ export function parseTranscript(input: string, gradeAliases: Record<string, Lett
       labels.forEach((label, i) => {
         const units = toUnits(Number(values[i]));
         if (label === '총계') reportedTotal = units;
-        else reported[AREA_LABELS[label]] = units;
+        else reported[areaForLabel(label)!] = units;
       });
       earnedTotalsFound = Object.values(reported).reduce((sum, u) => sum + u, 0) === reportedTotal;
       if (!earnedTotalsFound) warnings.push({ code: 'summaryMismatch', message: '하단 영역별 학점의 합과 총계가 달라요. 하단 표를 끝까지 다시 복사해 주세요.' });
     } else {
       warnings.push({ code: 'summaryUnreadable', message: '하단 ‘이수구분별 취득학점 계’의 열·숫자 개수 또는 범위를 확인하지 못했어요.' });
-      if (labels.some((l) => l !== '총계' && !Object.hasOwn(AREA_LABELS, l))) {
+      if (labels.some((l) => l !== '총계' && areaForLabel(l) === undefined)) {
         warnings.push({ code: 'unknownSummaryArea', message: '하단 합계에 알 수 없는 이수구분이 있어요.' });
       }
     }
@@ -168,7 +176,9 @@ export function parseTranscript(input: string, gradeAliases: Record<string, Lett
     pending = [];
   };
 
+  let gradeLineIndex = -1;
   for (const [index, rawLine] of (summaryStart < 0 ? lines : lines.slice(0, summaryStart)).entries()) {
+    if (index === gradeLineIndex) continue;
     const line = rawLine.replace(/ +$/g, '');
     const flat = line.replace(/\t/g, ' ').replace(/ {2,}/g, ' ').trim();
     if (!flat) continue;
@@ -197,12 +207,23 @@ export function parseTranscript(input: string, gradeAliases: Record<string, Lett
 
     // 3) 과목 행: 앵커(영역+학점)로 분석. 줄바꿈된 과목명은 앞 줄과 합쳐 본다.
     let anchor = splitByAnchor(line);
-    if (!anchor) { pending.push({ text: flat, lineNumber: index + 1 }); continue; }
-    if (pending.length && !CODE_RE.test(anchor.pre + ' ')) {
-      const joined = splitByAnchor([...pending.map((p) => p.text), line].join('\n'));
-      if (joined && CODE_RE.test(joined.pre.replace(/\n/g, ' ') + ' ')) { anchor = joined; pending = []; }
+    if (pending.length && (!anchor || !CODE_RE.test(anchor.pre + ' '))) {
+      // 코드 또는 비어 있는 개설학과·코드 셀로 시작한 행만 잇는다. 앞의 미상 문구는 버리지 않는다.
+      const start = pending.reduce((last, p, i) => CODE_RE.test(p.text + ' ') || /^\t\t\S/.test(p.text) ? i : last, -1);
+      if (start >= 0) {
+        const joined = splitByAnchor([...pending.slice(start).map((p) => p.text), line].join('\n'));
+        if (joined && (anchor || joined.knownArea)) { anchor = joined; pending = pending.slice(0, start); }
+      }
     }
+    if (!anchor) { pending.push({ text: line, lineNumber: index + 1 }); continue; }
     flushPending();
+
+    // 등급만 다음 줄로 복사된 경우, 확인 가능한 등급 한 줄만 현재 과목에 붙인다.
+    const nextGrade = lines[index + 1]?.trim();
+    if (!anchor.post.trim() && nextGrade && normalizeGrade(nextGrade, gradeAliases)) {
+      anchor = { ...anchor, post: nextGrade };
+      gradeLineIndex = index + 1;
+    }
 
     const pre = anchor.pre;
     const codeMatch = CODE_RE.exec(pre + ' ');
@@ -225,7 +246,7 @@ export function parseTranscript(input: string, gradeAliases: Record<string, Lett
     const retakeMarked = postTokens.some((t) => t.includes('재수강') || t === 'R');
     const recordKind: Course['recordKind'] = recognized ? 'recognizedCredit' : 'course';
     const gradingMode: Course['gradingMode'] = recognized ? 'ungradedCredit' : defaultGradingMode(grade);
-    const area = anchor.knownArea ? AREA_LABELS[anchor.areaLabel] : 'unknown';
+    const area = anchor.knownArea ? areaForLabel(anchor.areaLabel)! : 'unknown';
     const t: Term = term ?? { academicYear: 0, semester: 'unknown' };
     const baseKey = officialCode
       ? `${termKey(t)}|${officialCode}`
@@ -240,9 +261,9 @@ export function parseTranscript(input: string, gradeAliases: Record<string, Lett
       creditUnits: toUnits(Number(anchor.credit)), rawGrade, grade, recordKind, gradingMode, retakeMarked, ...inclusion,
     });
 
-    const label = name.split('\n')[0];
+    const label = name.split('\n')[0].slice(0, 120);
     if (!term || term.academicYear < 2000 || term.academicYear > 2100) warnings.push({ code: 'noTerm', rowKey, message: `“${label}”의 올바른 학기를 찾지 못했어요.` });
-    if (!name || name.length > 120) warnings.push({ code: 'invalidName', rowKey, message: '과목명이 없거나 너무 길어요. 과목 행을 다시 복사해 주세요.' });
+    if (!name || name.length > MAX_COURSE_NAME_LENGTH) warnings.push({ code: 'invalidName', rowKey, message: `과목명이 없거나 ${MAX_COURSE_NAME_LENGTH}자를 넘어요. 과목 행을 다시 복사해 주세요.` });
     if (Number(anchor.credit) <= 0 || toUnits(Number(anchor.credit)) > MAX_RECORD_UNITS) warnings.push({ code: 'invalidCredit', rowKey, message: `“${label}”의 학점 범위를 확인해 주세요.` });
     if (!anchor.knownArea) warnings.push({ code: 'unknownArea', rowKey, message: `“${label}”의 이수구분 “${anchor.areaLabel}”을 알 수 없어요. 학점 반영 영역을 골라 주세요.` });
     if (gradeUnknown) warnings.push({ code: 'unknownGrade', rowKey, message: `“${label}”의 등급 “${rawGrade ?? '누락'}”을 해석하지 못했어요. F로 처리하지 않고 보류했어요.` });
