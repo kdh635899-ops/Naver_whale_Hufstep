@@ -296,7 +296,7 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await row.click();
   const item = primary.locator('.sc-item').filter({ hasText: '지역과지역학' });
   await expect(item).not.toContainText('이수 완료'); // 이수하지 않은 줄에는 아무 표시도 없다
-  await expect(primary.locator('.tg')).toHaveCount(0); // 필수과목에는 학생이 체크하는 칸이 없다
+  await expect(item.getByRole('button', { name: '지역과지역학 이수', exact: true })).toBeVisible();
 
   // 과목을 추가하면(공식 코드로 대조) 이수로 바뀐다
   await tab('학점 계산').click();
@@ -316,7 +316,7 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await primary.getByRole('button', { name: /^\d+\/11과목/ }).click();
   await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' })).toContainText('이수 완료');
 
-  // 졸업 시험 및 요건: 정해진 목록에서 학생이 초록 체크박스로 직접 체크한다 (필수과목과 달리)
+  // 졸업 시험 및 요건: 정해진 목록에서 학생이 초록 체크박스로 직접 체크한다.
   const exam = page.locator('#st-exams .sc').first();
   await exam.locator('.sc-row').click();
   const box = exam.locator('.cbx').first();
@@ -441,11 +441,11 @@ test('시간표: 끌기·클릭으로 수업 추가 → 시험 정보 → 확인
   await sheet.getByRole('button', { name: '수업 시간표 추가' }).click();
   await expect(blocks).toHaveCount(3);
 
-  // 시간표 과목은 학점 계산·학사 현황과 이어지지 않는다 (시간표에만 있다)
+  // 시간표 과목은 학점 계산의 이번 학기 목록으로 이어진다. 학점 미입력 시 보충할 수 있다.
   expect(JSON.parse(await readState()).courses.find((c: { name: string }) => c.name === '가상 수강 과목').origin).toBe('timetable');
   await tab('학점 계산').click();
-  await expect(page.getByText('가상 수강 과목')).toHaveCount(0);
-  await expect(page.getByText('가상 B')).toHaveCount(0);
+  await expect(page.locator('.term-row').filter({ hasText: '가상 수강 과목' })).toContainText('학점 입력');
+  await expect(page.locator('.term-row').filter({ hasText: '가상 B' })).toBeVisible();
   await tab('시간표').click();
 
   // 시험 정보: '시험정보 추가' → 메모 + 중간고사·기말고사 (O / X / 대체과제, 처음 값은 O) → '시험 정보 추가' (처음), 다시 열면 '변경사항 저장하기'

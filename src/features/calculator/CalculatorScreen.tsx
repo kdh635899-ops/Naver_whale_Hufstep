@@ -3,10 +3,11 @@
 // 저장 데이터(학년도+학기)는 그대로 두고 화면에서만 gradeYearOf()로 학년을 묶는다.
 import { useMemo, useState } from 'react';
 import { useStore } from '../../app/store';
+import { calculatorCourses } from '../../domain/gpa/calculatorCourses';
 import { calculateScenario, computeGpa, effectiveCourses, formatGpa, type GpaResult } from '../../domain/gpa/gpa';
 import { gradeTermLabel, gradeYearOf, semesterOrder } from '../../domain/gradeYear';
 import { LETTER_GRADES } from '../../domain/grades';
-import { gradeCourses, latestSnapshot } from '../../domain/state';
+import { latestSnapshot } from '../../domain/state';
 import { formatUnits, sameTerm, termKey } from '../../domain/terms';
 import type { Course, Grade, GradeScenario, ScenarioEntry, Term } from '../../domain/types';
 
@@ -23,11 +24,15 @@ export function CalculatorScreen() {
   const [yearSel, setYearSel] = useState<number>(currentYear);
 
   const scenarioId = `scn-${termKey(term)}`;
-  const scenario = state.scenarios.find((s) => s.id === scenarioId) ?? null;
+  const savedScenario = state.scenarios.find((s) => s.id === scenarioId) ?? null;
   const snap = latestSnapshot(state);
   // 상세 성적 없이 요약 평점만 있으면 '요약값 기반 추정'
   const summary = snap?.source === 'summaryInput' ? snap.reportedGpa : undefined;
-  const courses = useMemo(() => gradeCourses(state.courses), [state.courses]); // 시간표에서 만든 과목은 학점 계산에 넣지 않는다
+  const courses = useMemo(() => calculatorCourses(state), [state.courses, state.classTimes, term]);
+  // 삭제·중복 제외된 수업과 이미 성적이 확정된 과목의 옛 예상 등급은 계산하지 않는다.
+  const scenario = useMemo(() => savedScenario ? { ...savedScenario, entries: savedScenario.entries.filter((e) =>
+    courses.some((c) => c.id === e.courseId && sameTerm(c.term, term) && c.creditUnits > 0
+      && (c.status === 'inProgress' || c.status === 'planned'))) } : null, [savedScenario, courses, term]);
   const r = useMemo(() => calculateScenario(courses, scenario, summary, snap?.completeness), [courses, scenario, summary, snap]);
   const base = r.baseline;
   const hasScenario = !!scenario?.entries.some((e) => e.expectedGrade);
@@ -61,7 +66,7 @@ export function CalculatorScreen() {
   return (
     <div className="page">
       <h1 className="page-title">학점 계산</h1>
-      <p className="page-lead">지금까지 받은 학점 상세내역을 확인할 수 있어요.<br />예상 학점을 입력하면 총 학점을 미리 계산할 수 있어요.</p>
+      <p className="page-lead">지금까지 받은 학점 상세내역을 확인할 수 있어요.<br />시간표 과목으로 예상 평점을 계산해요.</p>
 
       <div className="gpa-cards" style={{ marginTop: 24 }}>
         <section className="gpa-card light" aria-label="현재 누적 평점">
@@ -71,7 +76,7 @@ export function CalculatorScreen() {
         </section>
         <section className="gpa-card dark" aria-label="예상 누적 평점">
           <p className="gpa-label">예상 누적 평점</p>
-          <p className="gpa-num">{hasScenario ? gpaNum(r.projected.gpa) : '—'}</p>
+          <p className="gpa-num">{hasScenario && !r.errors.length ? gpaNum(r.projected.gpa) : '—'}</p>
           <p className="gpa-sub">기존 취득학점 {r.completeness.courses ? formatUnits(base.earned) : '—'}학점</p>
         </section>
       </div>
@@ -88,17 +93,17 @@ export function CalculatorScreen() {
             <section className="term-card current" aria-label={gradeTermLabel(term, profile)}>
               <div className="term-head">
                 <span>{gradeTermLabel(term, profile)}</span>
-                <span>{hasScenario ? gpaNum(r.termGpa) : '-'}</span>
+                <span>{hasScenario && !r.errors.length ? gpaNum(r.termGpa) : '-'}</span>
               </div>
               {currentCourses.map((c) => {
                 const open = c.status === 'inProgress' || c.status === 'planned';
                 return (
                   <div key={c.id} className="term-row">
                     <button type="button" className="name-btn" onClick={() => openEditor({ courseId: c.id })}>
-                      {c.name}<span className="units">({formatUnits(c.creditUnits)}학점)</span>
+                      {c.name}<span className="units">{c.creditUnits > 0 ? `(${formatUnits(c.creditUnits)}학점)` : '(학점 입력)'}</span>
                     </button>
                     {open ? (
-                      <select className="grade-select" aria-label={`${c.name} 예상 등급`}
+                      <select className="grade-select" aria-label={`${c.name} 예상 등급`} disabled={c.creditUnits === 0}
                         value={scenario?.entries.find((e) => e.courseId === c.id)?.expectedGrade ?? ''}
                         onChange={(e) => setGrade(c.id, (e.target.value || null) as Grade)}>
                         <option value="">-</option>
@@ -113,7 +118,11 @@ export function CalculatorScreen() {
               </button>
               <div className="term-foot">{currentCourses.length ? `총 ${formatUnits(sumUnits(currentCourses))}학점` : '총 - 학점'}</div>
             </section>
-            {currentCourses.length === 0 && <p className="term-hint">현재 이수 중인 강의 정보를 추가하고 예상 학점을 계산해보세요!</p>}
+            {currentCourses.length === 0 && <p className="term-hint">시간표에 과목을 등록하거나 강의를 추가하고 예상 등급을 골라보세요!</p>}
+            {currentCourses.some((c) => c.creditUnits === 0) && <p className="term-hint">‘학점 입력’이 표시된 과목을 눌러 학점을 입력해 주세요.</p>}
+            {r.errors.map((error) => <p key={error.courseId} className="term-hint" role="alert">
+              {courses.find((c) => c.id === error.courseId)?.name}: {error.message}
+            </p>)}
           </div>
         )}
 

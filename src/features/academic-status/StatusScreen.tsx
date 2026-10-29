@@ -1,5 +1,5 @@
 // 학사 현황 (Figma, §3.4). 내 조건 → 남은 학점 카드 → [이수학점 / 필수과목 / 졸업시험] 알약 탭 → 01 영역별 이수학점 → 02 졸업 필수 과목 → 03 졸업 시험 및 요건.
-// 값은 모두 종정시에서 저장한 데이터 + 졸업요건 규칙으로 계산한다. 필수과목은 이수한 줄에 '이수 완료'만 붙고(학생이 체크하는 칸은 없다),
+// 값은 종정시 데이터 + 졸업요건 규칙 + 학생이 직접 확인한 이수 기록으로 계산한다.
 // 세부 과목을 모두 이수하면 카드 전체가 '이수 완료'가 된다. 졸업시험·요건은 학과마다 달라서 학생이 스스로 표시하는 체크리스트로만 보여 준다.
 // 졸업 충족을 확정하지 않는다.
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import { departmentName } from '../../data';
 import { shortTitle } from '../../domain/requirements/displayTitle';
 import { ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
 import { formatUnits } from '../../domain/terms';
+import { timetableRequirementStates } from '../../domain/timetableStatus';
 import type { BundleScope, CertificationRequirement, CourseExpr } from '../../domain/types';
 import { AREA_LABEL, CAMPUS_LABEL, ENTRY_LABEL } from '../common';
 import { assessmentCriteria } from './OfficialSections';
@@ -17,7 +18,7 @@ import { useProgress } from './useProgress';
 type Section = 'credits' | 'courses' | 'exams';
 const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '01 이수학점' }, { key: 'courses', label: '02 필수과목' }, { key: 'exams', label: '03 졸업시험' }];
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
-interface ReqItem { id: string; label: string; done: boolean; group?: boolean; depth: number }
+interface ReqItem { id: string; label: string; done: boolean; canCheck?: boolean; group?: boolean; depth: number; attending?: { isRetake: boolean } }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
 /** title = 접힌 줄에 보이는 짧은 제목(길면 …), head = 펼친 목록에 보이는 줄이지 않은 제목, full = 전체 제목, detail·rest = 기준·설명(모두 보여 준다) */
 interface ExamItem { id: string; title: string; head: string; full: string; detail: string; rest: string; confirmed: boolean }
@@ -43,12 +44,13 @@ export function StatusScreen() {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const profile = state.profile!;
   const confirmed = new Set(state.certConfirmations.map((c) => c.requirementId));
+  const attending = timetableRequirementStates(state, report);
   const secondLabel = profile.programType === 'double' ? '이중전공' : '부전공';
   const secondary = profile.secondaryDepartmentId;
 
   const toggleConfirm = (id: string) => void save((s) => ({
     ...s,
-    certConfirmations: confirmed.has(id)
+    certConfirmations: s.certConfirmations.some((c) => c.requirementId === id)
       ? s.certConfirmations.filter((c) => c.requirementId !== id)
       : [...s.certConfirmations, { requirementId: id, confirmedAt: now.toISOString() }],
   }));
@@ -64,19 +66,21 @@ export function StatusScreen() {
   };
   for (const g of progress.groups) {
     const card = cards[cardKeyOf(null, g.scope)];
-    const done = g.status === 'met';
-    card.items.push({ id: g.group.id, label: g.group.title, done, depth: 0 });
+    const done = g.status === 'met' || confirmed.has(g.group.id);
+    card.items.push({ id: g.group.id, label: g.group.title, done, canCheck: g.status !== 'met', depth: 0 });
     card.total += 1; card.met += done ? 1 : 0;
   }
   const walk = (p: NodeProgress, depth: number, out: ReqItem[]) => {
     const n = p.node as CourseExpr;
     if (n.op === 'course') {
-      out.push({ id: n.id, label: n.name, done: p.level > 0, depth });
+      // 성적표로 확인된 이수는 그대로 두고, 미이수·직접 확인한 줄에만 버튼을 둔다.
+      out.push({ id: n.id, label: n.name, done: p.level > 0 || confirmed.has(n.id), canCheck: p.level === 0 || p.state === 'selfConfirmed' || confirmed.has(n.id), depth, attending: attending.get(n.id) });
       return;
     }
     const head = n.op === 'AT_LEAST' ? `다음 중 ${n.count}과목 이상` : n.op === 'OR' ? '다음 중 1과목' : null;
     if (head) out.push({ id: `${depth}-${out.length}-${head}`, label: head, done: p.level > 0, group: true, depth });
-    for (const c of p.children ?? []) walk(c, head ? depth + 1 : depth, out);
+    // 택일에서 선택되지 않은 갈래도 펼쳐서, 학생이 다른 후보를 직접 이수 표시할 수 있다.
+    for (const c of p.children ?? n.items.map((node) => ({ node, level: 0 as const }))) walk(c, head ? depth + 1 : depth, out);
   };
   for (const cp of courseProgress) {
     const card = cards[cardKeyOf(cp.eval.rule.departmentId)];
@@ -188,13 +192,22 @@ export function StatusScreen() {
                         {it.group ? <span className="grp">{it.label}</span> : (
                           <>
                             <span className="tx">{it.label}</span>
-                            {it.done && <span className="sc-done"><i className="icon ic-check" aria-hidden="true" />이수 완료</span>}
+                            <span className="sc-course-status">
+                            {it.attending && <span className="sc-state todo sc-attending"><i className="icon ic-dash" aria-hidden="true" />{it.attending.isRetake ? '재수강 중' : '수강 중'}</span>}
+                            {it.canCheck ? (
+                              <button type="button" className={it.done ? 'sc-done' : 'sc-check'} aria-pressed={confirmed.has(it.id)}
+                                aria-label={`${it.label} ${confirmed.has(it.id) ? '이수 취소' : '이수'}`} onClick={() => toggleConfirm(it.id)}>
+                                {it.done && <i className="icon ic-check" aria-hidden="true" />}{it.done ? '이수 완료' : '이수'}
+                              </button>
+                            ) : it.done && <span className="sc-done"><i className="icon ic-check" aria-hidden="true" />이수 완료</span>}
+                            </span>
                           </>
                         )}
                       </li>
                     ))}
                   </ul>
                 )}
+                {open[k] && c.items.some((it) => it.canCheck) && <p className="sc-check-hint">직접 이수 표시는 취득학점·평점에 더해지지 않아요.</p>}
               </div>
             );
           })}

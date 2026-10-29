@@ -150,6 +150,22 @@ legend { font-size: 13px; font-weight: 700; margin-bottom: 6px; padding: 0; }
 label.field { gap: 9px; font-size: 18px; font-weight: 600; line-height: 1.1; color: var(--label); }
 .field input, .field select { min-height: 50px; padding: 0 15px; border: 1px solid var(--slate); border-radius: var(--r-input); font-size: 16px; font-weight: 400; color: #000; }
 .field select { appearance: none; padding-right: 40px; background: #fff url('./icons/select-chevron.svg') right 15px center / 17px 17px no-repeat; }
+/* 정보 수정의 메뉴는 입력칸 아래에 겹쳐 띄워 다른 입력칸을 밀지 않는다. */
+.profile-select { display: flex; flex-direction: column; min-width: 0; }
+.profile-select-trigger { width: 100%; min-height: 50px; padding: 10px 40px 10px 15px; border: 1px solid var(--slate); border-radius: var(--r-input); font-size: 16px; font-weight: 400; line-height: 1.4; text-align: left; color: #000; background: #fff url('./icons/select-chevron.svg') right 15px center / 17px 17px no-repeat; }
+.profile-select-list { position: fixed; z-index: 60; display: block; max-height: 240px; overflow-y: auto; overscroll-behavior: contain; padding: 4px 0; border: 1px solid var(--slate); border-radius: 10px; background: #fff; box-shadow: 0 6px 18px rgb(11 23 46 / 14%); color: #000; font-size: 16px; font-weight: 400; line-height: 1.4; }
+.profile-select-item { display: block; }
+.profile-select-group { display: block; padding: 10px 12px 5px; font-size: 12px; font-weight: 600; color: var(--label); }
+.profile-select-list [role='option'] { display: block; padding: 11px 12px; cursor: pointer; overflow-wrap: anywhere; }
+.profile-select-list [role='option']:hover, .profile-select-list .active { background: #edf2fa; }
+.profile-select-list [aria-selected='true'] { font-weight: 600; color: var(--navy-900); }
+/* 재수강 선택은 기존 드롭다운을 학점 선택란처럼 작게 표시한다. */
+.profile-select.compact .profile-select-trigger { min-height: 34px; height: 34px; padding: 0 30px 0 10px; border-radius: 8px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background-position: right 8px center; background-size: 14px 14px; }
+.profile-select-list.compact { max-height: 180px; border-radius: 8px; font-size: 12px; }
+.profile-select-list.compact [role='option'] { padding: 8px 10px; }
+.retake-record-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.retake-record-label { font-size: 12px; font-weight: 600; line-height: 18px; color: var(--label); }
+.retake-record-hint { font-size: 11px; font-weight: 400; line-height: 16px; color: var(--slate); }
 /* 선택 칩 (이중전공 / 부전공 / 없음 …): 개수와 관계없이 한 줄에 균등 분할 → 좁은 폭에서도 잘리지 않는다 */
 .opt-chips { display: flex; gap: 15px; } /* Figma: 칩 높이 50, 사이 15, 폭은 한 줄을 셋이 나눠 채운다 (390px에서 100) */
 .opt-chips label { position: relative; flex: 1 1 0; min-width: 0; flex-direction: row; justify-content: center; align-items: center; min-height: 50px; padding: 0 4px; border: 1px solid var(--slate); border-radius: var(--r-chip); background: #fff; color: var(--slate); font-size: 16px; font-weight: 600; text-align: center; word-break: keep-all; cursor: pointer; }
@@ -441,6 +457,7 @@ button.term-row { cursor: pointer; }
 .tt-blk { position: absolute; left: 0; right: 0; overflow: hidden; border-right: 1px solid #e4e4e4; border-bottom: 1px solid #e4e4e4; text-align: left; color: #000; cursor: pointer; pointer-events: auto; }
 .tt-blk:focus-visible { outline: 2px solid var(--navy-900); outline-offset: -2px; }
 .tt-blk .nm { display: block; padding: 9px 8px 0 7px; overflow: hidden; font-size: 12px; font-weight: 600; line-height: 15px; overflow-wrap: anywhere; }
+.tt-retake { margin-left: 4px; font-size: 10px; color: var(--todo); white-space: nowrap; }
 .tt-blk.tall .nm { min-height: 70px; max-height: 70px; }
 .tt-blk .ex { position: absolute; left: 0; right: 0; display: block; padding: 0 5px 0 7px; }
 /* 한 줄에 낱말 단위로 적는다: '중간 대체 과제'가 '중간 대체' / '과제'로 갈리고 '제'만 떨어지지 않는다. 줄임표 없이 전부 보인다 */
@@ -538,6 +555,9 @@ button.term-row { cursor: pointer; }
 .sc-state { display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 0; border: 0; background: none; font-size: 14px; font-weight: 600; line-height: 27px; cursor: default; }
 .sc-state.done { color: var(--done); }
 .sc-state.todo { color: var(--todo); }
+.sc-course-status { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.fg-course-hint { margin: 0; font-size: 12px; line-height: 18px; color: var(--slate); }
+.fg-retake-field { display: flex; flex-direction: column; gap: 6px; }
 button.sc-state { cursor: pointer; }
 .sc-state.todo .ic-dash { margin: 0 4px 0 0; }
 .sc-row { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 41px; padding: 0 15px; border: 1px solid #c8d8eb; border-radius: 0 0 10px 10px; background: #e4ecf5; color: var(--navy-900); font-size: 13px; font-weight: 600; line-height: 24px; text-align: left; cursor: pointer; }
@@ -580,6 +600,11 @@ button.sc-state { cursor: pointer; }
 /* 학사 현황: 필수과목 줄의 '이수 완료', 졸업시험 체크박스 */
 .sc-done { display: inline-flex; align-items: center; gap: 2px; flex: none; color: var(--done); font-size: 14px; font-weight: 600; line-height: 27px; }
 .sc-done .ic-check { width: 20px; height: 20px; }
+/* 직접 이수한 과목도 기존 완료 표시와 같은 모양을 쓰며, 클릭하면 취소한다. */
+button.sc-done { padding: 0; border: 0; background: none; cursor: pointer; }
+.sc-check { display: inline-flex; align-items: center; justify-content: center; gap: 2px; flex: none; min-height: 32px; padding: 2px 10px; border: 1px solid var(--slate); border-radius: 8px; background: #fff; color: var(--slate); font-size: 12px; font-weight: 600; cursor: pointer; }
+.sc-check:focus-visible { box-shadow: var(--focus); }
+.sc-check-hint { padding: 0 16px 14px; font-size: 11px; line-height: 18px; color: var(--slate); }
 .cbx { display: grid; place-items: center; flex: none; width: 18px; height: 18px; padding: 0; border: 2px solid var(--done); border-radius: 3px; background: #fff; color: #fff; cursor: pointer; }
 .cbx[aria-checked='true'] { background: var(--done); }
 .cbx .ic-check { width: 14px; height: 14px; }

@@ -5,15 +5,19 @@
 // 수업·시험 정보 저장은 모두 store.save()를 거친다. 자유 메모는 알림을 만들지 않는다.
 import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { useStore } from '../../app/store';
+import { catalog } from '../../data';
 import { deriveEvaluationEvents, eventsOn, KIND_LABEL, PHASE_LABEL } from '../../domain/assessment-events/events';
 import { dropCourseRefs } from '../../domain/merge/mergeImport';
 import { newId } from '../../domain/state';
-import { localDateTime, sameTerm } from '../../domain/terms';
+import { formatUnits, localDateTime, sameTerm, toUnits } from '../../domain/terms';
 import { classTimeText, DAY_LABEL, layoutWeek, toMinutes } from '../../domain/timetable';
 import { dragRange, hhmm, hmToMinutes, overlapsAny } from '../../domain/timetableSelect';
+import { previousTimetableCourse, timetableTargets } from '../../domain/timetableStatus';
+import { autoProjectedRetake } from '../../domain/retake';
 import type { Assessment, AssessmentMode, ClassTime, Course, CourseMemo } from '../../domain/types';
 import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, firstIssue, MEMO_MAX } from '../../domain/validation/schemas';
 import { ConsentGate, Sheet } from '../common';
+import { RetakeRecordSelect } from '../courses/RetakeRecordSelect';
 
 /** 시간표 한 시간의 높이(px) — Figma 70px, CSS(.tt-cell)와 같아야 한다 */
 const HOUR_PX = 70;
@@ -55,7 +59,7 @@ export function AssessmentsScreen() {
   }, [todayRoute, consumeTodayRoute]);
 
   // 이번 학기 '수강 중' 과목
-  // 시간표 과목만 보인다: 학점 계산·종정시 과목과는 이어지지 않는다 (가상 데이터 둘러보기의 예시 과목은 시간표에도 보여 준다)
+  // 시간표에서 만든 과목은 학점 계산의 이번 학기 예상 과목 목록에도 표시한다.
   const courses = state.courses.filter((c) => (c.origin === 'timetable' || c.origin === 'demo') && sameTerm(c.term, current));
   const find = (courseId: string, phase: Phase) => state.assessments.find((a) => a.courseId === courseId && a.phase === phase);
 
@@ -232,7 +236,7 @@ function Timetable({ courses, times, find, onExam }: {
                     style={{ top, height, left: `${(b.lane / b.lanes) * 100}%`, width: `${100 / b.lanes}%`, right: 'auto', background: tint }}
                     aria-label={`${c.name}, ${classTimeText(b)}, ${phaseText('midterm', mid)}, ${phaseText('final', fin)}. 수정하려면 Enter`}
                     onClick={() => onExam(c.id)} onKeyDown={(e) => onBlockKey(e, t)}>
-                    <span className="nm">{c.name}</span>
+                    <span className="nm">{c.name}{(c.isRetake || c.replacesCourseId) && <span className="tt-retake">재수강</span>}</span>
                     {hasInfo(c.id) ? (
                       <span className="ex" style={tall ? { top: HOUR_PX + 15 } : undefined}>
                         <span className="ev">{phaseText('midterm', mid)}</span>
@@ -321,14 +325,18 @@ function Digits({ value, onChange, label }: { value: string; onChange: (v: strin
   );
 }
 
-/** 수업 정보 시트: 과목명 + 수업 시간. 시간을 바꾸면 격자의 시간 막대도 바로 따라 바뀐다. */
+/** 수업 정보 시트: 과목명 + 선택 학점 + 수업 시간. 학점은 예상 평점 계산에 쓴다. */
 function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }: {
   sel: Sel; setSel: (s: Sel) => void; fromHour: number; toHour: number; courses: Course[]; visible: ClassTime[]; onClose: () => void;
 }) {
-  const { state, save, now } = useStore();
+  const { state, save, now, report } = useStore();
   const listId = useId();
   const day = useRef(sel.day).current;
   const [name, setName] = useState('');
+  const [credits, setCredits] = useState('');
+  // 사용자가 직접 고른 값은 이름별로 보관해 자동 제안보다 우선한다.
+  const [retakeChoices, setRetakeChoices] = useState<Record<string, boolean>>({});
+  const [retakeTargets, setRetakeTargets] = useState<Record<string, string>>({});
   const [s1, setS1] = useState(String(Math.floor(sel.start / 60)).padStart(2, '0'));
   const [s2, setS2] = useState(String(sel.start % 60).padStart(2, '0'));
   const [e1, setE1] = useState(String(Math.floor(sel.end / 60)).padStart(2, '0'));
@@ -344,6 +352,12 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
 
   const pending = courses.filter((c) => !visible.some((t) => t.courseId === c.id)); // 시간이 모두 지워지고 메모·시험 정보만 남은 시간표 과목
   const norm = (v: string) => v.trim().replace(/\s+/g, ' ').toLowerCase();
+  const namedCourse = courses.find((c) => norm(c.name) === norm(name));
+  const previous = previousTimetableCourse(state, { name, officialCode: namedCourse?.officialCode });
+  const isRetake = retakeChoices[norm(name)] ?? namedCourse?.isRetake ?? (!!namedCourse?.replacesCourseId || !!previous);
+  const requiredTargets = timetableTargets(report, { name, officialCode: namedCourse?.officialCode });
+  const subject = { id: namedCourse?.id, name, officialCode: namedCourse?.officialCode, term: state.profile!.currentTerm };
+  const replacesCourseId = retakeTargets[norm(name)] || namedCourse?.replacesCourseId || autoProjectedRetake(state.courses, subject)?.id;
 
   async function submit() {
     const trimmed = name.trim();
@@ -354,18 +368,20 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
     if (overlapsAny(visible, day, start, end)) return setError('이미 다른 수업이 있는 시간이에요');
     // 같은 이름의 시간표 과목이 있으면 그 과목에 시간을 더한다 (같은 수업의 다른 요일)
     const found = courses.find((c) => norm(c.name) === norm(trimmed));
-    const course: Course = found ?? {
+    const creditValue = credits.trim() ? Number(credits) : null;
+    if (creditValue !== null && (!Number.isFinite(creditValue) || toUnits(creditValue) <= 0
+      || creditValue > catalog.policy.maxCreditUnitsPerCourse / 100)) return setError(`학점은 0보다 크고 ${catalog.policy.maxCreditUnitsPerCourse / 100} 이하로 입력해 주세요`);
+    const course: Course = { ...(found ?? {
       id: newId('course'), name: trimmed, term: state.profile!.currentTerm,
       creditUnits: 0, area: 'unknown', origin: 'timetable', recordKind: 'course', status: 'inProgress', grade: null, gradingMode: 'graded',
       gpaInclusion: 'excluded', earnedInclusion: 'excluded', requiredClaim: 'none', overriddenFields: [], updatedAt: now.toISOString(),
-    };
-    if (!found) {
-      const c = courseSchema.safeParse(course);
-      if (!c.success) return setError(firstIssue(c.error));
-    }
+    }), isRetake, replacesCourseId: isRetake ? replacesCourseId : undefined,
+      updatedAt: now.toISOString(), ...(creditValue !== null ? { creditUnits: toUnits(creditValue) } : {}) };
+    const c = courseSchema.safeParse(course);
+    if (!c.success) return setError(firstIssue(c.error));
     const t = classTimeSchema.safeParse({ courseId: course.id, day, start: hhmm(start), end: hhmm(end) });
     if (!t.success) return setError(firstIssue(t.error));
-    const ok = await save((s) => ({ ...s, courses: found ? s.courses : [...s.courses, course], classTimes: [...s.classTimes, t.data] }));
+    const ok = await save((s) => ({ ...s, courses: found ? s.courses.map((x) => x.id === course.id ? c.data : x) : [...s.courses, c.data], classTimes: [...s.classTimes, t.data] }));
     if (ok) onClose();
   }
 
@@ -378,6 +394,19 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
             <input autoFocus list={listId} value={name} maxLength={120} autoComplete="off" onChange={(e) => { setName(e.target.value); setError(''); }} />
             <datalist id={listId}>{pending.map((c) => <option key={c.id} value={c.name} />)}</datalist>
           </label>
+          {requiredTargets.length > 0 && <p className="fg-course-hint">졸업 필수 과목 · {requiredTargets.map(({ leaf }) => leaf.name).join(', ')}</p>}
+          <label className="fg-field">학점 (선택)
+            <input type="number" inputMode="decimal" min="0.5" step="0.5" max={catalog.policy.maxCreditUnitsPerCourse / 100}
+              value={credits} placeholder={namedCourse?.creditUnits ? formatUnits(namedCourse.creditUnits) : '예: 3'}
+              onChange={(e) => { setCredits(e.target.value); setError(''); }} />
+          </label>
+          <div className="fg-retake-field">
+            <label className="check"><input type="checkbox" checked={isRetake}
+              onChange={(e) => setRetakeChoices((choices) => ({ ...choices, [norm(name)]: e.target.checked }))} />재수강 과목이에요</label>
+            {previous && <p className="fg-course-hint">이전 수강 내역이 있어요. 재수강 여부를 확인해 주세요.</p>}
+          </div>
+          {isRetake && <RetakeRecordSelect courses={state.courses} subject={subject} selectedId={replacesCourseId}
+            onChange={(id) => setRetakeTargets((targets) => ({ ...targets, [norm(name)]: id }))} />}
           <div className="fg-field" role="group" aria-label="수업 시간">
             <span>수업 시간</span>
             <div className="tt-time">
@@ -412,6 +441,8 @@ function ExamSheet({ courseId, onClose }: { courseId: string; onClose: () => voi
   const [text, setText] = useState(saved);
   const [error, setError] = useState('');
   const course = state.courses.find((c) => c.id === courseId);
+  const [isRetake, setIsRetake] = useState(() => !!course?.isRetake || !!course?.replacesCourseId);
+  const [retakeTarget, setRetakeTarget] = useState(course?.replacesCourseId ?? '');
   if (!course) return null;
 
   // 빈 메모는 기록을 지운다
@@ -453,6 +484,9 @@ function ExamSheet({ courseId, onClose }: { courseId: string; onClose: () => voi
       }
       return {
         ...s,
+        courses: s.courses.map((c) => c.id === courseId ? { ...c, isRetake,
+          replacesCourseId: isRetake ? retakeTarget || autoProjectedRetake(s.courses, c)?.id : undefined,
+          updatedAt: now.toISOString() } : c),
         assessments: [...s.assessments.filter((a) => !ids.has(a.id)), ...next],
         completions: s.completions.filter((c) => !changed.has(c.eventId)),
         courseMemos: memoRows(s, text, now.toISOString()).rows ?? s.courseMemos,
@@ -465,6 +499,8 @@ function ExamSheet({ courseId, onClose }: { courseId: string; onClose: () => voi
     <Sheet variant="fg" className="exam" title="시험 정보" onClose={onClose}
       footer={<button type="button" className="btn-fg" onClick={submit}>{editing ? '변경사항 저장하기' : '시험 정보 추가'}</button>}>
       <ConsentGate>
+        <label className="check"><input type="checkbox" checked={isRetake} onChange={(e) => setIsRetake(e.target.checked)} />재수강 과목이에요</label>
+        {isRetake && <RetakeRecordSelect courses={state.courses} subject={course} selectedId={retakeTarget} onChange={setRetakeTarget} />}
         <div className="fg-memo">
           <label htmlFor={memoId}>내 메모</label>
           <textarea id={memoId} rows={3} maxLength={MEMO_MAX} value={text} onChange={(e) => setText(e.target.value)} />

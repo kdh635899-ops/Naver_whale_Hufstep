@@ -77,6 +77,54 @@ async function backToRecords(page: Page) {
   await expect(page.locator('#paste')).toBeVisible();
 }
 
+test('편입생 기존 UI에서 단일전공 선택 → 저장 → 남은 25학점 표시·재접속', async ({ page }) => {
+  const state = initialState();
+  state.profile = { ...state.profile!, cohortYear: 2023, entryType: 'transferBachelor',
+    programType: 'intensive', secondaryDepartmentId: undefined, currentYear: 4 };
+  // 사진의 취득 합계만 재현한 합성 자료. 개인 성적표는 사용하지 않는다.
+  state.snapshots = [{ id: 'transfer-summary', importedAt: '', source: 'summaryInput', courseIds: [],
+    reportedEarnedByArea: { primary: 3900, liberalArts: 3400, freeChoice: 3600 }, reportedTotalEarnedUnits: 10900,
+    completeness: { earnedTotals: true, courses: false, gpa: false }, warnings: [] }];
+  await seed(page, state);
+  await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('button', { name: '학사 현황' }).click();
+  await expect(page.locator('.remain-card .big')).toContainText('—');
+  await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('button', { name: '마이페이지' }).click();
+  await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
+  const form = page.getByRole('dialog', { name: '내 정보 수정' });
+  await expect(form.locator('.field-legend')).toHaveText('이중전공 / 부전공 이수');
+  await expect(form.getByRole('radio')).toHaveCount(4);
+  await form.getByLabel('입학유형').selectOption('freshman');
+  await expect(form.getByRole('radio')).toHaveCount(3);
+  await form.getByLabel('입학유형').selectOption('transferGeneral');
+  await expect(form.getByRole('radio', { name: '단일전공', exact: true })).toBeVisible();
+  await form.getByLabel('입학유형').selectOption('transferBachelor');
+  // 기존처럼 네 선택지를 한 줄에 두고, 입학유형은 학번·학년 뒤에 둔다.
+  const chips = await form.locator('.opt-chips label').all();
+  const rows = await Promise.all(chips.map(async (chip) => (await chip.boundingBox())!.y));
+  expect(new Set(rows).size).toBe(1);
+  expect((await form.getByLabel('입학유형').boundingBox())!.y)
+    .toBeGreaterThan((await form.getByLabel('현재 학년').boundingBox())!.y);
+  await form.getByRole('radio', { name: '단일전공', exact: true }).check();
+  await expect(form.getByRole('combobox', { name: /^부전공/ })).toHaveCount(0);
+  await form.screenshot({ path: 'test-results/transfer-profile-minimal.png' });
+  await form.getByRole('button', { name: '저장', exact: true }).click();
+  const saved = await readState(page);
+  expect(saved.profile?.programType).toBe('single');
+  expect(saved.profile?.secondaryDepartmentId).toBeUndefined();
+  expect(saved.snapshots).toEqual(state.snapshots);
+  await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('button', { name: '학사 현황' }).click();
+  await expect(page.locator('.remain-card .big')).toContainText('25');
+  await expect(page.locator('.remain-card .got')).toContainText('109/134');
+  await page.reload();
+  await expect(page.locator('.remain-card .big')).toContainText('25');
+  // 저장된 단일전공 프로필도 신입학으로 바꾸면 편입생 전용 선택이 숨겨진다.
+  await page.getByRole('navigation', { name: '주 메뉴' }).getByRole('button', { name: '마이페이지' }).click();
+  await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
+  await form.getByLabel('입학유형').selectOption('freshman');
+  await expect(form.getByRole('radio', { name: '단일전공', exact: true })).toHaveCount(0);
+  await expect(form.getByRole('radio', { name: '이중전공', exact: true })).toBeChecked();
+});
+
 for (const [id, name, campus, entryType, programType] of [
   ['seoul-business', '경영학부', 'seoul', 'freshman', 'single'],
   ['seoul-6afe7a8073', '영어교육과', 'seoul', 'freshman', 'minor'],

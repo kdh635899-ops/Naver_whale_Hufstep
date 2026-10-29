@@ -1,5 +1,6 @@
 // 학생 조건 선택 (§3.2). 조건을 바꿔도 성적·평가 기록은 지우지 않고 규칙만 다시 평가한다.
 import { useState } from 'react';
+import { ProfileSelect } from './ProfileSelect';
 import { useStore } from '../../app/store';
 import { catalog, departmentMetaById } from '../../data';
 import { secondaryRestriction } from '../../domain/requirements/officialRules';
@@ -9,7 +10,7 @@ import { firstIssue, profileSchema } from '../../domain/validation/schemas';
 import { CAMPUS_LABEL, ENTRY_LABEL } from '../common';
 
 const COHORTS = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
-// Figma 칩 3개: 이중전공 / 부전공 / 전공심화 (각 100×50, 사이 15). '없음'은 화면에서 뺐다.
+// 신입생의 기본 선택지. 편입생에게는 전공심화가 없는 단일전공 경로를 별도로 제공한다.
 const PROGRAM_CHIPS: { v: ProgramType; label: string }[] = [
   { v: 'double', label: '이중전공' },
   { v: 'minor', label: '부전공' },
@@ -41,7 +42,7 @@ function DeptOptions({ list, withCampus }: { list: Department[]; withCampus?: bo
   );
 }
 
-export function ProfileForm({ onDone, submitLabel }: { onDone: () => void; submitLabel: string }) {
+export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone: () => void; submitLabel: string; downward?: boolean }) {
   const { state, save, now } = useStore();
   const p = state.profile;
   const [name, setName] = useState(p?.name ?? '');
@@ -49,11 +50,16 @@ export function ProfileForm({ onDone, submitLabel }: { onDone: () => void; submi
   const [cohort, setCohort] = useState(p?.cohortYear ?? 0);
   const [entry, setEntry] = useState<EntryType>(p?.entryType ?? 'freshman');
   const [primary, setPrimary] = useState(p?.primaryDepartmentId ?? '');
-  const [program, setProgram] = useState<ProgramType>(p?.programType ?? 'double');
+  const [program, setProgram] = useState<ProgramType>(
+    p?.entryType === 'freshman' && p.programType === 'single' ? 'double' : p?.programType ?? 'double',
+  );
   const [secondary, setSecondary] = useState(p?.secondaryDepartmentId ?? '');
   const [year, setYear] = useState<string>(p?.currentYear ? String(p.currentYear) : '');
   const [error, setError] = useState('');
 
+  const allowsSingle = entry === 'transferGeneral' || entry === 'transferBachelor';
+  const programChips = allowsSingle
+    ? [...PROGRAM_CHIPS, { v: 'single' as const, label: '단일전공' }] : PROGRAM_CHIPS;
   const needsSecond = program === 'double' || program === 'minor';
   const allowsSecond = needsSecond || program === 'intensive'; // 전공심화는 부전공을 함께 할 수도 있다
   const role = program === 'double' ? 'dual' : 'minor';
@@ -87,22 +93,22 @@ export function ProfileForm({ onDone, submitLabel }: { onDone: () => void; submi
         <input type="text" value={name} maxLength={20} autoComplete="off" onChange={(e) => setName(e.target.value)} />
       </label>
       <label className="field">소속 캠퍼스
-        <select value={campus} onChange={(e) => { setCampus(e.target.value as CampusId); setPrimary(''); }}>
+        <ProfileSelect aria-label="소속 캠퍼스" downward={downward} value={campus} onChange={(e) => { setCampus(e.target.value as CampusId); setPrimary(''); }}>
           {Object.entries(CAMPUS_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
+        </ProfileSelect>
       </label>
       <label className="field">주전공
-        <select value={primary} onChange={(e) => { setPrimary(e.target.value); if (e.target.value === secondary) setSecondary(''); }}>
+        <ProfileSelect aria-label="주전공" downward={downward} value={primary} onChange={(e) => { setPrimary(e.target.value); if (e.target.value === secondary) setSecondary(''); }}>
           <option value="">선택해 주세요</option>
-          <DeptOptions list={primaryOptions} />
-        </select>
+          {DeptOptions({ list: primaryOptions })}
+        </ProfileSelect>
       </label>
       <fieldset>
         <legend className="field-legend">이중전공 / 부전공 이수</legend>
         <div className="opt-chips">
-          {PROGRAM_CHIPS.map((c) => (
+          {programChips.map((c) => (
             <label key={c.v} className={program === c.v ? 'on' : ''}>
-              <input type="radio" name="program" value={c.v} checked={program === c.v} onChange={() => setProgram(c.v)} />
+              <input type="radio" name="program" value={c.v} aria-label={c.label} checked={program === c.v} onChange={() => setProgram(c.v)} />
               {c.label}
             </label>
           ))}
@@ -110,30 +116,35 @@ export function ProfileForm({ onDone, submitLabel }: { onDone: () => void; submi
       </fieldset>
       {allowsSecond && (
         <label className="field">{program === 'double' ? '이중전공' : program === 'minor' ? '부전공' : '부전공 (선택)'}
-          <select value={secondary} onChange={(e) => setSecondary(e.target.value)}>
+          <ProfileSelect aria-label="이중전공 / 부전공" downward={downward} value={secondary} onChange={(e) => setSecondary(e.target.value)}>
             <option value="">{needsSecond ? '선택해 주세요' : '부전공 없음 (전공심화만)'}</option>
-            <DeptOptions list={secondOptions} withCampus />
-          </select>
+            {DeptOptions({ list: secondOptions, withCampus: true })}
+          </ProfileSelect>
         </label>
       )}
       <div className="fig-row">
         <label className="field">학번
-          <select value={cohort} onChange={(e) => setCohort(Number(e.target.value))}>
+          <ProfileSelect aria-label="학번" downward={downward} value={cohort} onChange={(e) => setCohort(Number(e.target.value))}>
             <option value={0}>선택</option>
             {COHORTS.map((y) => <option key={y} value={y}>{String(y).slice(2)}학번</option>)}
-          </select>
+          </ProfileSelect>
         </label>
         <label className="field">현재 학년
-          <select value={year} onChange={(e) => setYear(e.target.value)}>
+          <ProfileSelect aria-label="현재 학년" downward={downward} value={year} onChange={(e) => setYear(e.target.value)}>
             <option value="">선택</option>
             {[1, 2, 3, 4].map((y) => <option key={y} value={y}>{y}학년</option>)}
-          </select>
+          </ProfileSelect>
         </label>
       </div>
       <label className="field">입학유형
-        <select value={entry} onChange={(e) => setEntry(e.target.value as EntryType)}>
+        <ProfileSelect aria-label="입학유형" downward={downward} value={entry} onChange={(e) => {
+          const nextEntry = e.target.value as EntryType;
+          setEntry(nextEntry);
+          // 신입학으로 바꾸면 편입생 전용 선택이 숨겨진 채 저장되지 않도록 한다.
+          if (nextEntry === 'freshman' && program === 'single') setProgram('double');
+        }}>
           {Object.entries(ENTRY_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
+        </ProfileSelect>
       </label>
       {error && <p className="error" role="alert">{error}</p>}
       <button type="submit" className="btn cta">{submitLabel}</button>

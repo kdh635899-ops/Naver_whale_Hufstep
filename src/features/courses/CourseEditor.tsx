@@ -5,12 +5,13 @@ import { catalog, departmentName } from '../../data';
 import { deriveInclusion, LETTER_GRADES } from '../../domain/grades';
 import { dropCourseRefs, MERGE_FIELDS } from '../../domain/merge/mergeImport';
 import { autoLinkTargets, linkableLeaves } from '../../domain/requirements/officialRules';
-import { initialReplacesCourseId, retakeCandidates } from '../../domain/retake';
+import { autoProjectedRetake, initialReplacesCourseId, retakeCandidates } from '../../domain/retake';
 import { gradeCourses, newId } from '../../domain/state';
 import { formatUnits, termLabel, toUnits } from '../../domain/terms';
 import type { Course, CourseStatus, CreditArea, Grade, Term } from '../../domain/types';
 import { courseSchema, firstIssue } from '../../domain/validation/schemas';
 import { AREA_LABEL, ConfirmButton, ConsentGate, Sheet, STATUS_LABEL } from '../common';
+import { RetakeRecordSelect } from './RetakeRecordSelect';
 
 const SEMESTERS: [Term['semester'], string][] = [['1', '1학기'], ['2', '2학기'], ['summer', '여름 계절'], ['winter', '겨울 계절']];
 const MODES: [Course['gradingMode'], string][] = [['graded', '일반 등급'], ['passFail', 'P/F'], ['ungradedCredit', '등급 없는 인정학점'], ['unknown', '모름']];
@@ -38,7 +39,8 @@ export function CourseEditor() {
     sourceRowKey: init.sourceRowKey,
     replacesCourseId: init.replacesCourseId,
   }) ?? '');
-  const [isRetake, setIsRetake] = useState(!!replaces);
+  const [isRetake, setIsRetake] = useState(init.isRetake ?? !!replaces);
+  const timetableOnly = init.origin === 'timetable';
   // 체크 한 번으로 끝내기 위해, 과목명과 이름이 맞는 요건(leaf)을 그때그때 찾는다
   const matches = useMemo(() => autoLinkTargets(report, name, departmentName), [report, name]);
   // 과목명을 바꾸면 이전 이름에 연결했던 요건을 저장하지 않는다.
@@ -59,7 +61,7 @@ export function CourseEditor() {
     if (recordKind === 'course' && toUnits(c) > catalog.policy.maxCreditUnitsPerCourse) {
       return setError(`한 과목 학점은 ${catalog.policy.maxCreditUnitsPerCourse / 100}학점 이하로 입력해 주세요`);
     }
-    if (isRetake && !replaces) return setError('대체하는 이전 기록을 골라 주세요');
+    if (isRetake && !replaces && !timetableOnly) return setError('대체하는 이전 기록을 골라 주세요');
     const g = status === 'completed' || status === 'notEarned' ? grade : null;
     const draft: Course = {
       id: existing?.id ?? newId('course'),
@@ -75,7 +77,9 @@ export function CourseEditor() {
       requiredClaim: existing?.requiredClaim === 'officialMatched' ? 'officialMatched' : required ? 'studentMarked' : 'none',
       requirementLinks: existing?.requiredClaim === 'officialMatched' ? existing.requirementLinks
         : effectiveLink ? [effectiveLink] : undefined,
-      replacesCourseId: isRetake ? replaces : undefined, // 체크를 풀면 지운다
+      replacesCourseId: isRetake ? replaces || (timetableOnly ? autoProjectedRetake(state.courses,
+        { id: existing?.id, name, officialCode: code, term: { academicYear: Number(year), semester: sem } })?.id : undefined) : undefined,
+      isRetake,
       sourceSnapshotId: existing?.sourceSnapshotId,
       sourceRowKey: existing?.sourceRowKey,
       overriddenFields: existing?.overriddenFields ?? [],
@@ -161,7 +165,10 @@ export function CourseEditor() {
             <input type="checkbox" checked={isRetake} onChange={(e) => { setIsRetake(e.target.checked); if (!e.target.checked) setReplaces(''); }} />
             재수강 과목이에요
           </label>
-          {isRetake && (
+          {isRetake && timetableOnly && <RetakeRecordSelect courses={state.courses}
+            subject={{ id: existing?.id, name, officialCode: code, term: { academicYear: Number(year), semester: sem } }}
+            selectedId={replaces} onChange={setReplaces} />}
+          {isRetake && !timetableOnly && (
             <label>대체하는 이전 기록
               <select value={replaces} onChange={(e) => setReplaces(e.target.value)}>
                 <option value="">고르지 않음</option>

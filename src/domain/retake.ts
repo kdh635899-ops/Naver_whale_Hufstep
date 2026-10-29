@@ -5,7 +5,24 @@ import { compareTerms } from './terms';
 import type { AcademicSnapshot, Course, Term } from './types';
 
 /** 재수강 과목(편집 중인 값일 수 있어서 Course 전체가 아니라 필요한 것만 받는다) */
-export interface RetakeSubject { id?: string; name: string; term: Term }
+export interface RetakeSubject { id?: string; name: string; term: Term; officialCode?: string }
+
+/** 예상 계산용 후보. F·NP도 재수강 대상이며, 완료된 재수강이 이미 대체한 기록은 제외한다. */
+export function projectedRetakeCandidates(courses: Course[], subject: RetakeSubject): Course[] {
+  const replaced = new Set(courses.filter((c) => c.status === 'completed' && c.replacesCourseId).map((c) => c.replacesCourseId));
+  const matches = (c: Course) => subject.officialCode && c.officialCode
+    ? subject.officialCode === c.officialCode : normalizeCourseName(subject.name) === normalizeCourseName(c.name);
+  return courses.filter((c) => c.id !== subject.id && c.origin !== 'timetable' && c.recordKind === 'course'
+    && (c.status === 'completed' || c.status === 'notEarned') && compareTerms(c.term, subject.term) < 0 && !replaced.has(c.id))
+    .sort((a, b) => Number(matches(b)) - Number(matches(a)) || compareTerms(b.term, a.term));
+}
+
+/** 정확히 일치하는 이전 기록이 하나일 때만 자동 연결한다. 후보가 여럿이면 학생이 선택한다. */
+export function autoProjectedRetake(courses: Course[], subject: RetakeSubject): Course | undefined {
+  const matches = projectedRetakeCandidates(courses, subject).filter((c) => subject.officialCode && c.officialCode
+    ? subject.officialCode === c.officialCode : normalizeCourseName(subject.name) === normalizeCourseName(c.name));
+  return matches.length === 1 ? matches[0] : undefined;
+}
 
 /**
  * 대체할 수 있는 이전 기록. 조건: 이 과목보다 이전 학기 + 이수 완료 + 인정학점이 아닌 실제 과목 +

@@ -71,6 +71,7 @@ export const courseSchema: z.ZodType<Course> = z.object({
   requiredClaim: z.enum(['none', 'studentMarked', 'officialMatched']),
   requirementLinks: z.array(z.string().min(1).max(200)).max(20).optional(),
   replacesCourseId: id.optional(),
+  isRetake: z.boolean().optional(),
   sourceSnapshotId: id.optional(),
   sourceRowKey: z.string().max(400).optional(),
   overriddenFields: z.array(z.string().max(40)).max(20),

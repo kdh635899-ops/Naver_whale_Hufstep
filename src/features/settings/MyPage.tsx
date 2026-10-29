@@ -58,7 +58,7 @@ export function MyPage() {
 
       {edit && (
         <Sheet title="내 정보 수정" onClose={() => setEdit(false)}>
-          <ProfileForm submitLabel="저장" onDone={() => setEdit(false)} />
+          <ProfileForm downward submitLabel="저장" onDone={() => setEdit(false)} />
         </Sheet>
       )}
     </div>

@@ -47,7 +47,7 @@ export interface Course {
   /** 성적표 '개설학과' 칸 원문. 코드 없는 전공필수를 과목명으로 대조할 때 학과가 같은지 보는 데 쓴다. */
   offeringDepartmentName?: string;
   recognizedDepartmentId?: string;
-  /** 'timetable' = 시간표에서 이름·시간만 넣어 만든 과목. 학점 계산·학사 현황·종정시 반영과는 이어지지 않는다 */
+  /** 'timetable' = 시간표에서 만든 과목. 학점 계산의 예상 과목에만 포함하며 실제 이수 기록과 구분한다. */
   origin: 'paste' | 'manual' | 'demo' | 'timetable';
   recordKind: 'course' | 'recognizedCredit';
   status: CourseStatus;
@@ -59,6 +59,8 @@ export interface Course {
   /** 학생이 직접 연결한 공식 필수과목 요건 ID (공식 매칭과 구분되는 학생 확인) */
   requirementLinks?: string[];
   replacesCourseId?: string;
+  /** 재수강 여부. 수강 중에는 표시와 예상 계산에만 쓰며 실제 이수 기록을 바꾸지 않는다. */
+  isRetake?: boolean;
   sourceSnapshotId?: string;
   sourceRowKey?: string;
   overriddenFields: string[];

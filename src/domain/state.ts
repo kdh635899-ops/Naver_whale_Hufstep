@@ -9,7 +9,7 @@ export const SCHEMA_VERSION = 2;
 /** 개인정보 안내 문구 버전 — 문구가 바뀌면 올린다 */
 export const CONSENT_VERSION = '2026-10-23';
 
-/** 학점 계산·학사 현황·종정시 반영이 쓰는 과목. 시간표에서 만든 과목은 여기에 들어오지 않는다 (시간표와 학점 계산은 이어지지 않는다) */
+/** 실제 성적·학사 현황·종정시 반영이 쓰는 과목. 시간표 과목은 calculatorCourses에서 예상 계산에만 보탠다. */
 export const gradeCourses = (courses: Course[]): Course[] => courses.filter((c) => c.origin !== 'timetable');
 
 export type View = 'records' | 'status' | 'assessments' | 'calculator' | 'mypage';

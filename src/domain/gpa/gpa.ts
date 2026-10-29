@@ -1,6 +1,7 @@
 // 평점·취득학점·예상 시나리오 계산 (§7). 모든 계산은 100배 정수로 한다.
 import { deriveInclusion, defaultGradingMode, GRADE_HUNDREDTHS } from '../grades';
 import { sameTerm } from '../terms';
+import { autoProjectedRetake, projectedRetakeCandidates } from '../retake';
 import type { AcademicSnapshot, Course, GradeScenario } from '../types';
 
 export interface GpaResult {
@@ -91,17 +92,30 @@ export function calculateScenario(
     const course = working.get(e.courseId);
     if (!course) { errors.push({ courseId: e.courseId, message: '삭제된 과목이에요.' }); continue; }
     if (!e.expectedGrade) continue;
-    if (e.replacesCourseId) {
-      const old = working.get(e.replacesCourseId);
-      if (!old || e.replacesCourseId === e.courseId) { errors.push({ courseId: e.courseId, message: '재수강 대상 기록을 찾을 수 없어요.' }); continue; }
-      if (usedReplaced.has(e.replacesCourseId)) { errors.push({ courseId: e.courseId, message: '같은 기존 과목을 두 번 대체할 수 없어요.' }); continue; }
-      usedReplaced.add(e.replacesCourseId);
+    // 시간표에서 체크를 해제하면 저장돼 있던 예상 시나리오의 연결도 적용하지 않는다.
+    const retakeOff = course.origin === 'timetable' && course.isRetake === false;
+    const targetId = retakeOff ? undefined : course.replacesCourseId ?? e.replacesCourseId
+      ?? (course.isRetake ? autoProjectedRetake(courses, course)?.id : undefined);
+    if (course.isRetake && !targetId) {
+      errors.push({ courseId: e.courseId, message: '재수강으로 대체할 이전 기록을 과목 정보에서 선택해 주세요.' }); continue;
+    }
+    let previous: Course | undefined;
+    if (targetId) {
+      const old = working.get(targetId);
+      // 시간표 연결은 이전 학기 실제 성적이어야 한다. 기존 명시적 시나리오 연결 방식은 유지한다.
+      if (!old || targetId === e.courseId || (course.isRetake && !projectedRetakeCandidates(courses, course).some((c) => c.id === targetId))) {
+        errors.push({ courseId: e.courseId, message: '재수강 대상 기록을 찾을 수 없어요. 이전 기록을 다시 선택해 주세요.' }); continue;
+      }
+      if (usedReplaced.has(targetId)) { errors.push({ courseId: e.courseId, message: '같은 기존 과목을 두 번 대체할 수 없어요.' }); continue; }
+      usedReplaced.add(targetId);
+      previous = old;
       // 이미 baseline에서 제외된 기록이면 그대로 둔다 (두 번 빼지 않음)
       working.set(old.id, { ...old, gpaInclusion: 'excluded', earnedInclusion: 'excluded' });
     }
     const gradingMode = course.gradingMode === 'passFail' || e.expectedGrade === 'P' || e.expectedGrade === 'NP'
       ? 'passFail' : defaultGradingMode(e.expectedGrade);
-    const projected = { ...course, status: 'completed' as const, grade: e.expectedGrade, gradingMode };
+    const projected = { ...course, area: course.area === 'unknown' && previous ? previous.area : course.area,
+      status: 'completed' as const, grade: e.expectedGrade, gradingMode };
     working.set(course.id, { ...projected, ...deriveInclusion(projected) });
     scenarioIds.add(course.id);
   }
@@ -110,5 +124,11 @@ export function calculateScenario(
   const termCourses = scenario
     ? projectedList.filter((c) => sameTerm(c.term, scenario.term) && (scenarioIds.has(c.id) || c.status === 'completed'))
     : [];
-  return { completeness, baseline: summarize(base), projected: summarize(projectedList), termGpa: computeGpa(termCourses, undefined, completeness.gpa), errors };
+  const projected = summarize(projectedList);
+  const termGpa = computeGpa(termCourses, undefined, completeness.gpa);
+  // 연결을 확인할 수 없는 재수강이 있으면 일부 과목만 계산한 값을 완성된 예상 평점으로 내보내지 않는다.
+  if (errors.length) for (const gpa of [projected.gpa, projected.majorGpa, termGpa]) {
+    gpa.hundredths = null; gpa.complete = false;
+  }
+  return { completeness, baseline: summarize(base), projected, termGpa, errors };
 }

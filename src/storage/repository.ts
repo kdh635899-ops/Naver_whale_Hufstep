@@ -79,7 +79,7 @@ function remapDepartments(cur: Record<string, unknown>): Record<string, unknown>
   return out;
 }
 
-/** 예전에 시간표에서 만든 과목(직접 추가·학점 0·미분류·수업 시간 있음)을 시간표 과목으로 옮긴다. 학점 계산과 이어지지 않는다. */
+/** 예전에 시간표에서 만든 과목(직접 추가·학점 0·미분류·수업 시간 있음)을 시간표 과목으로 옮긴다. 실제 성적과 구분한다. */
 function adoptTimetableCourses(cur: Record<string, unknown>): Record<string, unknown> {
   if (!Array.isArray(cur.courses) || !Array.isArray(cur.classTimes)) return cur;
   const timed = new Set(cur.classTimes.map((t) => (t as Record<string, unknown>)?.courseId));
