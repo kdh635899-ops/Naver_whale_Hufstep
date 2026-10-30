@@ -355,6 +355,8 @@ export type BoxKind = 'common' | 'primary' | 'double' | 'minor' | 'advanced' | '
 export interface StatusEdits {
   /** 항목 ID → 바꾼 이름 */
   renamed: Record<string, string>;
+  /** 졸업시험 항목 ID → 바꾼 요건(합격 기준). 옛 저장 데이터에는 없다 */
+  redetailed?: Record<string, string>;
   /** 지운 기본 항목 ID */
   removed: string[];
   /** 직접 더한 필수 과목. card = 'primary' | 'secondary' | 'common' */

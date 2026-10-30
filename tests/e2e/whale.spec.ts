@@ -411,6 +411,13 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await examName.fill('이름을 고친 FLEX');
   await examName.press('Enter');
   await expect(examName).toHaveValue('이름을 고친 FLEX');
+  // 요건(합격 기준)도 같은 편집 모드에서 고친다
+  const examCriteria = fresh.getByLabel('이름을 고친 FLEX 합격 기준');
+  await examCriteria.fill('650점 이상');
+  await examCriteria.press('Enter');
+  await expect(examCriteria).toHaveValue('650점 이상');
+  await fresh.getByRole('button', { name: '이름 고치기' }).click();
+  await expect(addedExam.locator('.sub').first()).toHaveText('650점 이상');
   await fresh.getByRole('button', { name: '지우기' }).click();
   await fresh.getByRole('checkbox', { name: '이름을 고친 FLEX 삭제' }).click();
   await expect(fresh.locator('.sc-item').filter({ hasText: '이름을 고친 FLEX' })).toHaveCount(0);

@@ -14,6 +14,7 @@ export function linkedChecklistIds(courses: AppState['courses']): Set<string> {
 export function migrateChecklistIds(saved: NonNullable<AppState['statusEditContexts']>[string]) {
   return { edits: { ...saved.edits,
     renamed: Object.fromEntries(Object.entries(saved.edits.renamed).map(([id, name]) => [stableId(id), name])),
+    redetailed: Object.fromEntries(Object.entries(saved.edits.redetailed ?? {}).map(([id, detail]) => [stableId(id), detail])),
     removed: saved.edits.removed.map(stableId),
   }, confirmations: saved.confirmations.map((c) => ({ ...c, requirementId: stableId(c.requirementId) })),
   links: Object.fromEntries(Object.entries(saved.links).map(([id, links]) => [id, links.map(stableId)])) };
@@ -59,6 +60,7 @@ export function deleteChecklistItem(s: AppState, id: string, extra: boolean): Ap
   return { ...s, statusEdits: extra ? { ...e,
     extraCourses: e.extraCourses.filter((x) => x.id !== id), extraExams: e.extraExams.filter((x) => x.id !== id),
     renamed: Object.fromEntries(Object.entries(e.renamed).filter(([k]) => k !== id)),
+    redetailed: Object.fromEntries(Object.entries(e.redetailed ?? {}).filter(([k]) => k !== id)),
   } : { ...e, removed: e.removed.includes(id) ? e.removed.filter((x) => x !== id) : [...e.removed, id] },
   // 공식 항목은 복구할 수 있으므로 체크·연결도 보존한다. 개인 항목은 함께 정리한다.
   certConfirmations: extra ? s.certConfirmations.filter((c) => c.requirementId !== id) : s.certConfirmations,

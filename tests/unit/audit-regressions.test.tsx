@@ -457,6 +457,45 @@ describe('외국어 특기자 전형: 기본은 아니요, 해당 학생만 직�
   });
 });
 
+describe('03 졸업시험 요건 직접 수정', () => {
+  // 학과 졸업시험 항목은 체크·이름 수정 전에는 목록에 없다. 요건만 고쳐도 남는지 보는 기준 항목.
+  const examId = () => groupAssessments(rep(base)).find((g) => g.eval.rule.departmentId === base.primaryDepartmentId)!.eval.rule.id;
+
+  it('기본 시험·직접 추가 시험의 요건을 저장하고 새로고침 후에도 유지한다', async () => {
+    const s = scopeStatusEdits({ ...emptyState(), profile: base });
+    s.statusEdits!.extraExams = [{ id: 'xe-stable', card: 'primary', title: '직접 추가 시험', detail: '600 이상' }];
+    s.statusEdits!.redetailed![examId()] = '700 이상';
+    expect(appStateSchema.safeParse(s).success).toBe(true);
+    await saveState(s);
+    const loaded = scopeStatusEdits((await loadState())!);
+    expect(loaded.statusEdits!.redetailed![examId()]).toBe('700 이상');
+    expect(loaded.statusEdits!.extraExams[0].detail).toBe('600 이상');
+    // 직접 추가 항목을 지우면 고친 요건 키도 함께 정리한다
+    const after = deleteChecklistItem({ ...loaded, statusEdits: { ...loaded.statusEdits!, redetailed: { 'xe-stable': '600 이상' } } }, 'xe-stable', true);
+    expect(after.statusEdits!.redetailed).toEqual({});
+  });
+
+  it('redetailed가 없는 옛 저장 데이터도 그대로 읽는다', () => {
+    const old = { ...emptyEdits(), renamed: { official: '수정' } };
+    delete (old as { redetailed?: unknown }).redetailed;
+    expect(appStateSchema.safeParse({ ...emptyState(), statusEdits: old }).success).toBe(true);
+    const migrated = migrateChecklistIds({ edits: old, confirmations: [], links: {} });
+    expect(migrated.edits.redetailed).toEqual({});
+    expect(migrated.edits.renamed).toEqual({ official: '수정' });
+  });
+
+  it('이름을 고치지 않고 요건만 고쳐도 항목이 목록에 남는다', () => {
+    const id = examId();
+    const plain = render({ ...emptyState(), profile: base });
+    const s = scopeStatusEdits({ ...emptyState(), profile: base });
+    s.statusEdits!.redetailed![id] = '내가 고친 기준 700';
+    const edited = render(s);
+    const placeholders = (html: string) => html.split('졸업 시험 및 요건 안내').length - 1;
+    // 안내만 있던 카드에 항목이 생겨 접힌 줄이 시험 제목으로 바뀐다
+    expect(placeholders(edited)).toBe(placeholders(plain) - 1);
+  });
+});
+
 describe("입력할 곳 없는 '추가 입력 필요' 문구 정리", () => {
   const courseSection = (html: string) => {
     const start = html.indexOf('<section id="st-courses"');

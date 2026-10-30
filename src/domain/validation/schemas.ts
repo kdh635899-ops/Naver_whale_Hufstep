@@ -140,6 +140,8 @@ const consentRecord = z.object({ version: z.string().max(20), at: isoStr });
 const editName = z.string().min(1).max(80);
 const statusEditsSchema = z.object({
   renamed: z.record(z.string().max(300), editName),
+  // 옛 저장 데이터에는 없다. 길이 제한은 extraExams.detail과 같게 둔다.
+  redetailed: z.record(z.string().max(300), z.string().max(120)).optional(),
   removed: z.array(z.string().max(300)).max(1000),
   extraCourses: z.array(z.object({ id, card: z.string().max(120), name: editName })).max(300),
   extraExams: z.array(z.object({ id, card: z.string().max(120), title: editName, detail: z.string().max(120) })).max(300),

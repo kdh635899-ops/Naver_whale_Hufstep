@@ -37,7 +37,7 @@ export interface AppState {
   consent: { academicData?: { version: string; at: string }; notifications?: { version: string; at: string } };
 }
 
-export const emptyEdits = (): StatusEdits => ({ renamed: {}, removed: [], extraCourses: [], extraExams: [], boxes: [] });
+export const emptyEdits = (): StatusEdits => ({ renamed: {}, redetailed: {}, removed: [], extraCourses: [], extraExams: [], boxes: [] });
 
 export function emptyState(): AppState {
   return {

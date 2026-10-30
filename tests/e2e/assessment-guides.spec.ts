@@ -75,6 +75,7 @@ test('기존 사용자 시험과 수정·체크한 학과 항목은 그대로 �
     facts: { foreignLanguageSpecialAdmission: false, pureForeignAdmission: false, approvedRequiredCourseWaiver: false } } });
   state.statusEdits!.extraExams = [{ id: 'saved-exam', card: 'primary', title: '저장해 둔 시험', detail: '기존 점수' }];
   state.statusEdits!.renamed = { 'core-malay-flex-primary': '이름을 수정했던 시험' };
+  state.statusEdits!.redetailed = { 'core-malay-flex-primary': '내가 고친 기준 700' };
   state.certConfirmations = [{ requirementId: 'saved-exam', confirmedAt: '' }, { requirementId: 'core-malay-flex-primary', confirmedAt: '' }];
   await seed(page, state);
   const card = examCard(page, 0);
@@ -82,4 +83,20 @@ test('기존 사용자 시험과 수정·체크한 학과 항목은 그대로 �
   await expect(card.getByRole('checkbox', { name: '저장해 둔 시험 응시·통과 체크' })).toBeChecked();
   await expect(card.getByRole('checkbox', { name: '이름을 수정했던 시험 응시·통과 체크' })).toBeChecked();
   await expect(card).toContainText('기존 점수');
+  // 학생이 고친 요건은 '내가 수정함'으로 구분하고, 원래 학교 기준도 회색 한 줄로 함께 둔다
+  const edited = card.locator('.sc-item').filter({ hasText: '이름을 수정했던 시험' });
+  await expect(edited).toContainText('내가 고친 기준 700');
+  await expect(edited).toContainText('내가 수정함');
+  await expect(edited).toContainText('원래 기준:');
+  // 편집 모드에서 기본(학교 자료) 시험의 요건도 고칠 수 있다
+  await card.getByRole('button', { name: '이름 고치기', exact: true }).click();
+  const criteria = card.getByLabel(/이름을 수정했던 시험.*합격 기준/);
+  await expect(criteria).toHaveValue('내가 고친 기준 700');
+  await criteria.fill('다시 고친 기준 800');
+  await criteria.press('Enter');
+  await card.getByRole('button', { name: '이름 고치기', exact: true }).click();
+  await expect(edited).toContainText('다시 고친 기준 800');
+  await page.reload();
+  await examCard(page, 0).locator('.sc-row').click();
+  await expect(examCard(page, 0).locator('.sc-item').filter({ hasText: '이름을 수정했던 시험' })).toContainText('다시 고친 기준 800');
 });

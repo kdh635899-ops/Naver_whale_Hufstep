@@ -24,7 +24,8 @@ const SECTIONS: { key: Section; label: string }[] = [{ key: 'credits', label: '0
 interface ReqItem { id: string; label: string; done: boolean; canCheck?: boolean; direct?: boolean; extra?: boolean; note?: string; group?: boolean; depth: number; attending?: { isRetake: boolean } }
 interface Card { key: string; who: string; dept: string; items: ReqItem[]; met: number; total: number }
 /** title = 접힌 줄에 보이는 짧은 제목(길면 …), head = 펼친 목록에 보이는 줄이지 않은 제목, full = 전체 제목, detail·rest = 기준·설명(모두 보여 준다) */
-interface ExamItem { id: string; title: string; head: string; full: string; detail: string; rest: string; confirmed: boolean; extra?: boolean }
+interface ExamItem { id: string; title: string; head: string; full: string; detail: string; rest: string; confirmed: boolean; extra?: boolean;
+  /** 학생이 요건을 고친 기본 시험의 원래 학교 기준 (고치지 않았으면 없음) */ baseDetail?: string }
 interface ExamCard { key: string; who: string; dept: string; items: ExamItem[] }
 
 export function StatusScreen() {
@@ -55,6 +56,11 @@ export function StatusScreen() {
     if (name) void setEdits((e) => it.extra ? { ...e, extraExams: e.extraExams.map((x) => (x.id === it.id ? { ...x, title: name } : x)) } : { ...e, renamed: { ...e.renamed, [it.id]: name } });
   };
   const removeExam = (it: ExamItem) => void save((s) => deleteChecklistItem(s, it.id, !!it.extra));
+  // 요건(합격 기준) 고치기. 직접 추가한 시험은 그 항목의 detail을, 학교 자료 시험은 redetailed에 따로 담는다.
+  const redetailExam = (it: ExamItem, v: string) => {
+    const detail = cleanName(v);
+    if (detail) void setEdits((e) => it.extra ? { ...e, extraExams: e.extraExams.map((x) => (x.id === it.id ? { ...x, detail } : x)) } : { ...e, redetailed: { ...e.redetailed, [it.id]: detail } });
+  };
 
   const toggleConfirm = (id: string) => void save((s) => ({
     ...s,
@@ -132,7 +138,7 @@ export function StatusScreen() {
   const certDetail = (c: CertificationRequirement) => c.kind === 'departmentExam' ? `통과 기준: ${c.passCriteria}`
     : c.kind === 'externalCertificate' ? c.acceptedTests.map((t) => `${t.name}: ${t.passCriteria}`).join(' / ') : c.description;
   for (const { scope, cert } of resolved?.certifications ?? []) {
-    if (report && cert.kind === 'departmentExam' && !confirmed.has(cert.id) && !edits.renamed[cert.id]) continue;
+    if (report && cert.kind === 'departmentExam' && !confirmed.has(cert.id) && !edits.renamed[cert.id] && !edits.redetailed?.[cert.id]) continue;
     const st = shortTitle(cert.title);
     examCards[cardKeyOf(null, scope)].items.push({ id: cert.id, title: st.short, head: st.head, full: st.full, detail: certDetail(cert), rest: st.rest, confirmed: confirmed.has(cert.id) });
   }
@@ -148,7 +154,7 @@ export function StatusScreen() {
       + (g.information.length ? ` · ${g.information.map(criterion).join(' · ')}` : '');
     const school = e.rule.category === 'commonLanguageCertification';
     // 학과 기준은 안내로만 제공한다. 사용자가 이미 수정·체크한 항목은 기존 목록에 보존한다.
-    if (!school && !confirmed.has(e.rule.id) && !edits.renamed[e.rule.id]) continue;
+    if (!school && !confirmed.has(e.rule.id) && !edits.renamed[e.rule.id] && !edits.redetailed?.[e.rule.id]) continue;
     examCards[school ? 'common' : cardKeyOf(dept)].items.push({
       id: e.rule.id, title: st.short, head: st.head, full: st.full, detail, rest: '', confirmed: confirmed.has(e.rule.id),
     });
@@ -156,7 +162,9 @@ export function StatusScreen() {
   for (const card of Object.values(examCards)) {
     card.items = card.items.map((i) => {
       const n = edits.renamed[i.id];
-      return n ? { ...i, title: n, head: n, full: n, rest: '' } : i;
+      const d = edits.redetailed?.[i.id];
+      const named = n ? { ...i, title: n, head: n, full: n, rest: '' } : i;
+      return d === undefined ? named : { ...named, detail: d, baseDetail: i.detail };
     });
     for (const x of edits.extraExams.filter((e) => e.card === card.key)) {
       card.items.push({ id: x.id, title: x.title, head: x.title, full: x.title, detail: x.detail, rest: '', confirmed: confirmed.has(x.id), extra: true });
@@ -370,7 +378,11 @@ export function StatusScreen() {
                           </button>
                           <span className="tx">
                             {mode[k] === 'delete' && removedIds.has(it.id) && '복구 · '}{mode[k] === 'edit' ? <NameInput value={it.head} label={`${it.full} 이름`} onCommit={(v) => renameExam(it, v)} /> : it.head}
-                            {it.detail && <span className="sub">{it.detail}</span>}
+                            {mode[k] === 'edit'
+                              ? <NameInput value={it.detail} max={120} label={`${it.full} 합격 기준`} onCommit={(v) => redetailExam(it, v)} />
+                              : it.detail && <span className="sub">{it.detail}{it.baseDetail !== undefined && <span className="contact-checked">내가 수정함</span>}</span>}
+                            {/* 학생이 고쳐도 원래 학교 기준을 함께 둔다 */}
+                            {mode[k] !== 'edit' && it.baseDetail && <span className="sub">원래 기준: {it.baseDetail}</span>}
                             {it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}
                           </span>
                         </li>
@@ -411,12 +423,12 @@ function Panel({ filled, mode, onMode, addLabel, onAdd, children }: {
   );
 }
 
-/** 이름 고치기: 칸을 벗어나거나 Enter를 누르면 저장한다. 비워 두면 원래 이름으로 돌아간다. */
-function NameInput({ value, label, onCommit }: { value: string; label: string; onCommit: (v: string) => void }) {
+/** 이름·요건 고치기: 칸을 벗어나거나 Enter를 누르면 저장한다. 비워 두면 원래 값으로 돌아간다. */
+function NameInput({ value, label, max = 60, onCommit }: { value: string; label: string; max?: number; onCommit: (v: string) => void }) {
   const [v, setV] = useState(value);
   useEffect(() => setV(value), [value]);
   return (
-    <input className="nm-in" aria-label={label} value={v} maxLength={60} spellCheck={false}
+    <input className="nm-in" aria-label={label} value={v} maxLength={max} spellCheck={false}
       onChange={(e) => setV(e.target.value)}
       onBlur={() => { if (v.trim() && v.trim() !== value) onCommit(v); else setV(value); }}
       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
