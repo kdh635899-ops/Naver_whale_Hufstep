@@ -17,6 +17,7 @@ import { emptyEdits, emptyState, type AppState } from '../../src/domain/state';
 import type { CourseExpr, StudentProfile } from '../../src/domain/types';
 import { appStateSchema } from '../../src/domain/validation/schemas';
 import { QuestionsCard } from '../../src/features/academic-status/OfficialSections';
+import { ProfileForm } from '../../src/features/profile/ProfileForm';
 import { StatusScreen } from '../../src/features/academic-status/StatusScreen';
 import { loadState, migrate, saveState } from '../../src/storage/repository';
 import { course, T26_2, TRANSCRIPT_FIXTURE } from '../fixtures';
@@ -407,5 +408,51 @@ describe('LD 학생 조건 입력 안내와 학과 문의 분리', () => {
     const guidance = departmentAssessmentGuides(profile, catalog.officialRules, departmentFacts).map((g) => g.text).join(' ');
     expect(guidance).toContain('2026년 1월 졸업부터');
     expect(guidance).toContain('적용 범위는 학과 안내 확인');
+  });
+});
+
+describe('외국어 특기자 전형: 기본은 아니요, 해당 학생만 직접 켠다', () => {
+  const german = { ...base, primaryDepartmentId: 'seoul-german', cohortYear: 2021 };
+  const courses = (html: string) => {
+    const start = html.indexOf('<section id="st-courses"');
+    return html.slice(start, html.indexOf('</section>', start));
+  };
+  const HINT = '외국어 특기자 등 특별전형으로 입학했다면 전공 정보에서 바꿔 주세요';
+  const germanEval = (p: StudentProfile) => rep(p).evals.find((e) => e.rule.id === 'core-german-primary-2019-2024');
+
+  it('신입학·체크 안 함: 전필 목록을 기본값으로 판정하고 안내 한 줄을 보인다', () => {
+    const profile: StudentProfile = { ...german, facts: {} };
+    const e = germanEval(profile);
+    expect(e?.cls).toBe('confirmed');
+    expect(e?.fallbackFields).toContain('foreignLanguageSpecialAdmission');
+    const leaves = rep(profile).courseRules.filter((x) => x.rule.id === 'core-german-primary-2019-2024')
+      .flatMap((x) => allLeaves(x.rule.courses!));
+    expect(leaves).toHaveLength(4);
+    const html = courses(render({ ...emptyState(), profile }));
+    expect(html).toContain('4과목');
+    expect(html).not.toContain('추가 입력 필요');
+    expect(html).toContain(HINT);
+  });
+
+  it('신입학·체크함: 일반 목록 대신 학과 확인 안내를 보이고 특기자 전용 규칙은 적용한다', () => {
+    const profile: StudentProfile = { ...german, facts: { foreignLanguageSpecialAdmission: true } };
+    expect(germanEval(profile)).toBeUndefined();
+    const html = courses(render({ ...emptyState(), profile }));
+    expect(html).toContain('특별전형 입학생 기준은 학과에 확인해 주세요');
+    expect(html).not.toContain(HINT);
+    // 특기자 전용 규칙은 해당 학과 학생에게 그대로 적용된다
+    const russian = rep({ ...base, primaryDepartmentId: 'seoul-78afe4e5e6', cohortYear: 2021,
+      facts: { foreignLanguageSpecialAdmission: true } });
+    expect(russian.evals.map((x) => x.rule.id)).toContain('remaining-russian-special-course-replacement');
+  });
+
+  it('편입생: 체크박스를 보이지 않고 목록은 기본값 안내 없이 보인다', () => {
+    const profile: StudentProfile = { ...german, entryType: 'transferGeneral', facts: {} };
+    expect(germanEval(profile)?.fallbackFields).not.toContain('foreignLanguageSpecialAdmission');
+    expect(courses(render({ ...emptyState(), profile }))).not.toContain(HINT);
+    expect(render({ ...emptyState(), profile }, () => <ProfileForm onDone={() => {}} submitLabel="저장" />))
+      .not.toContain('외국어 특기자 등 특별전형으로 입학했어요');
+    expect(render({ ...emptyState(), profile: { ...german, facts: {} } }, () => <ProfileForm onDone={() => {}} submitLabel="저장" />))
+      .toContain('외국어 특기자 등 특별전형으로 입학했어요');
   });
 });

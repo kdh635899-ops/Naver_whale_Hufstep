@@ -93,8 +93,11 @@ export function StatusScreen() {
     // 택일에서 선택되지 않은 갈래도 펼쳐서, 학생이 다른 후보를 직접 이수 표시할 수 있다.
     for (const c of p.children ?? n.items.map((node) => ({ node, level: 0 as const }))) walk(c, head ? depth + 1 : depth, out, departmentId);
   };
+  // 외국어 특기자 전형을 기본값(아니요)으로 판정한 목록에만 '바꿔 주세요' 안내를 붙인다 (체크한 학생·편입생은 기본값을 쓰지 않아 빠진다)
+  const specialDefault = new Set<string>();
   for (const cp of courseProgress) {
     const card = cards[cardKeyOf(cp.eval.rule.departmentId)];
+    if (cp.eval.fallbackFields.includes('foreignLanguageSpecialAdmission')) specialDefault.add(card.key);
     walk(cp.root, 0, card.items, cp.eval.rule.departmentId);
     const [m, t] = checklistCount(cp.root, removedIds);
     card.met += m; card.total += t;
@@ -187,6 +190,7 @@ export function StatusScreen() {
     const input = [...new Set(row?.notes.filter((n) => n.kind === 'needsInput').map((n) => n.text))];
     return input?.length ? `확인 필요 · ${input.join(' · ')}` : '확인 필요';
   };
+  const specialAdmission = profile.facts?.foreignLanguageSpecialAdmission === true;
   const inquiry = (key: string, category: 'requiredCourses' | 'departmentAssessment') => {
     const row = coverageFor(key, category);
     if (category === 'departmentAssessment') {
@@ -212,6 +216,12 @@ export function StatusScreen() {
     return <div className="sc-check-hint">{row.notes.some((n) => n.kind === 'needsInput')
       ? emptyMessage(key, category) : <>학과 확인이 필요해요. 현재 자료만으로는 본인에게 적용되는 기준을 확인하기 어려워요. 학과에 문의해 주세요.</>}
       <InquiryContact departmentId={row.departmentId} /></div>;
+  };
+  /** 특별전형으로 입학한 학생에게 전용 목록이 없는 카드: 일반 목록을 적용하지 않고 학과 확인으로 안내한다 */
+  const specialInquiry = (key: string, total: number) => {
+    if (!specialAdmission || total > 0) return null;
+    const departmentId = key === 'primary' ? profile.primaryDepartmentId : key === 'secondary' ? secondary : undefined;
+    return <div className="sc-check-hint">특별전형 입학생 기준은 학과에 확인해 주세요<InquiryContact departmentId={departmentId} /></div>;
   };
   // ---- 상단 요약 ----
   const required = progress.total.required;
@@ -313,7 +323,8 @@ export function StatusScreen() {
                     ))}
                   </Panel>
                 )}
-                {inquiry(c.key, 'requiredCourses')}
+                {specialAdmission && c.total === 0 ? specialInquiry(c.key, c.total) : inquiry(c.key, 'requiredCourses')}
+                {specialDefault.has(c.key) && <p className="sc-check-hint">외국어 특기자 등 특별전형으로 입학했다면 전공 정보에서 바꿔 주세요</p>}
                 {open[k] && c.items.some((it) => it.canCheck) && <p className="sc-check-hint">직접 이수 표시는 취득학점·평점에 더해지지 않아요.</p>}
               </div>
             );

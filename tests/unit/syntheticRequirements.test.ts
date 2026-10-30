@@ -81,10 +81,15 @@ describe('질문 기본값과 직접 답변 우선순위', () => {
     expect(changed.evals.filter((e) => 'entryYear' in e.facts).every((e) => e.facts.entryYear === 2024)).toBe(true);
   });
 
-  it('기본값이 없는 특별전형·졸업 예정 학기 질문은 필수 입력으로 남긴다', () => {
+  it('특별전형은 기본값(아니요)으로 판정하고, 기본값이 없는 졸업 예정 학기는 필수 입력으로 남긴다', () => {
     const freshman = report({ ...SYNTHETIC_PROFILE, facts: {} });
-    expect(freshman.questions.find((q) => q.field === 'foreignLanguageSpecialAdmission')?.optional).not.toBe(true);
-    expect(freshman.questions.some((q) => q.field === 'foreignLanguageSpecialAdmission')).toBe(true);
+    // 외국어 특기자 전형은 해당 학생만 전공 정보에서 켠다. 답하지 않아도 '아니요'로 판정한다.
+    expect(freshman.questions.find((q) => q.field === 'foreignLanguageSpecialAdmission'))
+      .toMatchObject({ optional: true, defaultValue: false });
+    const asksSpecial = freshman.evals.filter((e) => e.cls === 'needsInput' && e.askFields.includes('foreignLanguageSpecialAdmission'));
+    expect(asksSpecial.filter((e) => e.rule.category === 'requiredCourses')).toHaveLength(0);
+    // 졸업평가 기준은 일반학생 기준으로 단정하지 않는다 (GENERAL_ADMISSION_DEFAULTS 밖이라 질문으로 남고, 화면에서는 '학과 확인 필요'로 보인다)
+    expect(asksSpecial.every((e) => ['departmentAssessment', 'commonLanguageCertification'].includes(e.rule.category))).toBe(true);
     const chinese = report({ ...SYNTHETIC_PROFILE, primaryDepartmentId: 'seoul-5f6617f421' });
     expect(chinese.questions.find((q) => q.field === 'graduationTerm')?.optional).not.toBe(true);
     expect(chinese.questions.some((q) => q.field === 'graduationTerm')).toBe(true);

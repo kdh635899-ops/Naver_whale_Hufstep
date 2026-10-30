@@ -86,7 +86,8 @@ export const ASKABLE_FIELDS: Record<string, FieldSpec> = {
   teacherTraining: { label: '교직과정을 이수하나요?', kind: 'bool', fallback: false },
   pureForeignAdmission: { label: '순수외국인 전형으로 입학했나요?', kind: 'bool', fallback: false },
   foreignAdmission: { label: '외국인 전형으로 입학했나요?', kind: 'bool', fallback: false },
-  foreignLanguageSpecialAdmission: { label: '외국어 특기자 등 특별전형으로 입학했나요?', kind: 'bool' },
+  // 기본은 '아니요'. 해당하는 학생만 전공 정보에서 직접 켠다(ProfileForm).
+  foreignLanguageSpecialAdmission: { label: '외국어 특기자 등 특별전형으로 입학했나요?', kind: 'bool', fallback: false },
   northKoreanAdmission: { label: '북한이탈주민 전형으로 입학했나요?', kind: 'bool', fallback: false },
   japanOverseasKoreanAdmission: { label: '재일동포 특별전형으로 입학했나요?', kind: 'bool', fallback: false },
   japaneseNationality: { label: '일본 국적인가요?', kind: 'bool', fallback: false },

@@ -55,6 +55,8 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
   );
   const [secondary, setSecondary] = useState(p?.secondaryDepartmentId ?? '');
   const [year, setYear] = useState<string>(p?.currentYear ? String(p.currentYear) : '');
+  // 외국어 특기자 등 특별전형: 기본은 꺼짐(= 아니요). 신입학에만 해당한다.
+  const [special, setSpecial] = useState(p?.facts?.foreignLanguageSpecialAdmission === true);
   const [error, setError] = useState('');
 
   const allowsSingle = entry === 'transferGeneral' || entry === 'transferBachelor';
@@ -75,13 +77,19 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
     const sec = allowsSecond && secondary ? catalog.departments.find((d) => d.id === secondary) : undefined;
     const why = sec && restricted(sec);
     if (why) return setError(`이 학과는 지금 조건에서 ${role === 'dual' ? '이중전공' : '부전공'}으로 고를 수 없어요: ${why}`);
+    // 전공·학번·전형이 그대로면 이미 답한 조건을 보존한다 (조건이 바뀌면 다시 묻는다)
+    const kept = p?.facts && p.primaryDepartmentId === primary && p.secondaryDepartmentId === (allowsSecond ? secondary || undefined : undefined)
+      && p.cohortYear === cohort && p.entryType === entry && p.programType === program ? p.facts : undefined;
+    const facts = { ...kept };
+    // 체크하면 '예', 해제하면 키를 지워 기본값(아니요)으로 돌린다. 편입생에게는 묻지 않는다.
+    if (entry === 'freshman' && special) facts.foreignLanguageSpecialAdmission = true;
+    else delete facts.foreignLanguageSpecialAdmission;
     const next: StudentProfile = {
       schemaVersion: 1, ...(name.trim() ? { name: name.trim() } : {}), homeCampus: campus, cohortYear: cohort, entryType: entry, primaryDepartmentId: primary,
       programType: program, secondaryDepartmentId: allowsSecond ? secondary || undefined : undefined,
       currentYear: year ? (Number(year) as 1 | 2 | 3 | 4) : undefined,
       currentTerm: p?.currentTerm ?? suggestTerm(now),
-      ...(p?.facts && p.primaryDepartmentId === primary && p.secondaryDepartmentId === (allowsSecond ? secondary || undefined : undefined)
-        && p.cohortYear === cohort && p.entryType === entry && p.programType === program && { facts: p.facts }),
+      ...(Object.keys(facts).length ? { facts } : {}),
     };
     const r = profileSchema.safeParse(next);
     if (!r.success) return setError(firstIssue(r.error));
@@ -147,6 +155,12 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
           {Object.entries(ENTRY_LABEL).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
         </ProfileSelect>
       </label>
+      {entry === 'freshman' && (
+        <label className="check">
+          <input type="checkbox" checked={special} onChange={(e) => setSpecial(e.target.checked)} />
+          외국어 특기자 등 특별전형으로 입학했어요
+        </label>
+      )}
       {error && <p className="error" role="alert">{error}</p>}
       <button type="submit" className="btn cta">{submitLabel}</button>
     </form>
