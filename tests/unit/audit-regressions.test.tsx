@@ -85,7 +85,8 @@ describe('R1: 필요한 학생 입력과 경계값', () => {
         expect(own.flatMap((e) => allLeaves(e.rule.courses!))).toHaveLength(dualSelectionYear <= 2024 ? 1 : dualSelectionYear <= 2026 ? 3 : 0);
       }
     }
-  });
+    // 전 학번·선발연도·졸업학기를 전수 대조해 느리다. 5초 기본값으로는 전체 스위트 병렬 실행에서 간헐 실패했다.
+  }, 30_000);
 });
 
 describe('R2: 미입력과 해당 없음 구분', () => {

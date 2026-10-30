@@ -342,7 +342,8 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' }).locator('.sc-done')).toContainText('이수 완료');
 
   // 졸업 시험 및 요건: 정해진 목록에서 학생이 초록 체크박스로 직접 체크한다.
-  const exam = page.locator('#st-exams .sc').first();
+  // 학과 졸업시험은 안내로만 제공하므로(4d525b3) 목록이 있는 학교 공통 카드에서 검사한다.
+  const exam = page.locator('#st-exams .sc').filter({ hasText: '학교 공통' }).first();
   await exam.locator('.sc-row').click();
   const box = exam.locator('.cbx').first();
   // 체크박스는 글자 왼쪽에 있다
