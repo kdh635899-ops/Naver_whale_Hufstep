@@ -169,6 +169,9 @@ export function factsFor(p: StudentProfile, ctx: RoleContext, dept: (id: string)
   if (own?.campus) f.departmentCampus = own.campus;
   const primaryName = dept(p.primaryDepartmentId)?.name;
   if (primaryName) f.primaryMajorName = primaryName;
+  const primaryCollege = dept(p.primaryDepartmentId)?.college;
+  if (primaryName) f.primaryMajorIsEnglish = /영어|영문|영미|English|TESOL|ELLT|EICC/i.test(primaryName) || /영어/.test(primaryCollege ?? '');
+  if (primaryCollege) f.primaryMajorCollegeIsEnglishCollege = /영어/.test(primaryCollege);
   // 이중전공이 아니면 이중전공 소속 대학은 '해당 없음'
   if (p.programType !== 'double') f.dualMajorCollege = null;
   else if (p.secondaryDepartmentId && dept(p.secondaryDepartmentId)?.college) f.dualMajorCollege = dept(p.secondaryDepartmentId)!.college!;

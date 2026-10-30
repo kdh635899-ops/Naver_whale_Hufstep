@@ -80,7 +80,8 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
       programType: program, secondaryDepartmentId: allowsSecond ? secondary || undefined : undefined,
       currentYear: year ? (Number(year) as 1 | 2 | 3 | 4) : undefined,
       currentTerm: p?.currentTerm ?? suggestTerm(now),
-      ...(p?.facts && { facts: p.facts }), // 추가 조건 답은 조건을 바꿔도 유지 (필요 없어진 답은 쓰이지 않음)
+      ...(p?.facts && p.primaryDepartmentId === primary && p.secondaryDepartmentId === (allowsSecond ? secondary || undefined : undefined)
+        && p.cohortYear === cohort && p.entryType === entry && p.programType === program && { facts: p.facts }),
     };
     const r = profileSchema.safeParse(next);
     if (!r.success) return setError(firstIssue(r.error));

@@ -394,20 +394,18 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await primary.locator('button.sc-done').first().click();
   await expect(primary.locator('.sc-row span').first()).toContainText(`${met0}/`);
 
-  // 졸업 요건 구분을 새로 만들고, 그 안에 시험 정보를 더한다
-  await page.getByRole('button', { name: '졸업 요건 추가하기' }).click();
-  const kind = page.getByRole('dialog', { name: '졸업 요건 구분' });
-  await kind.getByRole('radio', { name: '공통' }).click();
-  await kind.getByRole('button', { name: '해당 구분 추가하기' }).click();
-  const fresh = page.locator('#st-exams .sc').last(); // 새로 만든 구분은 맨 아래에 붙는다
-  await expect(fresh).toContainText('확인할 시험이 없어요');
+  // 기존 전공 카드 안에 시험 정보를 더한다
+  await expect(page.getByRole('button', { name: '졸업 요건 추가하기' })).toHaveCount(0);
+  const fresh = page.locator('#st-exams .sc').first();
+  await fresh.locator('.sc-row').click();
   await fresh.getByRole('button', { name: '졸업 시험 추가하기' }).click();
   const exm = page.getByRole('dialog', { name: '졸업 시험 추가' });
   await exm.getByLabel('시험명').fill('FLEX');
   await exm.getByLabel('점수 요건').fill('600점 이상');
   await exm.getByRole('button', { name: '해당 시험 정보 추가하기' }).click();
-  await expect(fresh.locator('.sc-item')).toContainText('FLEX');
-  await expect(fresh.locator('.sc-item .sub')).toHaveText('600점 이상');
+  const addedExam = fresh.locator('.sc-item').filter({ hasText: 'FLEX' });
+  await expect(addedExam).toContainText('FLEX');
+  await expect(addedExam.locator('.sub')).toHaveText('600점 이상');
   await fresh.getByRole('button', { name: '이름 고치기' }).click();
   const examName = fresh.getByLabel('FLEX 이름');
   await examName.fill('이름을 고친 FLEX');
@@ -415,7 +413,7 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(examName).toHaveValue('이름을 고친 FLEX');
   await fresh.getByRole('button', { name: '지우기' }).click();
   await fresh.getByRole('checkbox', { name: '이름을 고친 FLEX 삭제' }).click();
-  await expect(fresh.locator('.sc-item')).toHaveCount(0);
+  await expect(fresh.locator('.sc-item').filter({ hasText: '이름을 고친 FLEX' })).toHaveCount(0);
 });
 
 test('학점 계산: 평점 카드·학년 탭·이번 학기 카드에서 예상 등급을 넣으면 예상 누적 평점이 나온다', async () => {

@@ -12,12 +12,12 @@ describe('필수 질문의 답을 전공에서 정하기', () => {
     expect(assumeAnswers(qs, { name: '영어통번역학부', college: '영어대학' })).toEqual({ primaryMajorIsEnglish: true, primaryMajorCollegeIsEnglishCollege: true });
     expect(assumeAnswers(qs, { name: '말레이·인도네시아어과', college: '동양어대학' })).toEqual({ primaryMajorIsEnglish: false, primaryMajorCollegeIsEnglishCollege: false });
   });
-  it('졸업인증 언어는 학과명에 든 언어, 없으면 해당 없음(null)', () => {
+  it('졸업인증 언어는 학과명에 든 언어, 확인되지 않으면 미입력 유지', () => {
     expect(assumeAnswers([lang], { name: '중국어과' })).toEqual({ certificationLanguage: 'Chinese' });
-    expect(assumeAnswers([lang], { name: '말레이·인도네시아어과' })).toEqual({ certificationLanguage: null });
+    expect(assumeAnswers([lang], { name: '말레이·인도네시아어과' })).toEqual({});
   });
-  it('나머지 예/아니요 질문(특별전형 등)은 아니요로 가정한다', () => {
-    expect(assumeAnswers([bool('foreignLanguageSpecialAdmission')], { name: '독일어과' })).toEqual({ foreignLanguageSpecialAdmission: false });
+  it('확인하지 않은 특별전형 답은 만들어내지 않는다', () => {
+    expect(assumeAnswers([bool('foreignLanguageSpecialAdmission')], { name: '독일어과' })).toEqual({});
   });
   it('기본값이 있는 질문(optional)은 건드리지 않는다', () => {
     expect(assumeAnswers([{ ...bool('teacherTraining'), optional: true }], { name: '독일어과' })).toEqual({});

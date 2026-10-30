@@ -78,7 +78,8 @@ export function calculateScenario(
   const base = effectiveCourses(courses);
   const isMajor = (c: Course) => c.area === 'primary';
   const summarize = (list: Course[]) => ({
-    gpa: computeGpa(list, summary, completeness.gpa),
+    // 요약 평점과 GPA 대상 학점이 있으면 상세 내역 없이도 누적 평점을 추정할 수 있다.
+    gpa: computeGpa(list, summary, completeness.gpa || !!summary),
     majorGpa: computeGpa(list.filter(isMajor), undefined, completeness.gpa),
     earned: earnedUnits(list),
   });
@@ -125,7 +126,8 @@ export function calculateScenario(
     ? projectedList.filter((c) => sameTerm(c.term, scenario.term) && (scenarioIds.has(c.id) || c.status === 'completed'))
     : [];
   const projected = summarize(projectedList);
-  const termGpa = computeGpa(termCourses, undefined, completeness.gpa);
+  // 이번 학기 평점은 과거 성적 자료의 누락 여부와 관계없이 계산한다.
+  const termGpa = computeGpa(termCourses);
   // 연결을 확인할 수 없는 재수강이 있으면 일부 과목만 계산한 값을 완성된 예상 평점으로 내보내지 않는다.
   if (errors.length) for (const gpa of [projected.gpa, projected.majorGpa, termGpa]) {
     gpa.hundredths = null; gpa.complete = false;

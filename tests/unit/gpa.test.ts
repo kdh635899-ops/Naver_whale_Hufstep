@@ -56,6 +56,22 @@ describe('평점 계산 (정수)', () => {
     expect(g.hundredths).toBe(350);
     expect(computeGpa([course({ grade: 'A0' })]).estimated).toBe(false);
   });
+  it('과거 상세 성적이 없어도 요약 평점과 대상 학점으로 예상 누적 평점을 추정한다', () => {
+    const now = course({ status: 'inProgress', term: T26_2 });
+    const result = calculateScenario([now], scenario([{ courseId: now.id, expectedGrade: 'A+' }]),
+      { hundredths: 300, gpaUnits: 3000 }, { earnedTotals: true, courses: false, gpa: false });
+    expect(result.baseline.gpa).toMatchObject({ hundredths: 300, estimated: true });
+    expect(result.projected.gpa).toMatchObject({ hundredths: 313, estimated: true });
+    expect(result.termGpa.hundredths).toBe(450);
+    expect(result.completeness.courses).toBe(false);
+  });
+  it('과거 평점을 모르면 누적 평점은 보류하되 이번 학기 예상 평점은 계산한다', () => {
+    const now = course({ status: 'inProgress', term: T26_2 });
+    const result = calculateScenario([now], scenario([{ courseId: now.id, expectedGrade: 'A0' }]),
+      undefined, { earnedTotals: true, courses: false, gpa: false });
+    expect(result.projected.gpa.hundredths).toBeNull();
+    expect(result.termGpa.hundredths).toBe(400);
+  });
 });
 
 describe('재수강·예상 시나리오', () => {

@@ -41,12 +41,11 @@ export function defaultAnswers(profile: StudentProfile, rules: OfficialRule[], d
   const defaults: Facts = Object.fromEntries(Object.entries(ASKABLE_FIELDS)
     .filter(([, spec]) => spec.fallback !== undefined).map(([field, spec]) => [field, spec.fallback!]));
   const transfer = profile.entryType !== 'freshman';
-  defaults.entryTerm = `${profile.cohortYear + (transfer ? 2 : 0)}-1`;
-  if (transfer) defaults.transferEntryGrade = 3;
+  if (!transfer) defaults.entryTerm = `${profile.cohortYear}-1`;
   const colleges = new Set<Scalar>();
   for (const rule of rules) if (rule.condition) condValues(rule.condition, 'studentCollegeAtEntry', colleges);
   const college = dept(profile.primaryDepartmentId)?.college;
-  defaults.studentCollegeAtEntry = college && colleges.has(college) ? college : null;
+  if (college) defaults.studentCollegeAtEntry = colleges.has(college) ? college : null;
   return defaults;
 }
 
@@ -112,7 +111,7 @@ export function evaluateRules(
       : best.r.value === true || perCourse ? 'confirmed'
         : unaskableFields.length || best.r.blockers.length ? 'unsupported' : 'needsInput';
     out.push({
-      rule, scope: rule.departmentId ? best.ctx.scope : 'common', role: best.ctx.role, applies: best.r.value, cls,
+      rule, scope: rule.category === 'commonLanguageCertification' ? 'common' : rule.departmentId ? best.ctx.scope : 'common', role: best.ctx.role, applies: best.r.value, cls,
       askFields, unaskableFields: perCourse ? [] : unaskableFields, blockers: best.r.blockers, perCourse, facts: best.facts,
       fallbackFields: best.fallbackFields,
     });
@@ -136,6 +135,7 @@ export function buildQuestions(evals: RuleEval[], allRules: OfficialRule[], used
   const byField = new Map<string, string[]>([...usedDefaults].map(([f, d]) => [f, d.ruleIds]));
   const optional = new Set<string>(usedDefaults.keys());
   for (const e of evals) {
+    if (e.rule.type === 'commonLanguageCertificationOption') continue;
     for (const f of e.fallbackFields) { optional.add(f); byField.set(f, [...(byField.get(f) ?? []), e.rule.id]); }
     // 전필은 원문 미확정 조항이 함께 있어도, 목록 선택에 필요한 답을 먼저 받는다.
     if (e.cls !== 'needsInput' && !(e.rule.category === 'requiredCourses' && e.askFields.length)) continue;
@@ -148,7 +148,7 @@ export function buildQuestions(evals: RuleEval[], allRules: OfficialRule[], used
     if (spec.kind === 'bool') options = [{ value: true, label: '예' }, { value: false, label: '아니요' }];
     if (spec.kind === 'choice') {
       const vals = new Set<Scalar>();
-      for (const r of allRules) if (r.condition) condValues(r.condition, field, vals);
+      for (const r of allRules) if (ruleIds.includes(r.id) && r.condition) condValues(r.condition, field, vals);
       options = [...vals].filter((v) => v !== null).map((v) => ({ value: v, label: (OPTION_LABEL[field] ?? String)(v) }));
       options.push({ value: null, label: '목록에 없음 / 해당 없음' });
     }
@@ -167,9 +167,8 @@ const CORE_OF: Record<string, CoreCategory> = {
 };
 const coreOf = (r: OfficialRule): CoreCategory | undefined => {
   if (r.type === 'commonLanguageCertificationOption') return undefined;
-  const c = CORE_OF[r.category];
-  // 학과별 어학 요건은 그 전공의 졸업평가·인증 항목으로 본다
-  return c === 'languageCertification' && r.departmentId ? 'departmentAssessment' : c;
+  // 학교 공통 어학인증은 학과별 보충 근거가 있어도 학교 공통으로 분류한다.
+  return CORE_OF[r.category];
 };
 const noneCore = (cat: string): CoreCategory | undefined => (cat === 'commonLanguageCertification' ? 'languageCertification' : CORE_OF[cat]);
 
@@ -248,7 +247,10 @@ const ROLE_WORD: Record<string, string> = { primary: '주전공', dualMajor: '�
 const koreanRoles = (t: string) => t.replace(/(^|[\s:,·])(primary|dualMajor|dual|minor)(?=[\s:,·]|$)/g, (_, pre, w) => pre + ROLE_WORD[w]);
 /** 화면에 보일 규칙 이름. 원문 제목이 없으면 내부 ID 대신 '학과명 + 요건 종류'로 만든다. */
 export const ruleTitle = (r: OfficialRule, departmentName?: string): string =>
-  r.title ? koreanRoles(r.title).replace(/^20\d{2}\s+/, '')
+  r.category === 'commonLanguageCertification' && r.type === 'commonLanguageCertification'
+    ? (r.detail as { language?: string } | null)?.language === 'English' ? '영어 졸업인증'
+      : (r.detail as { language?: string } | null)?.language === 'nonEnglish' ? '기타언어 인증' : '외국어 졸업인증'
+    : r.title ? koreanRoles(r.title).replace(/^20\d{2}\s+/, '').replace(/([—–])\s*[a-z][a-z0-9-]+$/i, `$1 ${CATEGORY_TITLE[r.category] ?? '졸업요건'}`)
     : [departmentName ?? (r.departmentId ? '' : '학교 공통'), CATEGORY_TITLE[r.category] ?? '졸업 관련 규정'].filter(Boolean).join(' ');
 
 export function noteFrom(e: RuleEval, deptName: (id: string) => string | undefined): CoverageNote {
@@ -257,7 +259,7 @@ export function noteFrom(e: RuleEval, deptName: (id: string) => string | undefin
     : ruleTitle(e.rule, e.rule.departmentId ? deptName(e.rule.departmentId) : undefined);
   const kind: NoteKind = e.cls === 'needsInput' ? 'needsInput' : e.cls === 'unsupported' ? 'unsupported' : 'unconfirmed';
   const why = kind === 'needsInput'
-    ? `추가 입력 필요: ${e.askFields.map((f) => ASKABLE_FIELDS[f].label).join(', ')}`
+    ? `${e.askFields.some((f) => !f.startsWith('approved')) ? '추가 입력 필요' : '면제·승인 여부 확인 필요'}: ${e.askFields.map((f) => ASKABLE_FIELDS[f].label).join(', ')}`
     : kind === 'unsupported'
       ? [e.blockers.length ? `원문 미확정 조건: ${e.blockers.join(' / ')}` : '', e.unaskableFields.length ? `앱이 아직 입력받지 못하는 조건: ${e.unaskableFields.join(', ')}` : ''].filter(Boolean).join(' · ')
       : `${e.rule.status === 'conflict' ? '근거 충돌' : '조사 미확정'}: ${e.rule.reasons.join(' / ') || e.rule.note || '학교 확인 필요'}`;
@@ -505,7 +507,19 @@ export function leafDisplay(p: NodeProgress): { mark: '○' | '✓'; selfChecked
 
 const parseTerm = (s: string): Term => ({ academicYear: Number(s.slice(0, 4)), semester: s.slice(5) as Term['semester'] });
 
+/** 코드가 재사용돼도 사전 허가가 필요한 새 과목은 자동으로 원과목이 되지 않는다. */
+export function replacementNeedsPermission(report: OfficialReport | null, leaf: CourseLeaf, departmentId: string | null, takenName?: string): boolean {
+  return !!report?.evals.some((e) => {
+    const d = e.rule.detail as { requiresPriorDepartmentPermission?: boolean; automaticRecognition?: boolean;
+      pairs?: { original: string; replacement: string }[] } | null;
+    return e.rule.departmentId === departmentId && d?.requiresPriorDepartmentPermission === true && d.automaticRecognition === false
+      && d.pairs?.some((pair) => normalizeCourseName(pair.original) === normalizeCourseName(leaf.name)
+        && (!takenName || normalizeCourseName(pair.replacement) === normalizeCourseName(takenName)));
+  });
+}
+
 export interface CourseMatchContext {
+  excludedLeafIds?: Iterable<string>;
   /** 기존 필수 묶음에서 이미 쓴 과목 (한 과목은 한 요건에만 쓴다) */
   alreadyUsed?: Iterable<string>;
   /** 학과 ID → 학과명·별칭. 코드 없는 요건을 '개설학과 + 과목명'으로 대조할 때 쓴다. */
@@ -524,13 +538,14 @@ export interface CourseMatchContext {
 export function evaluateCourseRules(
   report: OfficialReport, courses: Course[], snapshot: AcademicSnapshot | null, ctx: CourseMatchContext = {},
 ): CourseRuleProgress[] {
-  const { alreadyUsed = [], dept, confirmedLeafIds = [] } = ctx;
+  const { alreadyUsed = [], dept, confirmedLeafIds = [], excludedLeafIds = [] } = ctx;
+  const excluded = new Set(excludedLeafIds);
   const selfConfirmed = new Set(confirmedLeafIds);
   const deptKey = (id: string) => {
     const d = dept?.(id);
     return new Set(d ? [d.name, ...d.aliases].map(normalizeCourseName) : []);
   };
-  const earned = effectiveCourses(courses).filter((c) => c.earnedInclusion === 'included');
+  const earned = effectiveCourses(courses).filter((c) => c.origin !== 'timetable' && c.status === 'completed' && c.earnedInclusion === 'included');
   const useReported = !!snapshot && !snapshot.completeness.courses && snapshot.completeness.earnedTotals;
   const hasRecords = courses.length > 0 || !!snapshot;
   const confirmedIds = new Set(report.evals.filter((e) => e.cls === 'confirmed').map((e) => e.rule.id));
@@ -547,15 +562,17 @@ export function evaluateCourseRules(
     (c.offeringDepartmentName ? deptKey(departmentId).has(normalizeCourseName(c.offeringDepartmentName)) : c.area === AREA_OF_ROLE[role]);
 
   const matchLeaf = (leaf: CourseLeaf, departmentId: string | null, allowStudent: boolean, role: MajorRole): NodeProgress => {
+    if (excluded.has(leaf.id)) return { node: leaf, level: 0, state: 'unmet' };
     if (leaf.waiverRuleIds?.some((id) => confirmedIds.has(id))) return { node: leaf, level: 2, state: 'waived' };
     const take = (c: Course | undefined, state: LeafState, level: 1 | 2): NodeProgress | null =>
       c ? (used.add(c.id), { node: leaf, level, state, courseId: c.id }) : null;
     const free = earned.filter((c) => !used.has(c.id));
+    const automatic = free.filter((c) => !replacementNeedsPermission(report, leaf, departmentId, c.name));
     if (leaf.code) {
-      const direct = take(free.find((c) => c.officialCode === leaf.code), 'met', 2);
+      const direct = take(automatic.find((c) => c.officialCode === leaf.code), 'met', 2);
       if (direct) return direct;
       const rel = subs.filter((s) => (s.departmentId === null || s.departmentId === departmentId) && s.from.includes(leaf.code!));
-      const viaSub = free.find((c) => c.officialCode && rel.some((s) => s.to.includes(c.officialCode!)
+      const viaSub = automatic.find((c) => c.officialCode && rel.some((s) => s.to.includes(c.officialCode!)
         && (!s.fromTerm || compareTerms(c.term, parseTerm(s.fromTerm)) >= 0) && subAppliesTo(s.eval, c)));
       const sub = take(viaSub, 'substituted', 2);
       if (sub) return sub;
@@ -563,7 +580,7 @@ export function evaluateCourseRules(
     // 코드가 없는 요건: 개설학과가 같고 정규화한 과목명이 같으면 자동 이수
     if (!leaf.code && departmentId) {
       const names = [leaf.name, ...(leaf.identicalNames ?? [])].map(normalizeCourseName);
-      const byName = free.find((c) => fromSameDepartment(c, departmentId, role) && names.includes(normalizeCourseName(c.name)));
+      const byName = automatic.find((c) => fromSameDepartment(c, departmentId, role) && names.includes(normalizeCourseName(c.name)));
       const hit = take(byName, 'nameMatched', 2);
       if (hit) return hit;
     }

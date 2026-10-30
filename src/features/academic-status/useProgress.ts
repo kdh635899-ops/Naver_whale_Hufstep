@@ -19,5 +19,10 @@ export function useProgress() {
       confirmedLeafIds: state.certConfirmations.map((c) => c.requirementId),
     })
     : []), [report, courses, snap, resolved, progress, state.certConfirmations]);
-  return { snap, progress, courseProgress };
+  const checklistProgress = useMemo(() => report ? evaluateCourseRules(report, courses, snap, {
+    alreadyUsed: resolved?.allowCourseReuseAcrossGroups ? [] : progress.groups.flatMap((g) => g.matchedCourseIds),
+    dept: departmentById, confirmedLeafIds: state.certConfirmations.map((c) => c.requirementId),
+    excludedLeafIds: state.statusEdits?.removed,
+  }) : [], [report, courses, snap, resolved, progress, state.certConfirmations, state.statusEdits]);
+  return { snap, progress, courseProgress, checklistProgress };
 }

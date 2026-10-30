@@ -211,7 +211,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "eicc-required-2025:group-0",
+    "id": "eicc-required-2025/g-b529eb794463d109",
     "title": "통번역기초실습(1) / 통번역기초실습(2)",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -226,7 +226,7 @@
     ]
    },
    {
-    "id": "eicc-required-2025:group-1",
+    "id": "eicc-required-2025/g-a7a03dec73d2be63",
     "title": "번역강독과실습(1) / 번역강독과실습(2)",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -241,7 +241,7 @@
     ]
    },
    {
-    "id": "eicc-required-2025:group-2",
+    "id": "eicc-required-2025/g-6f8a40cfd9ae8279",
     "title": "한영통역(1) / 한영통역(2)",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -295,7 +295,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "eicc-required-2025:group-0",
+    "id": "eicc-required-2025/g-b529eb794463d109",
     "title": "통번역기초실습(1) / 통번역기초실습(2)",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -310,7 +310,7 @@
     ]
    },
    {
-    "id": "eicc-required-2025:group-1",
+    "id": "eicc-required-2025/g-a7a03dec73d2be63",
     "title": "번역강독과실습(1) / 번역강독과실습(2)",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -325,7 +325,7 @@
     ]
    },
    {
-    "id": "eicc-required-2025:group-2",
+    "id": "eicc-required-2025/g-6f8a40cfd9ae8279",
     "title": "한영통역(1) / 한영통역(2)",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -376,7 +376,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "kle-required-2025:group-0",
+    "id": "kle-required-2025/g-f7a009d9a3212621",
     "title": "국어교육론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -389,7 +389,7 @@
     ]
    },
    {
-    "id": "kle-required-2025:group-1",
+    "id": "kle-required-2025/g-dc5925e8b5531c6b",
     "title": "국어학개론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -402,7 +402,7 @@
     ]
    },
    {
-    "id": "kle-required-2025:group-2",
+    "id": "kle-required-2025/g-35b39a45258805cf",
     "title": "국문학개론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -450,7 +450,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "kle-required-2025:group-0",
+    "id": "kle-required-2025/g-f7a009d9a3212621",
     "title": "국어교육론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -463,7 +463,7 @@
     ]
    },
    {
-    "id": "kle-required-2025:group-1",
+    "id": "kle-required-2025/g-dc5925e8b5531c6b",
     "title": "국어학개론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -476,7 +476,7 @@
     ]
    },
    {
-    "id": "kle-required-2025:group-2",
+    "id": "kle-required-2025/g-35b39a45258805cf",
     "title": "국문학개론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -527,7 +527,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "kle-required-2025:group-0",
+    "id": "kle-required-2025/g-f7a009d9a3212621",
     "title": "국어교육론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -540,7 +540,7 @@
     ]
    },
    {
-    "id": "kle-required-2025:group-1",
+    "id": "kle-required-2025/g-dc5925e8b5531c6b",
     "title": "국어학개론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -553,7 +553,7 @@
     ]
    },
    {
-    "id": "kle-required-2025:group-2",
+    "id": "kle-required-2025/g-35b39a45258805cf",
     "title": "국문학개론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -732,7 +732,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-education-False:group-0",
+    "id": "extended-kfl-dual-education-False/g-1ba62e9f5066d566",
     "title": "(KFL학부)한국어교육입문",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -776,7 +776,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-education-False:group-0",
+    "id": "extended-kfl-dual-education-False/g-1ba62e9f5066d566",
     "title": "(KFL학부)한국어교육입문",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -820,7 +820,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-education-True:group-0",
+    "id": "extended-kfl-dual-education-True/g-4dc513b1a2309efc",
     "title": "(KFL학부)한국어학의이해",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -864,7 +864,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-education-True:group-0",
+    "id": "extended-kfl-dual-education-True/g-4dc513b1a2309efc",
     "title": "(KFL학부)한국어학의이해",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -908,7 +908,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-translation-False:group-0",
+    "id": "extended-kfl-dual-translation-False/g-0421f2482cab73be",
     "title": "(KFL학부)한국어통번역입문",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -952,7 +952,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-translation-False:group-0",
+    "id": "extended-kfl-dual-translation-False/g-0421f2482cab73be",
     "title": "(KFL학부)한국어통번역입문",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -996,7 +996,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-translation-True:group-0",
+    "id": "extended-kfl-dual-translation-True/g-0421f2482cab73be",
     "title": "(KFL학부)한국어통번역입문",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1040,7 +1040,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "extended-kfl-dual-translation-True:group-0",
+    "id": "extended-kfl-dual-translation-True/g-0421f2482cab73be",
     "title": "(KFL학부)한국어통번역입문",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1177,7 +1177,7 @@
   "requiredUnitsByArea": {},
   "requiredCourseGroups": [
    {
-    "id": "batch-climate-required-2025-2026:group-0",
+    "id": "batch-climate-required-2025-2026/g-0b9cc0c1fb94fef4",
     "title": "기후경제학원론",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1191,7 +1191,7 @@
     ]
    },
    {
-    "id": "batch-climate-required-2025-2026:group-1",
+    "id": "batch-climate-required-2025-2026/g-560b9d247254d5c8",
     "title": "기후변화개론1",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1205,7 +1205,7 @@
     ]
    },
    {
-    "id": "batch-climate-required-2025-2026:group-2",
+    "id": "batch-climate-required-2025-2026/g-e804bcb04dbd082d",
     "title": "기후변화개론2",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1219,7 +1219,7 @@
     ]
    },
    {
-    "id": "batch-climate-required-2025-2026:group-3",
+    "id": "batch-climate-required-2025-2026/g-0214a2c6f015757e",
     "title": "기후변화의통계분석",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1233,7 +1233,7 @@
     ]
    },
    {
-    "id": "batch-climate-required-2025-2026:group-4",
+    "id": "batch-climate-required-2025-2026/g-9b8e6f570b4cfe7b",
     "title": "기후시스템의이해",
     "minCount": 1,
     "acceptableCourseCodes": [
@@ -1247,7 +1247,7 @@
     ]
    },
    {
-    "id": "batch-climate-required-2025-2026:group-5",
+    "id": "batch-climate-required-2025-2026/g-730b5bc607ba7e98",
     "title": "에너지시스템개론",
     "minCount": 1,
     "acceptableCourseCodes": [

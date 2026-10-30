@@ -5,7 +5,7 @@ import { catalog, departmentFacts, departmentMetaById } from '../../src/data';
 import { emptyState } from '../../src/domain/state';
 import { buildOfficialReport, evaluateCourseRules } from '../../src/domain/requirements/officialRules';
 import type { OfficialRule, StudentProfile } from '../../src/domain/types';
-import { CoverageCard, CourseRulesBlock, InquiryContact, RuleItemsCard } from '../../src/features/academic-status/OfficialSections';
+import { CoverageCard, CourseRulesBlock, InquiryContact, QuestionsCard, RuleItemsCard } from '../../src/features/academic-status/OfficialSections';
 import { CourseEditor } from '../../src/features/courses/CourseEditor';
 import { course } from '../fixtures';
 
@@ -32,6 +32,29 @@ function setup(rules = [rule('one')]) {
   vi.mocked(useStore).mockReturnValue(store);
   return store;
 }
+
+describe('학생 조건 입력 범위', () => {
+  it.each(['seoul-ba8cdb1563', 'global-6cf78c9ee7', 'seoul-9603b1d647', 'seoul-business'])('전형·통계 이수 질문은 숨기고 저장된 답은 보존: %s', (secondaryDepartmentId) => {
+    const store = setup();
+    const p: StudentProfile = { ...profile, cohortYear: 2024, homeCampus: secondaryDepartmentId.startsWith('global') ? 'global' : 'seoul',
+      primaryDepartmentId: secondaryDepartmentId.startsWith('global') ? 'global-dd521d15b1' : 'seoul-malay-indonesian',
+      programType: 'double', secondaryDepartmentId, entryType: secondaryDepartmentId === 'seoul-business' ? 'transferGeneral' : 'freshman',
+      facts: { foreignLanguageSpecialAdmission: true, statisticsPractice1Completed: true } };
+    store.state.profile = p;
+    store.report = buildOfficialReport({ profile: p, bundles: catalog.bundles, rules: catalog.officialRules, supportGaps: catalog.supportGaps, dept: departmentFacts, meta: departmentMetaById });
+    const before = JSON.stringify(p);
+    const html = renderToStaticMarkup(<QuestionsCard />);
+    expect(html).not.toContain('특별전형으로 입학');
+    expect(html).not.toContain('통계 실습(1) 과목을 이수');
+    expect(html).not.toContain('통계 실습(2) 과목을 이수');
+    expect(html).not.toContain('통계학개론을 이수');
+    expect(JSON.stringify(p)).toBe(before);
+    if (secondaryDepartmentId === 'seoul-ba8cdb1563' || secondaryDepartmentId === 'global-6cf78c9ee7') expect(html).toContain('이중전공을 선택(배정)받은 연도');
+    if (secondaryDepartmentId === 'seoul-9603b1d647') expect(html).toContain('학위 과정');
+    expect(html).not.toContain('편입 학년');
+    expect(html).not.toContain('입학(편입학) 학기');
+  });
+});
 
 describe('과목 편집기를 실제 React HTML로 렌더링', () => {
   it('일치 하나는 선택 목록 없이 자동 연결 안내를 보여 준다', () => {
@@ -63,6 +86,16 @@ describe('과목 편집기를 실제 React HTML로 렌더링', () => {
     expect(html).toContain('공식 규칙으로 필수과목에 매칭된 과목이에요');
     expect(html).not.toContain('이 과목은 전공필수예요');
   });
+  it('직접 추가 과목의 표시명이 바뀌어도 기존 과목 편집기의 명시적 연결을 유지한다', () => {
+    const store = setup();
+    store.state.statusEdits!.extraCourses = [{ id: 'xc-linked', card: 'primary', name: '바꾼 표시명' }];
+    store.state.courses = [course({ id: 'linked', name: '원래 성적 이름', grade: 'A0', requirementLinks: ['xc-linked'], requiredClaim: 'studentMarked' })];
+    store.editor = { courseId: 'linked' };
+    const html = renderToStaticMarkup(<CourseEditor />);
+    expect(html).toContain('바꾼 표시명 요건에 연결했어요');
+    expect(html).not.toContain('연결할 요건이 없어요');
+    expect(store.state.courses[0].requirementLinks).toEqual(['xc-linked']);
+  });
   it('학생 연결은 체크된 해제 버튼과 ✓를 함께 렌더링한다', () => {
     const store = setup();
     store.state.courses = [course({ grade: 'A0', requirementLinks: ['one/leaf'], requiredClaim: 'studentMarked' })];
@@ -92,7 +125,10 @@ describe('문의 안내와 기존 접기 구조를 실제 React HTML로 렌더�
     expect(html).toContain('tel:0221732415');
     expect(html).toContain('mailto:mgl@hufs.ac.kr');
     expect(html).toContain('정확한 기준은 학과에 확인할 수 있어요');
-    expect(html).not.toMatch(/https?:|checkedAt|2026-10-25/);
+    const contact = departmentMetaById(id)?.contact;
+    expect(html).toContain(`href="${contact?.graduationPageUrl || contact?.homepageUrl}"`);
+    expect(html).toContain('학과 공식 안내');
+    expect(html).not.toMatch(/checkedAt|2026-10-25/);
     store.state.profile = { ...profile, homeCampus: 'global' };
     const fallback = renderToStaticMarkup(<InquiryContact />);
     expect(fallback).toContain('tel:0313304114');
@@ -109,5 +145,26 @@ describe('문의 안내와 기존 접기 구조를 실제 React HTML로 렌더�
     expect(html).toContain('학과 졸업논문 통과');
     expect(html).toContain('<details class="req-block"><summary><b>참고 규정 1개');
     expect(html).not.toContain('출처:');
+  });
+});
+
+
+describe('팀원 UI 유지: 편입 추가 입력 숨김', () => {
+  it.each(['transferGeneral', 'transferBachelor'] as const)('%s 미입력·기존 입력 상태에서도 편입 입력란은 표시하지 않는다', (entryType) => {
+    const variants: NonNullable<StudentProfile['facts']>[] = [{}, { entryTerm: '2024-2', transferEntryGrade: 2 }];
+    for (const facts of variants) {
+      const p: StudentProfile = { ...profile, primaryDepartmentId: 'seoul-malay-indonesian',
+        programType: 'double', secondaryDepartmentId: 'seoul-business', entryType, facts };
+      const state = { ...emptyState(), profile: p };
+      const before = JSON.stringify(state);
+      const report = buildOfficialReport({ profile: p, bundles: catalog.bundles, rules: catalog.officialRules,
+        supportGaps: catalog.supportGaps, dept: departmentFacts, meta: departmentMetaById });
+      vi.mocked(useStore).mockReturnValue({ state, report, resolved: report.resolved } as unknown as ReturnType<typeof useStore>);
+      const html = renderToStaticMarkup(<QuestionsCard />);
+      expect(html).not.toContain('편입 학년');
+      expect(html).not.toContain('입학(편입학) 학기');
+      expect(JSON.stringify(state)).toBe(before);
+      if (!('entryTerm' in facts)) expect(report.questions.some((q) => q.field === 'entryTerm')).toBe(true);
+    }
   });
 });

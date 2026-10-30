@@ -54,14 +54,15 @@ describe('합성 성적표 반영과 평점 판정', () => {
 });
 
 describe('질문 기본값과 직접 답변 우선순위', () => {
-  it('예외 질문 기본값과 가상 편입 사례의 입학 학기를 계산한다', () => {
+  it('일반 예외 기본값은 유지하고 편입학기와 편입학년은 추정하지 않는다', () => {
     const defaults = defaultAnswers({ ...SYNTHETIC_PROFILE, entryType: 'transferBachelor' }, catalog.officialRules, departmentFacts);
     for (const field of ['teacherTraining', 'pureForeignAdmission', 'foreignAdmission', 'northKoreanAdmission',
       'japanOverseasKoreanAdmission', 'japaneseNationality', 'militaryCommissioned', 'approvedDisabilityCertificationWaiver']) {
       expect(ASKABLE_FIELDS[field].fallback).toBe(false);
       expect(defaults[field]).toBe(false);
     }
-    expect(defaults).toMatchObject({ entryTerm: '2026-1', transferEntryGrade: 3 });
+    expect(defaults).not.toHaveProperty('entryTerm');
+    expect(defaults).not.toHaveProperty('transferEntryGrade');
     expect(defaultAnswers({ ...SYNTHETIC_PROFILE, entryType: 'freshman' }, catalog.officialRules, departmentFacts))
       .toMatchObject({ entryTerm: '2024-1' });
     expect(defaultAnswers(SYNTHETIC_PROFILE, catalog.officialRules, () => ({ college: '선택지에 없는 대학' })).studentCollegeAtEntry).toBeNull();
@@ -69,8 +70,10 @@ describe('질문 기본값과 직접 답변 우선순위', () => {
 
   it('사용한 기본값만 보여 주고 학생 답으로 바꾸면 새 규칙을 선택한다', () => {
     const rep = report({ ...SYNTHETIC_PROFILE, entryType: 'transferBachelor' });
-    expect(rep.questions.find((q) => q.field === 'entryTerm')).toMatchObject({ optional: true, defaultValue: '2026-1' });
-    expect(rep.questions.find((q) => q.field === 'transferEntryGrade')).toMatchObject({ optional: true, defaultValue: 3 });
+    expect(rep.questions.find((q) => q.field === 'entryTerm')).toMatchObject({ field: 'entryTerm', spec: { kind: 'term' } });
+    expect(rep.questions.find((q) => q.field === 'entryTerm')).not.toHaveProperty('defaultValue');
+    expect(rep.questions.find((q) => q.field === 'transferEntryGrade')).toMatchObject({ field: 'transferEntryGrade', spec: { kind: 'choice' } });
+    expect(rep.questions.find((q) => q.field === 'transferEntryGrade')).not.toHaveProperty('defaultValue');
     expect(rep.questions.some((q) => q.field === 'graduationTerm')).toBe(false);
     const changed = report({ ...SYNTHETIC_PROFILE, facts: { entryTerm: '2024-2', transferEntryGrade: 2, approvedRequiredCourseWaiver: true } });
     expect(changed.courseRules.map((e) => e.rule.id)).not.toContain('core-malay-primary-2022-2026');

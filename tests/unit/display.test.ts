@@ -177,20 +177,20 @@ describe('학교 확인이 필요한 요건: 접힌 한 줄 분류 + 문의처',
     expect(row.determinable).toBe(false);
     expect(note.text).not.toContain('미충족');
   });
-  it('펼친 쪽은 네 경우 모두 같은 첫 줄과 전화·메일만 보여 준다 (날짜·링크 없음)', () => {
+  it('기존 문의 위치에서 전화·메일과 확인된 공식 링크를 제공한다', () => {
     expect(OFFICIAL_SECTIONS).toContain('정확한 기준은 학과에 확인할 수 있어요');
     expect(OFFICIAL_SECTIONS).toContain('문의 전화');
     expect(OFFICIAL_SECTIONS).toContain('문의 메일');
     expect(OFFICIAL_SECTIONS).toContain('tel:');
     expect(OFFICIAL_SECTIONS).toContain('mailto:');
     expect(OFFICIAL_SECTIONS).toContain('(학교 대표)');
-    // 확인일·졸업요건 페이지·학과 홈페이지 링크는 넣지 않는다
+    // 공식 링크는 확인된 메타데이터만 사용하고 수집일은 노출하지 않는다.
     expect(OFFICIAL_SECTIONS).not.toContain('졸업요건 페이지');
     expect(OFFICIAL_SECTIONS).not.toContain('학과에 확인하세요');
-    expect(OFFICIAL_SECTIONS).not.toContain('graduationPageUrl');
+    expect(INQUIRY_CONTACT).toContain('contact.graduationPageUrl || contact.homepageUrl');
     // 문의처 컴포넌트 안에서만 (남겨 둔 Sources 컴포넌트는 확인일을 계속 쓴다)
     expect(INQUIRY_CONTACT).not.toContain('checkedAt');
-    expect(INQUIRY_CONTACT).not.toContain('homepageUrl');
+    expect(INQUIRY_CONTACT).toContain('학과 공식 안내');
   });
   it('부전공 적용 여부가 불명확하면 미이수가 아니라 "해당 없음"으로 둔다', () => {
     expect(OFFICIAL_SECTIONS).toContain("note.notApplicable || note.kind === 'schoolDefault'");
@@ -302,9 +302,10 @@ describe('이미 끝난 작업은 그대로 남아 있다', () => {
     expect(ASSESSMENTS).not.toContain('시간 미정'); // Figma에 없는 칩은 두지 않는다
   });
   it('학사현황: 기본값 접기·졸업시험/논문 표기·참고 규정 접기', () => {
-    expect(OFFICIAL_SECTIONS).toContain('기본값으로 계산했어요 · 다르면 수정');
-    expect(OFFICIAL_SECTIONS).toContain("departmentExamPassed: '학과 졸업시험 통과'");
-    expect(OFFICIAL_SECTIONS).toContain("departmentThesisPassed: '학과 졸업논문 통과'");
+    expect(OFFICIAL_SECTIONS).toContain('<option value="">미정</option>');
+    expect(OFFICIAL_SECTIONS).toContain('ProfileSelect');
+    expect(readFileSync('src/domain/requirements/assessment.ts', 'utf8')).toContain("departmentExamPassed: '학과 졸업시험 통과'");
+    expect(readFileSync('src/domain/requirements/assessment.ts', 'utf8')).toContain("departmentThesisPassed: '학과 졸업논문 통과'");
     expect(OFFICIAL_SECTIONS).toContain("'참고 규정'");
   });
 });

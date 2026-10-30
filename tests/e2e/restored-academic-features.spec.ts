@@ -11,7 +11,8 @@ async function seed(page: Page, pastName = '합성 이전 성적', pastGrade: Gr
   const state = emptyState();
   state.profile = { schemaVersion: 1, homeCampus: 'seoul', cohortYear: 2024, entryType: 'freshman',
     primaryDepartmentId: 'seoul-malay-indonesian', programType: 'double', secondaryDepartmentId: 'seoul-business',
-    currentYear: 3, currentTerm: { academicYear: 2026, semester: '2' } };
+    currentYear: 3, currentTerm: { academicYear: 2026, semester: '2' },
+    facts: { foreignLanguageSpecialAdmission: false, pureForeignAdmission: false } };
   state.courses = [course({ id: 'past', name: pastName, officialCode: pastName === '지역과지역학' ? 'B03131' : undefined,
     grade: pastGrade, term: { academicYear: 2025, semester: '1' } })];
   state.consent.academicData = { version: CONSENT_VERSION, at: '2026-10-29T03:00:00Z' };
@@ -53,7 +54,7 @@ test('필수과목 이수 → 과목 수 갱신 → 재접속 유지 → 취소,
   await expect(primary.locator('.sc-row')).toHaveText('0/11과목');
   await check.click();
   await expect(check).toHaveAttribute('aria-pressed', 'true');
-  await expect(check).toHaveText('이수 완료');
+  await expect(check).toHaveText('이수 완료 · 직접 확인');
   await expect(primary.locator('.sc-row')).toHaveText('1/11과목');
   await expect(page.locator('.remain-card .got')).toHaveText(earned);
   expect((await readState(page)).courses).toHaveLength(1);

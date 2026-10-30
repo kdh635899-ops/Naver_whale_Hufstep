@@ -158,6 +158,12 @@ export const appStateSchema: z.ZodType<AppState> = z.object({
   scenarios: z.array(scenarioSchema).max(100),
   certConfirmations: z.array(z.object({ requirementId: id, confirmedAt: isoStr })).max(500),
   statusEdits: statusEditsSchema.optional(),
+  statusEditContext: z.string().max(10000).optional(),
+  statusEditContexts: z.record(z.string().max(10000), z.object({
+    edits: statusEditsSchema,
+    confirmations: z.array(z.object({ requirementId: id, confirmedAt: isoStr })).max(500),
+    links: z.record(id, z.array(z.string().max(300))),
+  })).optional(),
   settings: z.object({
     notifications: notificationSettings,
     lastView: z.enum(['records', 'status', 'assessments', 'calculator', 'mypage']),

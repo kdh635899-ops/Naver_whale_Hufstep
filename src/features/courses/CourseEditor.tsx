@@ -4,7 +4,7 @@ import { useStore } from '../../app/store';
 import { catalog, departmentName } from '../../data';
 import { deriveInclusion, LETTER_GRADES } from '../../domain/grades';
 import { dropCourseRefs, MERGE_FIELDS } from '../../domain/merge/mergeImport';
-import { autoLinkTargets, linkableLeaves } from '../../domain/requirements/officialRules';
+import { autoLinkTargets, normalizeCourseName } from '../../domain/requirements/officialRules';
 import { autoProjectedRetake, initialReplacesCourseId, retakeCandidates } from '../../domain/retake';
 import { gradeCourses, newId } from '../../domain/state';
 import { formatUnits, termLabel, toUnits } from '../../domain/terms';
@@ -42,13 +42,18 @@ export function CourseEditor() {
   const [isRetake, setIsRetake] = useState(init.isRetake ?? !!replaces);
   const timetableOnly = init.origin === 'timetable';
   // 체크 한 번으로 끝내기 위해, 과목명과 이름이 맞는 요건(leaf)을 그때그때 찾는다
-  const matches = useMemo(() => autoLinkTargets(report, name, departmentName), [report, name]);
+  const matches = useMemo(() => [
+    ...autoLinkTargets(report, name, departmentName),
+    ...(state.statusEdits?.extraCourses ?? []).filter((x) => normalizeCourseName(x.name) === normalizeCourseName(name)
+      || init.requirementLinks?.includes(x.id)).map((x) => ({
+      leaf: { op: 'course' as const, id: x.id, code: null, name: x.name, creditUnits: null, matching: 'studentConfirmation' as const },
+      ruleTitle: '직접 추가한 필수과목',
+    })),
+  ], [report, name, state.statusEdits, init.requirementLinks]);
   // 과목명을 바꾸면 이전 이름에 연결했던 요건을 저장하지 않는다.
   const autoLinkId = matches.length === 1 ? matches[0].leaf.id : '';
   const effectiveLink = required ? (matches.some((m) => m.leaf.id === link) ? link : autoLinkId) : '';
-  const linkedName = useMemo(() => (effectiveLink
-    ? linkableLeaves(report, departmentName).find((l) => l.leaf.id === effectiveLink)?.leaf.name
-    : undefined), [report, effectiveLink]);
+  const linkedName = matches.find((m) => m.leaf.id === effectiveLink)?.leaf.name;
   const candidates = retakeCandidates(gradeCourses(state.courses), { id: existing?.id, name, term: { academicYear: Number(year), semester: sem } });
   const [error, setError] = useState('');
   const close = () => openEditor(null);

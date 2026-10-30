@@ -6,6 +6,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { correctTermScope } from './term-scope.mjs';
+import { stableCourseId, stableGroupId } from './requirement-ids.mjs';
 
 const DEFAULT_SRC = 'C:/Users/USER/Documents/Codex/2026-10-13/files-pasted-by-the-user-c/outputs/app-import';
 const args = process.argv.slice(2);
@@ -23,6 +24,9 @@ const manifest = read(SRC, 'integration-manifest.json');
 // ---- 1) 앱 형식 배열 6종: 학과 별칭만 등록부의 명시된 관계로 보완 ----
 const ARRAYS = ['departments.json', 'requirement-bundles.json', 'course-equivalences.json', 'grading-policies.json', 'academic-calendars.json', 'sources.json'];
 const out = Object.fromEntries(ARRAYS.map((f) => [f, read(SRC, f)]));
+for (const bundle of out['requirement-bundles.json']) {
+  bundle.requiredCourseGroups = bundle.requiredCourseGroups.map((g) => ({ ...g, id: stableGroupId(bundle.id, g) }));
+}
 
 const majors = read(dirname(SRC), 'major-registry.json').majors;
 const majorsById = new Map(majors.map((m) => [m.majorId, m]));
@@ -76,11 +80,11 @@ const collectSourceIds = (o, acc = new Set()) => {
 const sanitize = (o) => (o == null ? null : JSON.parse(JSON.stringify(o, (k, v) => (NOISE.test(k) ? undefined : v))));
 
 /** 필수과목 식: ALL/OR/AT_LEAST 중첩과 과목 잎을 그대로 유지한다. 학점은 이미 ×100 정수(creditUnits). */
-function convertExpr(e, ruleId, path = 'r') {
+function convertExpr(e, ruleId, path = '') {
   if (!e) return null;
   if (e.type === 'course') {
     return {
-      op: 'course', id: `${ruleId}/${path}`, code: e.courseCode ?? null, name: e.courseName,
+      op: 'course', id: stableCourseId(ruleId, e.courseCode, e.courseName, path), code: e.courseCode ?? null, name: e.courseName,
       creditUnits: e.creditUnits ?? null,
       matching: e.matchingMode === 'studentConfirmation' || !e.courseCode ? 'studentConfirmation' : 'code',
       ...(e.waiverRuleIds?.length && { waiverRuleIds: e.waiverRuleIds }),
@@ -90,7 +94,7 @@ function convertExpr(e, ruleId, path = 'r') {
   if (!['ALL', 'OR', 'AT_LEAST'].includes(e.op)) throw new Error(`${ruleId}: 알 수 없는 과목 식 ${e.op ?? e.type}`);
   return {
     op: e.op, ...(e.op === 'AT_LEAST' && { count: e.count }),
-    items: e.items.map((x, i) => convertExpr(x, ruleId, `${path}.${i}`)),
+    items: e.items.map((x) => convertExpr(x, ruleId, `${path}/${e.op}${e.op === 'AT_LEAST' ? e.count : ''}`)),
   };
 }
 
@@ -134,6 +138,7 @@ function noneFor(req) {
   if (t === 'requiredCoursePolicy' && req.requiresMajorRequiredCourses === false) cats.add('requiredCourses');
   if ((t === 'assessmentRequired' && req.required === false) || (t === 'departmentAssessment' && req.explicitNoRequirement)) cats.add('departmentAssessment');
   if (t === 'explicitNoAssessment' && req.explicitNoRequirement) cats.add('departmentAssessment');
+  if (t === 'explicitRequirementRemoval' && req.required === false) cats.add('departmentAssessment');
   if (t === 'explicitDepartmentExemption') {
     if (req.requiredCoursesRequired === false) cats.add('requiredCourses');
     const flags = Object.entries(req).filter(([k, v]) => /Required$/.test(k) && k !== 'requiredCoursesRequired' && typeof v === 'boolean');
@@ -230,6 +235,14 @@ for (const rec of manifest.records) {
 }
 
 const idMap = manifest.idMap;
+// 배열 순서로 구분할 수밖에 없는 중복이 새로 들어오면 잘못된 연결을 만들지 않고 가져오기를 중단한다.
+function checkLeafIds(node, seen = new Set()) {
+  if (node.op === 'course') {
+    if (seen.has(node.id)) throw new Error(`개인 편집을 안전하게 연결할 수 없는 중복 과목: ${node.id}`);
+    seen.add(node.id);
+  } else node.items.forEach((child) => checkLeafIds(child, seen));
+}
+for (const rule of rules) if (rule.courses) checkLeafIds(rule.courses);
 const mapId = (id) => (id ? idMap[id] ?? id : null);
 const officialRules = {
   dataVersion: manifest.dataVersion,

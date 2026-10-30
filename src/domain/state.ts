@@ -30,6 +30,8 @@ export interface AppState {
   certConfirmations: { requirementId: string; confirmedAt: string }[];
   /** 학사 현황 02·03을 학생이 고친 내용 (없으면 고친 것이 없는 상태) */
   statusEdits?: StatusEdits;
+  statusEditContext?: string;
+  statusEditContexts?: Record<string, { edits: StatusEdits; confirmations: AppState['certConfirmations']; links: Record<string, string[]> }>;
   settings: { notifications: NotificationSettings; lastView: View };
   /** 동의 이력은 버전·시각만 */
   consent: { academicData?: { version: string; at: string }; notifications?: { version: string; at: string } };
@@ -60,7 +62,7 @@ export function emptyState(): AppState {
 
 /** 학업정보만 지우기 (조건·설정은 유지). 알림 예약은 background가 상태를 보고 정리한다. */
 export function withoutAcademicData(s: AppState): AppState {
-  return { ...s, courses: [], snapshots: [], assessments: [], completions: [], courseMemos: [], classTimes: [], scenarios: [], certConfirmations: [], statusEdits: emptyEdits() };
+  return { ...s, courses: [], snapshots: [], assessments: [], completions: [], courseMemos: [], classTimes: [], scenarios: [], certConfirmations: [], statusEdits: emptyEdits(), statusEditContext: undefined, statusEditContexts: {} };
 }
 
 export const newId = (prefix: string) => `${prefix}_${crypto.randomUUID()}`;

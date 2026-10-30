@@ -81,6 +81,12 @@ export function CalculatorScreen() {
         </section>
       </div>
 
+      {hasScenario && !r.errors.length && (
+        !r.projected.gpa.complete
+          ? <p className="term-hint" role="status">기존 성적 자료가 불완전해 예상 누적 평점을 계산할 수 없어요. 종정시에서 전체 성적을 다시 붙여 넣어 주세요. 이번 학기 예상 평점은 아래 학기 카드에서 확인할 수 있어요.</p>
+          : r.projected.gpa.estimated && <p className="term-hint">예상 누적 평점은 기존 요약 평점과 평점 계산 대상 학점을 바탕으로 추정한 값이에요.</p>
+      )}
+
       <div className="pill-tabs" role="group" aria-label="학년 선택" style={{ marginTop: 24 }}>
         {YEARS.map((y) => (
           <button key={y} type="button" aria-pressed={yearSel === y} onClick={() => setYearSel(y)}>{y}학년</button>

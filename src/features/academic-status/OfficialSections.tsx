@@ -1,13 +1,15 @@
 // 학사현황의 공식 규칙 부분: 판정 범위 → 기본값 없는 질문 → 계산 결과 → 접힌 기본값 수정란.
 // 확정·학생 입력 필요·조사 미확정·앱 미지원·요건 없음 명시를 서로 다른 상태로 보여준다.
+import { briefAssessment, describeAssessment } from '../../domain/requirements/assessment';
 import { useState } from 'react';
 import { useStore } from '../../app/store';
-import { departmentById, departmentMetaById, departmentName, sourceById } from '../../data';
-import { ASKABLE_FIELDS, type Scalar } from '../../domain/requirements/conditions';
-import { leafDisplay, linkableLeaves, normalizeCourseName, noteFrom, ruleTitle, type CoreCategory, type CoverageNote, type CoverageRow, type CourseRuleProgress, type NodeProgress, type NoteKind, type Question, type RuleEval } from '../../domain/requirements/officialRules';
+import { catalog, departmentById, departmentFacts, departmentMetaById, departmentName, sourceById } from '../../data';
+import { type Scalar } from '../../domain/requirements/conditions';
+import { buildQuestions, evaluateRules, leafDisplay, linkableLeaves, normalizeCourseName, noteFrom, ruleTitle, type CoreCategory, type CoverageNote, type CoverageRow, type CourseRuleProgress, type NodeProgress, type NoteKind, type Question, type RuleEval } from '../../domain/requirements/officialRules';
 import { profileSchema } from '../../domain/validation/schemas';
 import type { CampusId, CourseExpr, Course } from '../../domain/types';
 import { SafeLink } from '../common';
+import { ProfileSelect } from '../profile/ProfileSelect';
 
 const CORE_LABEL: Record<CoverageRow['category'], string> = {
   credits: '졸업 학점 (총·영역)', requiredCourses: '필수과목', departmentAssessment: '졸업평가·학과 인증', languageCertification: '학교 외국어 졸업인증',
@@ -57,6 +59,7 @@ export function InquiryContact({ departmentId }: { departmentId?: string }) {
       <p className="small">정확한 기준은 학과에 확인할 수 있어요</p>
       <p className="small">문의 전화 <a href={`tel:${phone.replace(/[^\d+]/g, '')}`}>{phone}</a>{schoolMain && ' (학교 대표)'}</p>
       {contact?.email && <p className="small">문의 메일 <a href={`mailto:${contact.email}`}>{contact.email}</a></p>}
+      {(contact?.graduationPageUrl || contact?.homepageUrl) && <p className="small"><SafeLink href={(contact.graduationPageUrl || contact.homepageUrl)!}>학과 공식 안내</SafeLink></p>}
     </div>
   );
 }
@@ -152,101 +155,66 @@ export function CoverageCard() {
   );
 }
 
-const TERM_YEARS = Array.from({ length: 18 }, (_, i) => 2015 + i);
+const TERM_YEARS = Array.from({ length: 41 }, (_, i) => 2000 + i);
 
-function QuestionInput({ q, onAnswer }: { q: Question; onAnswer: (v: Scalar) => void }) {
-  const [year, setYear] = useState('');
-  if (q.spec.kind === 'term') {
-    return (
-      <span className="row">
-        <select aria-label={`${q.spec.label} 연도`} value={year} onChange={(e) => setYear(e.target.value)}>
-          <option value="">연도</option>
-          {TERM_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-        </select>
-        <select aria-label={`${q.spec.label} 학기`} value="" disabled={!year} onChange={(e) => e.target.value && onAnswer(`${year}-${e.target.value}`)}>
-          <option value="">학기</option>
-          <option value="1">1학기</option>
-          <option value="2">2학기</option>
-        </select>
-      </span>
-    );
-  }
-  if (q.spec.kind === 'year') {
-    return (
-      <select aria-label={q.spec.label} value="" onChange={(e) => e.target.value && onAnswer(Number(e.target.value))}>
-        <option value="">연도 선택</option>
-        {TERM_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
-      </select>
-    );
-  }
-  return (
-    <select aria-label={q.spec.label} value="" onChange={(e) => e.target.value !== '' && onAnswer(q.options[Number(e.target.value)].value)}>
-      <option value="">선택</option>
-      {q.options.map((o, i) => <option key={i} value={i}>{o.label}</option>)}
-    </select>
-  );
+function QuestionInput({ q, value, onAnswer }: { q: Question; value: Scalar | undefined; onAnswer: (v: Scalar | undefined) => void }) {
+  const term = typeof value === 'string' ? value.split('-') : [];
+  const [year, setYear] = useState(term[0] ?? '');
+  if (q.spec.kind === 'term') return <span className="row">
+    <ProfileSelect downward={false} aria-label={`${q.spec.label} 연도`} value={year} onChange={(e) => {
+      setYear(e.target.value); onAnswer(e.target.value && term[1] ? `${e.target.value}-${term[1]}` : undefined);
+    }}>
+      <option value="">미정</option>{TERM_YEARS.map((y) => <option key={y} value={y}>{y}년</option>)}
+    </ProfileSelect>
+    <ProfileSelect downward={false} aria-label={`${q.spec.label} 학기`} value={term[1] ?? ''} disabled={!year}
+      onChange={(e) => onAnswer(e.target.value ? `${year}-${e.target.value}` : undefined)}>
+      <option value="">미정</option><option value="1">1학기</option><option value="2">2학기</option>
+    </ProfileSelect>
+  </span>;
+  if (q.spec.kind === 'year') return <ProfileSelect downward={false} aria-label={q.spec.label} value={value === undefined ? '' : String(value)}
+    onChange={(e) => onAnswer(e.target.value ? Number(e.target.value) : undefined)}>
+    <option value="">미정</option>{TERM_YEARS.map((y) => <option key={y} value={y}>{y}년</option>)}
+  </ProfileSelect>;
+  const index = q.options.findIndex((o) => o.value === value);
+  return <ProfileSelect downward={false} aria-label={q.spec.label} value={index < 0 ? '' : String(index)}
+    onChange={(e) => onAnswer(e.target.value === '' ? undefined : q.options[Number(e.target.value)].value)}>
+    <option value="">미정</option>{q.options.map((o, i) => <option key={i} value={i}>{o.label}</option>)}
+  </ProfileSelect>;
 }
 
-const showFact = (v: Scalar) => (v === true ? '예' : v === false ? '아니요' : v === null ? '해당 없음' : String(v));
-
-/** 해당 규칙이 요구하는 추가 조건만 묻는다. 답은 학생 조건(profile.facts)에 저장하고 언제든 지울 수 있다. */
-export function QuestionsCard({ defaults = false }: { defaults?: boolean }) {
+/** 선택에 필요한 질문만 기존 입력 스타일로 표시한다. 답한 뒤에도 같은 자리에서 수정한다. */
+export function QuestionsCard() {
   const { report, state, save } = useStore();
   const [error, setError] = useState('');
-  const facts = state.profile?.facts ?? {};
-  const answered = Object.entries(facts).filter(([k]) => k in ASKABLE_FIELDS);
-  if (!report || (!report.questions.length && !answered.length)) return null;
-  const required = report.questions.filter((q) => !q.optional).length;
-  const questions = report.questions.filter((q) => !!q.optional === defaults);
-  if (defaults ? !questions.length && !answered.length : !required) return null;
-
+  if (!report || !state.profile) return null;
+  const facts = state.profile.facts ?? {};
+  const selectionRules = catalog.officialRules.filter((r) => r.category !== 'departmentAssessment');
+  const initial = buildQuestions(evaluateRules({ ...state.profile, facts: {} }, selectionRules, departmentFacts), selectionRules);
+  const current = buildQuestions(report.evals.filter((e) => e.rule.category !== 'departmentAssessment'), selectionRules);
+  // 입학 전형·과목 이수 예외는 목록 선택용 입력으로 묻지 않고, 저장된 답과 규칙은 보존한다.
+  // 편입 학년·입학 학기는 화면에서 묻지 않는다. 기존 답과 내부 규칙은 보존한다.
+  const hidden = new Set(['transferEntryGrade', 'entryTerm', 'primaryMajorIsEnglish', 'primaryMajorCollegeIsEnglishCollege',
+    'foreignLanguageSpecialAdmission', 'pureForeignAdmission', 'statisticsIntroCompleted',
+    'statisticsPractice1Completed', 'statisticsPractice2Completed', 'statisticsPracticeCompletedBeforeIntroOffering']);
+  const questions = [...new Map([...current, ...initial].filter((q) => !q.optional && !hidden.has(q.field)
+    && !q.field.startsWith('approved')).map((q) => [q.field, q])).values()];
+  if (!questions.length) return null;
   const setFact = async (field: string, value: Scalar | undefined) => {
-    const p = state.profile!;
-    const next = { ...(p.facts ?? {}) };
+    const next = { ...facts };
     if (value === undefined) delete next[field]; else next[field] = value;
-    const r = profileSchema.safeParse({ ...p, facts: next });
+    const r = profileSchema.safeParse({ ...state.profile, facts: next });
     if (!r.success) return setError('답을 저장하지 못했어요. 다시 골라 주세요.');
     setError('');
     await save((s) => ({ ...s, profile: r.data }));
   };
-
-  const content = <>
-      {!defaults && <p className="muted small">지금 조건에 해당할 수 있는 규칙을 고르려면 아래 정보가 필요해요. 입력하기 전에는 해당 규칙을 적용하지도, 제외하지도 않아요.</p>}
-      <ul className="plain">
-        {questions.map((q) => (
-          <li key={q.field} className="req-block">
-            <p><b>{q.spec.label}</b>{q.optional && <span className="small"> · 현재: {q.options.find((o) => o.value === q.defaultValue)?.label ?? showFact(q.defaultValue ?? null)}</span>}</p>
-            {q.spec.help && <p className="muted small">{q.spec.help}</p>}
-            <QuestionInput q={q} onAnswer={(v) => void setFact(q.field, v)} />
-          </li>
-        ))}
-      </ul>
-      {defaults && answered.length > 0 && (
-        <details>
-          <summary className="small">내가 입력한 추가 조건 {answered.length}개</summary>
-          <ul className="plain small">
-            {answered.map(([k, v]) => (
-              <li key={k} className="row-between">
-                <span>{ASKABLE_FIELDS[k].label}: <b>{showFact(v)}</b></span>
-                <button type="button" className="link" onClick={() => void setFact(k, undefined)}>답 지우기</button>
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      {error && <p className="error" role="alert">{error}</p>}
-  </>;
-  return defaults ? (
-    <details className="card" data-testid="default-answers">
-      <summary>기본값으로 계산했어요 · 다르면 수정</summary>
-      {content}
-    </details>
-  ) : (
-    <section className="card" aria-labelledby="questions-title">
-      <h2 id="questions-title" className="h3">추가 입력 필요 {required}개</h2>
-      {content}
-    </section>
-  );
+  return <div className="form fig-form">
+    {questions.map((q) => <label className="field" key={q.field}>{q.spec.label}
+      <QuestionInput q={q} value={facts[q.field]} onAnswer={(v) => void setFact(q.field, v)} />
+      {q.spec.help && <span className="small muted">{q.spec.help}</span>}
+      {facts[q.field] === undefined && <span className="small">{q.spec.label} 확인 필요</span>}
+    </label>)}
+    {error && <p className="error" role="alert">{error}</p>}
+  </div>;
 }
 
 // ---- 필수과목 식 ----
@@ -333,53 +301,9 @@ export function CourseRulesBlock({ progress, courses }: { progress: CourseRulePr
 // ---- 졸업평가·인증·기타 확정 항목 ----
 
 /** 원문 요건 식을 읽기 쉬운 한 줄로 (원래 단위 그대로: 학점·점수·개월) */
-export function describe(x: unknown): string {
-  if (x == null) return '';
-  if (typeof x !== 'object') return String(x);
-  if (Array.isArray(x)) return x.map(describe).filter(Boolean).join(', ');
-  const o = x as Record<string, unknown>;
-  if (o.op === 'OR' && Array.isArray(o.items)
-    && o.items.length === 2 && o.items.every((i) => ['departmentExamPassed', 'departmentThesisPassed'].includes(i?.type))) {
-    return '학과 졸업시험 또는 졸업논문 통과';
-  }
-  if (o.op === 'OR' && Array.isArray(o.items)) return `다음 중 하나 [${o.items.map(describe).join(' / ')}]`;
-  if ((o.op === 'AND' || o.op === 'ALL') && Array.isArray(o.items)) return o.items.map(describe).join(' + ');
-  if (o.op === 'AT_LEAST' && Array.isArray(o.items)) return `${o.count}개 이상 [${o.items.map(describe).join(' / ')}]`;
-  const labels: Record<string, string> = { departmentExamPassed: '학과 졸업시험 통과', departmentThesisPassed: '학과 졸업논문 통과' };
-  const name = o.testName ?? o.name ?? o.courseName ?? o.exam ?? labels[String(o.type)] ?? o.type;
-  const th = o.threshold as { value?: unknown } | undefined;
-  const bits = [name, th?.value != null ? `${o.operator ?? '≥'} ${th.value}` : '', o.minimumGrade ? `${o.minimumGrade} 이상` : ''];
-  return bits.filter(Boolean).join(' ');
-}
-
-/** 식 없이 점수·시험과목으로 제공된 기준도 화면에 보여 준다. */
+export const describe = describeAssessment;
 export function assessmentCriteria(detail: Record<string, unknown> | null | undefined): string {
-  if (!detail) return '';
-  if (detail.expression) return describe(detail.expression);
-  if (detail.normalMinimumScore != null) return `${detail.exam ?? '졸업시험'} ${detail.normalMinimumScore}점 이상`
-    + (detail.reducedMinimumScore != null ? ` · 9학기 이상 등록하고 졸업시험 재응시 시 ${detail.reducedMinimumScore}점 이상 (최초 응시는 일반 기준)` : '');
-  const parts: string[] = [];
-  const value = (x: unknown) => x && typeof x === 'object' ? (x as { value?: unknown }).value : x;
-  const test = detail.testName ?? detail.test ?? detail.exam;
-  const score = value(detail.threshold ?? detail.minimumScore ?? detail.passScore);
-  if (test) parts.push(`${test}${score != null ? ` ${score}점 이상` : ''}`);
-  else if (score != null) parts.push(`${score}점 이상`);
-  for (const [key, label] of [['subjects', '시험 과목'], ['requiredSubjects', '필수 과목'], ['electiveSubjects', '선택 과목'],
-    ['subjectChoice', '선택 과목'], ['selectFrom', '선택 과목'], ['components', '평가 영역']] as const) {
-    if (Array.isArray(detail[key])) parts.push(`${label}: ${(detail[key] as string[]).join(', ')}`);
-  }
-  if (detail.minimumEachScore) parts.push(`과목별 ${value(detail.minimumEachScore)}점 이상`);
-  if (detail.minimumMeanScore) parts.push(`평균 ${value(detail.minimumMeanScore)}점 이상`);
-  if (typeof detail.passRule === 'string') parts.push(detail.passRule);
-  else if (detail.passRule && typeof detail.passRule === 'object') {
-    const rule = detail.passRule as { perSubjectMin?: number; averageMin?: number };
-    if (rule.perSubjectMin != null) parts.push(`과목별 ${rule.perSubjectMin}점 이상`);
-    if (rule.averageMin != null) parts.push(`평균 ${rule.averageMin}점 이상`);
-  }
-  if (detail.minimumGrade) parts.push(`통과 등급 ${detail.minimumGrade} 이상`);
-  if (detail.flexThreshold) parts.push(`FLEX ${value(detail.flexThreshold)}점 이상`);
-  // 해석하지 않은 내부 type 이름을 학생에게 그대로 보여 주지 않는다.
-  return parts.join(' · ') || (typeof detail.unknownReason === 'string' ? detail.unknownReason : '세부 기준은 학과 공지를 확인해 주세요.');
+  return detail ? briefAssessment(detail) : '';
 }
 
 const CONFIRMABLE = new Set(['departmentAssessment', 'commonLanguageCertification']);
