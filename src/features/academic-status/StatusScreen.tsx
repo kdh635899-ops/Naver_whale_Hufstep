@@ -14,7 +14,7 @@ import { emptyEdits, newId } from '../../domain/state';
 import { formatUnits } from '../../domain/terms';
 import { timetableRequirementStates } from '../../domain/timetableStatus';
 import type { BoxKind, BundleScope, CertificationRequirement, CourseExpr, StatusEdits } from '../../domain/types';
-import { AREA_LABEL, CAMPUS_LABEL, ENTRY_LABEL, SafeLink } from '../common';
+import { AREA_LABEL, CAMPUS_LABEL, ENTRY_LABEL, Confirm, SafeLink } from '../common';
 import { FieldPrompt } from './AddPrompt';
 import { assessmentCriteria, InquiryContact, QuestionsCard } from './OfficialSections';
 import { useProgress } from './useProgress';
@@ -42,6 +42,7 @@ export function StatusScreen() {
   const linkedExtras = linkedChecklistIds(state.courses);
   const [mode, setMode] = useState<Record<string, 'edit' | 'delete' | undefined>>({});
   const [prompt, setPrompt] = useState<{ kind: 'course' | 'exam'; card: string } | null>(null);
+  const [askDel, setAskDel] = useState<{ kind: 'course'; it: ReqItem } | { kind: 'exam'; it: ExamItem } | null>(null); // 삭제 확인 창
   const toggleMode = (k: string, m: 'edit' | 'delete') => setMode((o) => ({ ...o, [k]: o[k] === m ? undefined : m }));
   const setEdits = (fn: (e: StatusEdits) => StatusEdits) =>
     save((s) => ({ ...s, statusEdits: fn(s.statusEdits ?? emptyEdits()) }));
@@ -316,7 +317,7 @@ export function StatusScreen() {
                             {mode[k] === 'edit'
                               ? <NameInput value={it.label} label={`${it.label} 이름`} onCommit={(v) => renameCourse(it, v)} />
                               : <span className="tx">{it.label}{it.note && <span className="sub">{it.note}</span>}</span>}
-                            {mode[k] === 'delete' ? <button type="button" className="sc-pill del" aria-label={`${it.label} ${removedIds.has(it.id) ? '복구' : '삭제'}`} onClick={() => removeCourse(it)}>{removedIds.has(it.id) ? '복구' : '삭제'}</button> : (
+                            {mode[k] === 'delete' ? <button type="button" className="sc-pill del" aria-label={`${it.label} ${removedIds.has(it.id) ? '복구' : '삭제'}`} onClick={() => (removedIds.has(it.id) ? removeCourse(it) : setAskDel({ kind: 'course', it }))}>{removedIds.has(it.id) ? '복구' : '삭제'}</button> : (
                             <span className="sc-course-status">
                             {it.attending && <span className="sc-state todo sc-attending"><i className="icon ic-dash" aria-hidden="true" />{it.attending.isRetake ? '재수강 중' : '수강 중'}</span>}
                             {it.canCheck ? (
@@ -351,7 +352,7 @@ export function StatusScreen() {
             {examList.map((c) => {
               const active = c.items.filter((it) => !removedIds.has(it.id));
               const has = active.length > 0;
-              const done = has && active.every((i) => i.confirmed);
+              const done = has && active.some((i) => i.confirmed); // 하나만 충족해도 졸업 가능한 학과가 있어 하나만 체크해도 이수
               const k = `exam:${c.key}`;
               return (
                 <div key={c.key} className="sc">
@@ -359,7 +360,7 @@ export function StatusScreen() {
                     <p className="who">{c.who}</p>
                     <div className="line">
                       <span className="dept">{c.dept}</span>
-                      {!has ? <span className="sc-state">—</span> : done ? <span className="sc-state done"><i className="icon ic-check" aria-hidden="true" />직접 확인 완료</span>
+                      {!has ? <span className="sc-state">—</span> : done ? <span className="sc-state done"><i className="icon ic-check" aria-hidden="true" />이수 완료</span>
                         : <span className="sc-state todo"><i className="icon ic-dash" aria-hidden="true" />미이수</span>}
                     </div>
                   </div>
@@ -371,11 +372,12 @@ export function StatusScreen() {
                     <Panel filled={c.items.length > 0} mode={mode[k]} onMode={(m) => toggleMode(k, m)} addLabel="졸업 시험 추가하기" onAdd={() => setPrompt({ kind: 'exam', card: c.key })}>
                       {c.items.filter((it) => mode[k] === 'delete' || !removedIds.has(it.id)).map((it) => (
                         <li key={it.id} className={`sc-item${it.confirmed ? ' met' : ''}`}>
-                          <button type="button" className="cbx" role="checkbox" aria-checked={mode[k] === 'delete' ? false : it.confirmed}
-                            aria-label={mode[k] === 'delete' ? `${it.full} ${removedIds.has(it.id) ? '복구' : '삭제'}` : `${it.full} 응시·통과 체크`}
-                            onClick={() => (mode[k] === 'delete' ? removeExam(it) : toggleConfirm(it.id))}>
-                            {it.confirmed && mode[k] !== 'delete' && <i className="icon ic-check" aria-hidden="true" />}
-                          </button>
+                          {mode[k] !== 'delete' && (
+                            <button type="button" className="cbx" role="checkbox" aria-checked={it.confirmed}
+                              aria-label={`${it.full} 응시·통과 체크`} onClick={() => toggleConfirm(it.id)}>
+                              {it.confirmed && <i className="icon ic-check" aria-hidden="true" />}
+                            </button>
+                          )}
                           <span className="tx">
                             {mode[k] === 'delete' && removedIds.has(it.id) && '복구 · '}{mode[k] === 'edit' ? <NameInput value={it.head} label={`${it.full} 이름`} onCommit={(v) => renameExam(it, v)} /> : it.head}
                             {mode[k] === 'edit'
@@ -385,6 +387,10 @@ export function StatusScreen() {
                             {mode[k] !== 'edit' && it.baseDetail && <span className="sub">원래 기준: {it.baseDetail}</span>}
                             {it.rest && it.rest !== it.detail && !it.detail.includes(it.rest) && <span className="sub">{it.rest}</span>}
                           </span>
+                          {mode[k] === 'delete' && (
+                            <button type="button" className="sc-pill del" aria-label={`${it.full} ${removedIds.has(it.id) ? '복구' : '삭제'}`}
+                              onClick={() => (removedIds.has(it.id) ? removeExam(it) : setAskDel({ kind: 'exam', it }))}>{removedIds.has(it.id) ? '복구' : '삭제'}</button>
+                          )}
                         </li>
                       ))}
                     </Panel>
@@ -397,6 +403,11 @@ export function StatusScreen() {
         )}
       </section>
 
+      {askDel && (
+        <Confirm title={`‘${askDel.kind === 'course' ? askDel.it.label : askDel.it.full}’ \n${askDel.kind === 'course' ? '과목을' : '졸업 시험을'} 삭제하시겠습니까?`} yes="삭제" no="취소" danger
+          onYes={() => { if (askDel.kind === 'course') removeCourse(askDel.it); else removeExam(askDel.it); setAskDel(null); }}
+          onNo={() => setAskDel(null)} />
+      )}
       {coursePrompt && <FieldPrompt title="졸업 필수 과목 추가" fields={[{ label: '과목명', required: true, max: 60 }]} submitLabel="해당 과목 추가하기"
         onClose={() => setPrompt(null)} onSubmit={([name]) => addCourse(coursePrompt.card, name)} />}
       {examPrompt && <FieldPrompt title="졸업 시험 추가" fields={[{ label: '시험명', required: true, max: 60 }, { label: '점수 요건', required: false, max: 100 }]} submitLabel="해당 시험 정보 추가하기"

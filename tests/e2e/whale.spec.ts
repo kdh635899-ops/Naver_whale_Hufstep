@@ -384,6 +384,14 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await nm.press('Enter');
   await primary.getByRole('button', { name: '지우기' }).click();
   await primary.getByRole('button', { name: '고친 과목 삭제' }).click();
+  // 바로 지워지지 않고 확인 창이 뜬다: 취소하면 그대로, '삭제'를 눌러야 지워진다
+  const askC = page.getByRole('alertdialog');
+  await expect(askC).toContainText('‘고친 과목’');
+  await expect(askC).toContainText('과목을 삭제하시겠습니까?');
+  await askC.getByRole('button', { name: '취소' }).click();
+  await expect(primary.locator('.sc-item').filter({ hasText: '고친 과목' })).toHaveCount(1);
+  await primary.getByRole('button', { name: '고친 과목 삭제' }).click();
+  await askC.getByRole('button', { name: '삭제', exact: true }).click();
   await expect(primary.locator('.sc-item').filter({ hasText: '고친 과목' })).toHaveCount(0);
   await expect(primary.locator('.sc-row span').first()).toContainText(`/${total}과목`);
   // 이수 칸을 누르면 직접 이수로 표시되고 숫자에 반영된다 (다시 누르면 해제)
@@ -420,7 +428,14 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await fresh.getByRole('button', { name: '이름 고치기' }).click();
   await expect(addedExam.locator('.sub').first()).toHaveText('650점 이상');
   await fresh.getByRole('button', { name: '지우기' }).click();
-  await fresh.getByRole('checkbox', { name: '이름을 고친 FLEX 삭제' }).click();
+  // 졸업 시험도 체크 칸이 아니라 '삭제' 버튼을 누르고, 확인 창에서 '삭제'를 눌러야 지워진다
+  await expect(fresh.getByRole('checkbox', { name: '이름을 고친 FLEX 응시·통과 체크' })).toHaveCount(0);
+  await fresh.getByRole('button', { name: '이름을 고친 FLEX 삭제', exact: true }).click();
+  const askE = page.getByRole('alertdialog');
+  await expect(askE).toContainText('‘이름을 고친 FLEX’');
+  await expect(askE).toContainText('졸업 시험을 삭제하시겠습니까?');
+  await expect(askE.getByRole('button', { name: '삭제', exact: true })).toHaveCSS('background-color', 'rgb(255, 17, 17)');
+  await askE.getByRole('button', { name: '삭제', exact: true }).click();
   await expect(fresh.locator('.sc-item').filter({ hasText: '이름을 고친 FLEX' })).toHaveCount(0);
 });
 

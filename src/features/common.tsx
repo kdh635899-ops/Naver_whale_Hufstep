@@ -1,5 +1,5 @@
 // 여러 화면이 함께 쓰는 작은 UI 부품과 표시용 라벨.
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react';
 import { CONSENT_VERSION } from '../domain/state';
 import type { CampusId, CourseStatus, CreditArea, EntryType, ProgramType } from '../domain/types';
 import { useStore } from '../app/store';
@@ -135,4 +135,39 @@ export function PrivacySummary() {
 export function SafeLink({ href, children }: { href?: string; children: ReactNode }) {
   if (!href || !/^https?:\/\//.test(href)) return <span>{children}</span>;
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
+}
+
+/** Figma 확인 창 (화면 가운데 카드, 뒤는 #000 50%): 취소 + 시간표 추가/삭제. 삭제는 빨간 버튼이고 기본 포커스가 '취소'에 있다 */
+export function Confirm({ title, sub, yes, no, danger, onYes, onNo }: {
+  title: string; sub?: string; yes: string; no: string; danger?: boolean; onYes: () => void; onNo: () => void;
+}) {
+  const id = useId();
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    document.body.classList.add('sheet-open');
+    return () => { document.body.classList.remove('sheet-open'); prev?.focus?.({ preventScroll: true }); };
+  }, []);
+  const trap = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Tab' || !ref.current) return;
+    const f = [...ref.current.querySelectorAll<HTMLElement>('button')];
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  return (
+    <div className="wm-layer">
+      <div className="wm-backdrop" onClick={onNo} aria-hidden="true" />
+      <div className="cm" role="alertdialog" aria-modal="true" aria-labelledby={id} ref={ref} onKeyDown={trap}>
+        <div className="cm-txt">
+          <p id={id} className="cm-title">{title}</p>
+          {sub && <p className="cm-sub">{sub}</p>}
+        </div>
+        <div className="cm-acts">
+          <button type="button" className="cm-no" autoFocus={danger} onClick={onNo}>{no}</button>
+          <button type="button" className={`cm-yes${danger ? ' danger' : ''}`} autoFocus={!danger} onClick={onYes}>{yes}</button>
+        </div>
+      </div>
+    </div>
+  );
 }

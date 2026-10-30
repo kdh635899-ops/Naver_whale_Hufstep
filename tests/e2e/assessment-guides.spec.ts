@@ -49,7 +49,7 @@ for (const role of ['primary', 'dual'] as const) {
     await expect(card.locator('.sc-state')).toHaveText('미이수');
     const check = card.getByRole('checkbox', { name: '직접 관리할 FLEX 응시·통과 체크' });
     await check.click(); await expect(check).toBeChecked();
-    await expect(card).toContainText('직접 확인 완료');
+    await expect(card).toContainText('이수 완료');
     await page.reload();
     await card.locator('.sc-row').click(); await expect(check).toBeChecked();
     await expect(card).toContainText('합성 시험 기준');

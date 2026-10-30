@@ -16,7 +16,7 @@ import { previousTimetableCourse, timetableTargets } from '../../domain/timetabl
 import { autoProjectedRetake } from '../../domain/retake';
 import type { Assessment, AssessmentMode, ClassTime, Course, CourseMemo } from '../../domain/types';
 import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, firstIssue, MAX_COURSE_NAME_LENGTH, MEMO_MAX } from '../../domain/validation/schemas';
-import { ConsentGate, Sheet } from '../common';
+import { ConsentGate, Confirm, Sheet } from '../common';
 import { RetakeRecordSelect } from '../courses/RetakeRecordSelect';
 
 /** 시간표 한 시간의 높이(px) — Figma 70px, CSS(.tt-cell)와 같아야 한다 */
@@ -278,41 +278,6 @@ function Timetable({ courses, times, find, onExam }: {
           onClose={cancel} />
       )}
     </>
-  );
-}
-
-/** Figma 확인 창 (화면 가운데 카드, 뒤는 #000 50%): 취소 + 시간표 추가/삭제. 삭제는 빨간 버튼이고 기본 포커스가 '취소'에 있다 */
-function Confirm({ title, sub, yes, no, danger, onYes, onNo }: {
-  title: string; sub?: string; yes: string; no: string; danger?: boolean; onYes: () => void; onNo: () => void;
-}) {
-  const id = useId();
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const prev = document.activeElement as HTMLElement | null;
-    document.body.classList.add('sheet-open');
-    return () => { document.body.classList.remove('sheet-open'); prev?.focus?.({ preventScroll: true }); };
-  }, []);
-  const trap = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Tab' || !ref.current) return;
-    const f = [...ref.current.querySelectorAll<HTMLElement>('button')];
-    const first = f[0], last = f[f.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  };
-  return (
-    <div className="wm-layer">
-      <div className="wm-backdrop" onClick={onNo} aria-hidden="true" />
-      <div className="cm" role="alertdialog" aria-modal="true" aria-labelledby={id} ref={ref} onKeyDown={trap}>
-        <div className="cm-txt">
-          <p id={id} className="cm-title">{title}</p>
-          {sub && <p className="cm-sub">{sub}</p>}
-        </div>
-        <div className="cm-acts">
-          <button type="button" className="cm-no" autoFocus={danger} onClick={onNo}>{no}</button>
-          <button type="button" className={`cm-yes${danger ? ' danger' : ''}`} autoFocus={!danger} onClick={onYes}>{yes}</button>
-        </div>
-      </div>
-    </div>
   );
 }
 

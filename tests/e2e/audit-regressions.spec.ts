@@ -117,6 +117,8 @@ test('경영 택일 하나·전체 제외 후 9/10 유지, 같은 삭제 버튼�
   await primary(page).locator('.sc-row').click(); await primary(page).getByRole('button', { name: '지우기', exact: true }).click();
   for (const name of names(choice)) {
     await primary(page).getByRole('button', { name: `${name} 삭제`, exact: true }).click();
+    await expect(page.getByRole('alertdialog')).toContainText(`‘${name}’`); await expect(page.getByRole('alertdialog')).toContainText('과목을 삭제하시겠습니까?');
+    await page.getByRole('alertdialog').getByRole('button', { name: '삭제', exact: true }).click();
     await expect(primary(page)).toContainText('9/10과목');
   }
   await primary(page).getByRole('button', { name: `${names(choice)[0]} 복구`, exact: true }).click();
@@ -147,6 +149,7 @@ test('직접 과목 삭제 시 체크 정리, 이름 수정은 ID 보존', async
   await expect.poll(async () => (await read(page)).statusEdits!.extraCourses[0]).toEqual({ id: 'xc-fixed', card: 'primary', name: '수정한 이름' });
   await primary(page).getByRole('button', { name: '지우기', exact: true }).click();
   await primary(page).getByRole('button', { name: '수정한 이름 삭제', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: '삭제', exact: true }).click();
   await expect.poll(async () => (await read(page)).certConfirmations.some((c) => c.requirementId === 'xc-fixed')).toBe(false);
 });
 
