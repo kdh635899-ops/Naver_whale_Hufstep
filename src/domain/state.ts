@@ -1,7 +1,7 @@
 // IndexedDB에 저장되는 앱 전체 상태 (§9.1). 원문 붙여넣기 전문은 여기에 들어가지 않는다.
 import type { NotificationSettings } from './notifications/plan';
 import type {
-  AcademicSnapshot, Assessment, ClassTime, Course, CourseMemo, EventCompletion, GradeScenario, StudentProfile,
+  AcademicSnapshot, Assessment, ClassTime, Course, CourseMemo, EventCompletion, GradeScenario, StatusEdits, StudentProfile,
 } from './types';
 
 /** 2: 과목별 자유 메모(courseMemos)·수업 시간(classTimes) 추가 */
@@ -28,10 +28,14 @@ export interface AppState {
   scenarios: GradeScenario[];
   /** 졸업시험·인증·공통요건을 학생이 '통과 확인'한 기록 */
   certConfirmations: { requirementId: string; confirmedAt: string }[];
+  /** 학사 현황 02·03을 학생이 고친 내용 (없으면 고친 것이 없는 상태) */
+  statusEdits?: StatusEdits;
   settings: { notifications: NotificationSettings; lastView: View };
   /** 동의 이력은 버전·시각만 */
   consent: { academicData?: { version: string; at: string }; notifications?: { version: string; at: string } };
 }
+
+export const emptyEdits = (): StatusEdits => ({ renamed: {}, removed: [], extraCourses: [], extraExams: [], boxes: [] });
 
 export function emptyState(): AppState {
   return {
@@ -45,6 +49,7 @@ export function emptyState(): AppState {
     classTimes: [],
     scenarios: [],
     certConfirmations: [],
+    statusEdits: emptyEdits(),
     settings: {
       notifications: { enabled: false, dayBefore: true, sameDay: true, time: '09:00', version: 1 },
       lastView: 'status',
@@ -55,7 +60,7 @@ export function emptyState(): AppState {
 
 /** 학업정보만 지우기 (조건·설정은 유지). 알림 예약은 background가 상태를 보고 정리한다. */
 export function withoutAcademicData(s: AppState): AppState {
-  return { ...s, courses: [], snapshots: [], assessments: [], completions: [], courseMemos: [], classTimes: [], scenarios: [], certConfirmations: [] };
+  return { ...s, courses: [], snapshots: [], assessments: [], completions: [], courseMemos: [], classTimes: [], scenarios: [], certConfirmations: [], statusEdits: emptyEdits() };
 }
 
 export const newId = (prefix: string) => `${prefix}_${crypto.randomUUID()}`;

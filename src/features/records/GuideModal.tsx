@@ -2,14 +2,15 @@
 // 사진 위 빨간 박스·번호·'드래그' 화살표와 글씨는 모두 폭 346px 기준 값을 --u(= 폭/346)로 곱해 쓴다 → 사이드바 폭이 달라져도 사진·글씨가 같이 커지고 줄어 어긋나지 않는다.
 import step1 from '../../assets/help/step1.png';
 import step2 from '../../assets/help/step2.png';
-import arrow from '../../assets/help/drag-arrow.svg';
+import arrow1 from '../../assets/help/drag-arrow-1.svg';
+import arrow2 from '../../assets/help/drag-arrow-2.svg';
 import { Sheet } from '../common';
 
 const W = 346; // Figma 사진 폭(px). 아래 좌표는 모두 이 폭 기준 값을 비율로 바꿔 쓴다.
 type Mark = { n: string; left: number; top: number; w: number; tx: number; bw: number; by: number };
 type Fig = {
   src: string; alt: string; ratio: [number, number]; box: [number, number]; marks: Mark[]; crop?: boolean;
-  drag: { left: number; top: number; w: number; textTop: number; textW: number };
+  drag: { left: number; top: number; w: number; textTop: number; textW: number; arrow: string; arrowH: number };
 };
 
 const FIGS: Fig[] = [
@@ -18,12 +19,12 @@ const FIGS: Fig[] = [
     marks: [
       { n: '①', left: 19.65, top: 113, w: 13.89, tx: 76, bw: 74, by: 10 },
     ],
-    drag: { left: 80.35, top: 44.5, w: 13.26, textTop: 45.5, textW: 76.26 },
+    drag: { left: 81.21, top: 118, w: 12.72, textTop: 23, textW: 79.55, arrow: arrow1, arrowH: 61.5 }, // Figma 179:1838 (화살표가 짧아졌다)
   },
   {
     src: step2, alt: '같은 화면을 맨 아래까지 내린 모습: ② 이수구분별 취득학점 계 영역까지 드래그', ratio: [360, 195], box: [16.94, 17], crop: true,
     marks: [{ n: '②', left: 19.94, top: 142, w: 14.45, tx: 76.92, bw: 76.92, by: 10 }],
-    drag: { left: 80.92, top: 48, w: 13.25, textTop: 38, textW: 76.39 },
+    drag: { left: 80.92, top: 48, w: 13.25, textTop: 38, textW: 76.39, arrow: arrow2, arrowH: 115.5 },
   },
 ];
 
@@ -45,7 +46,7 @@ function Figure({ f }: { f: Fig }) {
         </span>
       ))}
       <span className="gd-drag" aria-hidden="true" style={{ left: `${f.drag.left}%`, top: pct(f.drag.top, h), width: `${f.drag.w}%` }}>
-        <img src={arrow} alt="" />
+        <img src={f.drag.arrow} alt="" style={{ height: `calc(${f.drag.arrowH} * var(--u))` }} />
         <b style={{ top: `calc(${f.drag.textTop} * var(--u))`, width: `${f.drag.textW}%` }}>드래그</b>
       </span>
     </div>

@@ -111,6 +111,23 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   // Figma: 칩은 이중전공·부전공·전공심화 3개 (없음 없음), 이중전공이 처음 선택돼 있다. 첫 화면 로고는 메인 로고 이미지
   await expect(page.locator('.opt-chips label')).toHaveText(['이중전공', '부전공', '전공심화']);
   await expect(page.getByRole('radio', { name: '이중전공' })).toBeChecked();
+  // 글꼴은 앱에 넣은 Pretendard 파일로 불러온다 (PC에 깔린 글꼴에 기대지 않는다)
+  // 웨일이 body에 자체 기본 글꼴(Segoe UI 등)을 입히므로, 화면 전체(body·제목·입력칸)가 실제로 Pretendard인지 확인한다
+  const fonts = await page.evaluate(async () => {
+    await document.fonts.load('600 16px Pretendard');
+    const ff = (q: string) => getComputedStyle(document.querySelector(q)!).fontFamily;
+    return { loaded: [...document.fonts].some((f) => f.family.includes('Pretendard') && f.status === 'loaded'), body: ff('body'), h1: ff('h1'), input: ff('input') };
+  });
+  expect(fonts.loaded).toBe(true);
+  for (const f of [fonts.body, fonts.h1, fonts.input]) expect(f.startsWith('Pretendard')).toBe(true);
+  // 'HUFStep' 로고 글씨는 글꼴이 아니라 그림(SVG 마스크)이라 PC 글꼴과 상관없이 똑같다
+  const wm = page.locator('h1 .wordmark');
+  await expect(wm).toHaveAttribute('aria-label', 'HUFStep');
+  await expect(wm).toHaveCSS('background-color', 'rgb(6, 43, 98)');
+  const wmBox = (await wm.boundingBox())!;
+  expect(Math.abs(wmBox.height - 28.8)).toBeLessThan(0.6);
+  expect(Math.abs(wmBox.width / wmBox.height - 73.8 / 17.5)).toBeLessThan(0.02);
+  expect(await wm.evaluate((el) => getComputedStyle(el).maskImage.includes('wordmark'))).toBe(true);
   const [c1, c2] = await page.locator('.opt-chips label').all();
   const b1 = (await c1.boundingBox())!, b2 = (await c2.boundingBox())!;
   expect(b1.width).toBeGreaterThan(85); // 한 줄을 셋이 나눠 채운다 (390px에서 약 100)
@@ -130,6 +147,9 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   await page.getByRole('button', { name: '학사정보 저장' }).click();
   // 정보를 저장한 뒤부터 헤더 로고가 학년을 따른다 (3학년 = 머리에 전구)
   const headLogo = page.locator('.app-header img.logo');
+  await expect(page.locator('.app-header .brand .wordmark')).toHaveCSS('background-color', 'rgb(255, 255, 255)'); // 헤더 로고 글씨는 흰색 17px 크기
+  const hb = (await page.locator('.app-header .brand .wordmark').boundingBox())!;
+  expect(Math.abs(hb.width - 73.8)).toBeLessThan(0.6);
   await expect(headLogo).toHaveAttribute('data-year', '3');
   expect(await headLogo.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
 
@@ -230,6 +250,10 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   // 저장된 정보가 있어도 초기화 없이 다시 반영할 수 있고 과목 ID·학점은 중복되지 않는다.
   await tab('종정시 입력').click();
   await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeEnabled();
+  await expect(box).toHaveValue(FULL_TRANSCRIPT);
+  await tab('시간표').click();
+  await tab('종정시 입력').click();
+  await expect(box).toHaveValue(FULL_TRANSCRIPT);
   await expect(page.getByRole('button', { name: '종정시 정보 저장' })).toBeEnabled();
   const ids = JSON.parse(await readState()).courses.map((c: { id: string }) => c.id);
   await box.fill(FULL_TRANSCRIPT);
@@ -243,10 +267,11 @@ test('첫 실행 → 개인정보 저장 → 동의 → 종정시 붙여넣기 �
   const rb = (await reset.boundingBox())!; // Figma: 100×60, 남색 테두리 흰 바탕
   expect(Math.round(rb.width)).toBe(100);
   await expect(reset).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-  await reset.click(); // 첫 번째 누름은 확인만
-  expect(JSON.parse(await readState()).courses).toHaveLength(6);
-  await page.getByRole('button', { name: /한 번 더 누르면/ }).click();
+  await expect(page.getByRole('button', { name: '초기화' })).toHaveCount(1); // '한 번 더' 같은 버튼은 없다
+  await reset.click();
   await expect(page.getByLabel('종정시 정보 붙여넣기')).toBeEnabled();
+  await expect(page.getByLabel('종정시 정보 붙여넣기')).toHaveValue('');
+  await expect(page.getByText('한 번 더')).toHaveCount(0);
   await expect(page.getByRole('button', { name: /초기화/ })).toHaveCount(0);
   expect(JSON.parse(await readState()).courses).toHaveLength(0);
   expect(JSON.parse(await readState()).snapshots).toHaveLength(0);
@@ -314,7 +339,7 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await expect(dlg).toBeHidden();
   await tab('학사 현황').click();
   await primary.getByRole('button', { name: /^\d+\/11과목/ }).click();
-  await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' })).toContainText('이수 완료');
+  await expect(primary.locator('.sc-item').filter({ hasText: '지역과지역학' }).locator('.sc-done')).toContainText('이수 완료');
 
   // 졸업 시험 및 요건: 정해진 목록에서 학생이 초록 체크박스로 직접 체크한다.
   const exam = page.locator('#st-exams .sc').first();
@@ -340,6 +365,57 @@ test('학사 현황: 남은 학점·영역별·필수과목·졸업시험이 저
   await box.click();
   await expect(box).toHaveAttribute('aria-checked', 'false');
   expect(JSON.parse(await readState()).certConfirmations.length).toBe(0);
+
+  // 직접 고치기 (필수과목): 추가하면 전체 과목 수가 늘고, 이름을 고치고, 지우면 다시 줄어든다
+  const total = Number((await primary.locator('.sc-row span').first().innerText()).match(/\/(\d+)과목/)![1]);
+  await primary.getByRole('button', { name: '졸업 필수 과목 추가하기' }).click();
+  const add = page.getByRole('dialog', { name: '졸업 필수 과목 추가' });
+  await add.getByRole('button', { name: '해당 과목 추가하기' }).click();
+  await expect(add.getByRole('alert')).toContainText('과목명'); // 비어 있으면 더하지 않는다
+  await add.getByLabel('과목명').fill('직접 넣은 과목');
+  await add.getByRole('button', { name: '해당 과목 추가하기' }).click();
+  await expect(add).toBeHidden();
+  await expect(primary.locator('.sc-item').filter({ hasText: '직접 넣은 과목' })).toBeVisible();
+  await expect(primary.locator('.sc-row span').first()).toContainText(`/${total + 1}과목`);
+  await primary.getByRole('button', { name: '이름 고치기' }).click();
+  const nm = primary.getByLabel('직접 넣은 과목 이름');
+  await nm.fill('고친 과목');
+  await nm.press('Enter');
+  await primary.getByRole('button', { name: '지우기' }).click();
+  await primary.getByRole('button', { name: '고친 과목 삭제' }).click();
+  await expect(primary.locator('.sc-item').filter({ hasText: '고친 과목' })).toHaveCount(0);
+  await expect(primary.locator('.sc-row span').first()).toContainText(`/${total}과목`);
+  // 이수 칸을 누르면 직접 이수로 표시되고 숫자에 반영된다 (다시 누르면 해제)
+  await primary.getByRole('button', { name: '지우기' }).click(); // 지우기 모드 끄기
+  const met0 = Number((await primary.locator('.sc-row span').first().innerText()).match(/^(\d+)\//)![1]);
+  const off = primary.locator('button.sc-check').first();
+  await off.click();
+  await expect(primary.locator('.sc-row span').first()).toContainText(`${met0 + 1}/`);
+  await primary.locator('button.sc-done').first().click();
+  await expect(primary.locator('.sc-row span').first()).toContainText(`${met0}/`);
+
+  // 졸업 요건 구분을 새로 만들고, 그 안에 시험 정보를 더한다
+  await page.getByRole('button', { name: '졸업 요건 추가하기' }).click();
+  const kind = page.getByRole('dialog', { name: '졸업 요건 구분' });
+  await kind.getByRole('radio', { name: '공통' }).click();
+  await kind.getByRole('button', { name: '해당 구분 추가하기' }).click();
+  const fresh = page.locator('#st-exams .sc').last(); // 새로 만든 구분은 맨 아래에 붙는다
+  await expect(fresh).toContainText('확인할 시험이 없어요');
+  await fresh.getByRole('button', { name: '졸업 시험 추가하기' }).click();
+  const exm = page.getByRole('dialog', { name: '졸업 시험 추가' });
+  await exm.getByLabel('시험명').fill('FLEX');
+  await exm.getByLabel('점수 요건').fill('600점 이상');
+  await exm.getByRole('button', { name: '해당 시험 정보 추가하기' }).click();
+  await expect(fresh.locator('.sc-item')).toContainText('FLEX');
+  await expect(fresh.locator('.sc-item .sub')).toHaveText('600점 이상');
+  await fresh.getByRole('button', { name: '이름 고치기' }).click();
+  const examName = fresh.getByLabel('FLEX 이름');
+  await examName.fill('이름을 고친 FLEX');
+  await examName.press('Enter');
+  await expect(examName).toHaveValue('이름을 고친 FLEX');
+  await fresh.getByRole('button', { name: '지우기' }).click();
+  await fresh.getByRole('checkbox', { name: '이름을 고친 FLEX 삭제' }).click();
+  await expect(fresh.locator('.sc-item')).toHaveCount(0);
 });
 
 test('학점 계산: 평점 카드·학년 탭·이번 학기 카드에서 예상 등급을 넣으면 예상 누적 평점이 나온다', async () => {
@@ -551,7 +627,8 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
   const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
   for (const gone of ['기타 설정', '알림', '동의 철회', '전체 초기화', '현재 학기']) await expect(dlg).not.toContainText(gone);
   await dlg.getByLabel('이름 / 닉네임').fill('웨이');
-  await dlg.getByLabel(/^현재 학년/).selectOption('4');
+  await dlg.getByRole('combobox', { name: '현재 학년', exact: true }).click();
+  await dlg.getByRole('option', { name: '4학년', exact: true }).click();
   await dlg.getByRole('button', { name: '저장', exact: true }).click();
   await expect(dlg).toBeHidden();
   await expect(page.getByRole('heading', { name: /안녕하세요,\s*웨이님/ })).toBeVisible();

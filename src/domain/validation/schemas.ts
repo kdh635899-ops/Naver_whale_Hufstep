@@ -137,6 +137,15 @@ const notificationSettings = z.object({
 });
 const consentRecord = z.object({ version: z.string().max(20), at: isoStr });
 
+const editName = z.string().min(1).max(80);
+const statusEditsSchema = z.object({
+  renamed: z.record(z.string().max(300), editName),
+  removed: z.array(z.string().max(300)).max(1000),
+  extraCourses: z.array(z.object({ id, card: z.string().max(120), name: editName })).max(300),
+  extraExams: z.array(z.object({ id, card: z.string().max(120), title: editName, detail: z.string().max(120) })).max(300),
+  boxes: z.array(z.object({ id, kind: z.enum(['common', 'primary', 'double', 'minor', 'advanced', 'single']) })).max(30),
+});
+
 export const appStateSchema: z.ZodType<AppState> = z.object({
   schemaVersion: z.number().int(),
   profile: profileSchema.nullable(),
@@ -148,6 +157,7 @@ export const appStateSchema: z.ZodType<AppState> = z.object({
   classTimes: z.array(classTimeSchema).max(5000),
   scenarios: z.array(scenarioSchema).max(100),
   certConfirmations: z.array(z.object({ requirementId: id, confirmedAt: isoStr })).max(500),
+  statusEdits: statusEditsSchema.optional(),
   settings: z.object({
     notifications: notificationSettings,
     lastView: z.enum(['records', 'status', 'assessments', 'calculator', 'mypage']),

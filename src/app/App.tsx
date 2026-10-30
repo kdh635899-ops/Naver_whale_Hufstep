@@ -11,6 +11,7 @@ import { RecordsScreen } from '../features/records/RecordsScreen';
 import { MyPage } from '../features/settings/MyPage';
 import { StatusScreen } from '../features/academic-status/StatusScreen';
 import { APP_LOGO, logoForYear } from './logos';
+import { Wordmark } from './Wordmark';
 import { useStore } from './store';
 
 // 아이콘은 Figma에서 내려받은 SVG(src/icons)를 CSS 마스크로 칠한다 → 선택/비선택 색이 글자색을 따라간다.
@@ -26,7 +27,7 @@ function Splash() {
   return (
     <div className="splash" role="status" aria-label="불러오는 중">
       <img className="logo-lg" src={APP_LOGO} alt="" />
-      <p className="splash-name">HUFStep</p>
+      <p className="splash-name"><Wordmark /></p>
       <p className="splash-sub">외대생의 학사 도우미</p>
     </div>
   );
@@ -39,7 +40,7 @@ function Header() {
     <header className="app-header">
       <img className="logo" src={logoForYear(year)} alt="" data-year={year ?? ''} />
       <div className="brand">
-        <p className="brand-name">HUFStep</p>
+        <p className="brand-name"><Wordmark /></p>
         <p className="brand-sub">외대생의 학사 도우미</p>
       </div>
     </header>
@@ -96,7 +97,7 @@ function Start() {
     <div className="app">
       <main className="start">
         <img className="logo-lg" src={APP_LOGO} alt="" />
-        <h1 className="fig-title">학사정보를 입력하고<br />HUFStep을 이용해보세요!</h1>
+        <h1 className="fig-title">학사정보를 입력하고<br /><Wordmark className="in-title" />을 이용해보세요!</h1>
         <p className="fig-lead">내 학사현황과 학점 시뮬레이션으로<br />편하게 학기 운용 계획을 세울 수 있어요.</p>
         <ProfileForm submitLabel="학사정보 저장" onDone={() => setView('records')} />
       </main>

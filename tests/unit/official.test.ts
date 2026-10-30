@@ -8,7 +8,7 @@ import {
   buildOfficialReport, classifyRuleSupport, courseConfirmationIds, detailForGraduation, evaluateCourseRules, normalizeCourseName, ruleTitle, secondaryRestriction, type OfficialReport,
 } from '../../src/domain/requirements/officialRules';
 import { evaluateProgress, resolveRequirements } from '../../src/domain/requirements/resolve';
-import { appStateSchema, bundleSchema, officialRuleSchema, profileSchema } from '../../src/domain/validation/schemas';
+import { appStateSchema, bundleSchema, condSchema, officialRuleSchema, profileSchema } from '../../src/domain/validation/schemas';
 import type { CourseExpr, CourseLeaf, OfficialRule, StudentProfile } from '../../src/domain/types';
 import { course } from '../fixtures';
 import { correctTermScope, periodBound, type EffectivePeriod } from '../../scripts/term-scope.mjs';
@@ -100,6 +100,10 @@ describe('변환 중 조건·필수과목 구조 보존 (데이터 프로젝트 
       const o = rec.originalRecord;
       const fixed = correctTermScope(rec.ruleId, (o.requirement ?? o.sourceRequirement)?.type, rec.stagedProjection!.applicabilityCondition, null, rec.reasons, o.effectivePeriod);
       if (rec.ruleId === 'a42-dis-exam') {
+        const removeCohortBlocker = (c: Cond): Cond => c.op === 'unknown' && c.reason === '적용 학번을 원문에서 확정하지 못함'
+          ? { op: 'true' } : c.op === 'AND' || c.op === 'OR' ? { ...c, conditions: c.conditions.map(removeCohortBlocker) }
+            : c.op === 'NOT' ? { ...c, condition: removeCohortBlocker(c.condition) } : c;
+        expect(r.condition).toEqual(removeCohortBlocker(condSchema.parse(fixed.condition)));
         expect(JSON.stringify(r.condition)).not.toContain('적용 학번을 원문에서 확정하지 못함');
         expect(r.sourceIds).toContain('src-mail-dis-20261026');
       } else expect(r.condition, rec.ruleId).toEqual(fixed.condition);

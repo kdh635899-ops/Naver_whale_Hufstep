@@ -64,8 +64,7 @@ function Guide() {
 }
 
 function PasteSave() {
-  const { state, save, now, setView } = useStore();
-  const [text, setText] = useState('');
+  const { state, save, now, setView, pasteText: text, setPasteText: setText } = useStore();
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -81,12 +80,6 @@ function PasteSave() {
   const savingRef = useRef(false);
   // 저장 기록 유무는 기존 초기화 버튼의 표시 여부에만 사용한다.
   const hasSaved = state.snapshots.length > 0 || state.courses.some((c) => c.origin === 'paste');
-  const [armed, setArmed] = useState(false); // 초기화는 두 번 눌러야 실행 (실수로 지우지 않게)
-  useEffect(() => {
-    if (!armed) return;
-    const timer = window.setTimeout(() => setArmed(false), 4000);
-    return () => window.clearTimeout(timer);
-  }, [armed]);
 
   function changeInput(value: string) {
     controller.current?.abort();
@@ -126,8 +119,6 @@ function PasteSave() {
 
   async function onReset() {
     if (savingRef.current) return;
-    if (!armed) { setArmed(true); return; }
-    setArmed(false);
     // 종정시에서 가져온 과목·요약만 지운다. 직접 추가한 과목과 그 시간표·메모는 남긴다.
     const gone = new Set(state.courses.filter((c) => c.origin === 'paste').map((c) => c.id));
     const ok = await save((s) => ({ ...s, courses: s.courses.filter((c) => !gone.has(c.id)), snapshots: [], ...dropCourseRefs(s, gone) }));
@@ -166,7 +157,7 @@ function PasteSave() {
     setSaving(true);
     try {
       if (await save((s) => applyMerge(s, r, planMerge(s, r), NO_DECISIONS, now))) {
-        changeInput(''); // 원문은 저장하지 않는다
+        // 원문은 메모리 입력창에만 남기고 영구 저장하지 않는다.
         setDone(true); // 'HUFStep 시작하기'를 누르면 학사 현황으로
       } else {
         setProblems(['저장하지 못했어요. 기존 기록은 그대로예요. 다시 저장해 주세요.']);
@@ -207,9 +198,7 @@ function PasteSave() {
           {busy || saving ? '확인하는 중…' : '종정시 정보 저장'}
         </button>
         {hasSaved && (
-          <button type="button" className="btn cta-reset" aria-label={armed ? '한 번 더 누르면 저장된 종정시 정보를 지워요' : '저장된 종정시 정보 초기화'} onClick={() => void onReset()}>
-            {armed ? '한 번 더' : '초기화'}
-          </button>
+          <button type="button" className="btn cta-reset" aria-label="저장된 종정시 정보 초기화" onClick={() => void onReset()}>초기화</button>
         )}
       </div>
     </div>
