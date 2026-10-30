@@ -4,14 +4,14 @@ import type { ComponentType } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { useStore } from '../../src/app/store';
-import { catalog, departmentById, departmentFacts, departmentMetaById } from '../../src/data';
+import { catalog, departmentById, departmentFacts, departmentMetaById, departmentName } from '../../src/data';
 import migrationIds from '../../src/data/requirement-id-migration.json';
 import { computeGpa, effectiveCourses, earnedUnits } from '../../src/domain/gpa/gpa';
 import { applyMerge, planMerge } from '../../src/domain/merge/mergeImport';
 import { parseTranscript } from '../../src/domain/parser/parseTranscript';
 import { briefAssessment, describeAssessment, assessmentRole, departmentAssessmentGuides, groupAssessments } from '../../src/domain/requirements/assessment';
-import { factsFor, roleContexts } from '../../src/domain/requirements/conditions';
-import { buildOfficialReport, defaultAnswers, evaluateCourseRules, linkableLeaves, ruleTitle, type NodeProgress } from '../../src/domain/requirements/officialRules';
+import { ASKABLE_FIELDS, factsFor, isAskedOnScreen, roleContexts, UNASKED_FIELDS } from '../../src/domain/requirements/conditions';
+import { buildOfficialReport, defaultAnswers, evaluateCourseRules, linkableLeaves, noteFrom, ruleTitle, type NodeProgress } from '../../src/domain/requirements/officialRules';
 import { checklistCount, deleteChecklistItem, linkedChecklistIds, migrateChecklistIds, scopeStatusEdits } from '../../src/domain/requirements/statusEdits';
 import { emptyEdits, emptyState, type AppState } from '../../src/domain/state';
 import type { CourseExpr, StudentProfile } from '../../src/domain/types';
@@ -454,5 +454,42 @@ describe('외국어 특기자 전형: 기본은 아니요, 해당 학생만 직�
       .not.toContain('외국어 특기자 등 특별전형으로 입학했어요');
     expect(render({ ...emptyState(), profile: { ...german, facts: {} } }, () => <ProfileForm onDone={() => {}} submitLabel="저장" />))
       .toContain('외국어 특기자 등 특별전형으로 입학했어요');
+  });
+});
+
+describe("입력할 곳 없는 '추가 입력 필요' 문구 정리", () => {
+  const courseSection = (html: string) => {
+    const start = html.indexOf('<section id="st-courses"');
+    return html.slice(start, html.indexOf('</section>', start));
+  };
+
+  it('화면에서 묻는 질문이 하나도 없으면 학과 확인 필요로 적는다', () => {
+    // 전형 질문은 화면에서 묻지 않는다 (답이 없는 상태로 둔다)
+    const r = rep({ ...base, facts: {} });
+    const e = r.evals.find((x) => x.rule.id === 'core-malay-flex-primary')!;
+    expect(e.cls).toBe('needsInput');
+    expect(e.askFields.filter(isAskedOnScreen)).toHaveLength(0);
+    const note = noteFrom(e, departmentName);
+    expect(note.text).toContain('학과 확인 필요');
+    expect(note.text).not.toContain('추가 입력 필요');
+    expect(note.askable).toBe(false);
+    // 면제·승인만 남은 줄은 기존 문구를 그대로 쓴다
+    const waiver = r.evals.find((x) => x.rule.id === 'common-language-seoul-general')!;
+    expect(noteFrom(waiver, departmentName).text).toContain('면제·승인 여부 확인 필요');
+  });
+
+  it('묻지 않는 필드는 질문 목록에도 없고 문구와 같은 목록을 쓴다', () => {
+    const html = render({ ...emptyState(), profile: { ...base, facts: {} } }, QuestionsCard);
+    for (const field of UNASKED_FIELDS) expect(html).not.toContain(ASKABLE_FIELDS[field].label);
+    expect([...UNASKED_FIELDS].every((f) => !isAskedOnScreen(f))).toBe(true);
+  });
+
+  it("02 카드의 '확인 필요 · …' 문구는 제목 줄에 한 번만 나온다", () => {
+    const profile: StudentProfile = { ...base, homeCampus: 'global', primaryDepartmentId: 'global-9e8d6a6731',
+      programType: 'intensive', secondaryDepartmentId: undefined, cohortYear: 2021, facts: {} };
+    const sec = courseSection(render({ ...emptyState(), profile }));
+    expect(rep(profile).coverage.find((r) => r.scope === 'primary' && r.category === 'requiredCourses')!
+      .notes.some((n) => n.kind === 'needsInput')).toBe(true);
+    expect(sec.split('확인 필요 · ').length - 1).toBe(1);
   });
 });

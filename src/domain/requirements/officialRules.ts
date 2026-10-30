@@ -7,7 +7,7 @@ import type {
   SupportGap, Term,
 } from '../types';
 import {
-  ASKABLE_FIELDS, GENERAL_ADMISSION_DEFAULTS, askableFieldFor, condValues, evalCond, factsFor, PER_COURSE_FIELDS, programComposition, roleContexts,
+  ASKABLE_FIELDS, GENERAL_ADMISSION_DEFAULTS, askableFieldFor, condValues, evalCond, factsFor, isAskedOnScreen, PER_COURSE_FIELDS, programComposition, roleContexts,
   type DepartmentFacts, type Facts, type FieldSpec, type MajorRole, type Scalar, type Tri,
 } from './conditions';
 import { combineParts, selectBundles, type CombinablePart, type ResolvedRequirements } from './resolve';
@@ -198,6 +198,8 @@ export function displayReasonFor(kind: NoteKind, rule?: OfficialRule): string | 
 export interface CoverageNote {
   notApplicable?: boolean;
   kind: NoteKind;
+  /** needsInput 중 화면에서 실제로 답할 질문이 있는 줄 (없으면 '추가 입력 필요' 배지를 쓰지 않는다) */
+  askable?: boolean;
   /** 학생이 '통과했어요'로 넘긴 기록을 저장할 안정적인 ID */
   id: string;
   /** 요건 줄에 보여 줄 짧은 제목 (없으면 text를 쓴다) */
@@ -258,13 +260,17 @@ export function noteFrom(e: RuleEval, deptName: (id: string) => string | undefin
     ? '제2외국어 1~6단계 순차 이수 · 언어 변경 사전 승인'
     : ruleTitle(e.rule, e.rule.departmentId ? deptName(e.rule.departmentId) : undefined);
   const kind: NoteKind = e.cls === 'needsInput' ? 'needsInput' : e.cls === 'unsupported' ? 'unsupported' : 'unconfirmed';
+  // 화면에서 실제로 묻는 질문이 하나도 없으면 학생이 입력할 곳이 없으므로 '추가 입력 필요'라고 쓰지 않는다
+  const asked = e.askFields.filter(isAskedOnScreen);
+  const label = asked.length ? '추가 입력 필요'
+    : e.askFields.every((f) => f.startsWith('approved')) ? '면제·승인 여부 확인 필요' : '학과 확인 필요';
   const why = kind === 'needsInput'
-    ? `${e.askFields.some((f) => !f.startsWith('approved')) ? '추가 입력 필요' : '면제·승인 여부 확인 필요'}: ${e.askFields.map((f) => ASKABLE_FIELDS[f].label).join(', ')}`
+    ? `${label}: ${e.askFields.map((f) => ASKABLE_FIELDS[f].label).join(', ')}`
     : kind === 'unsupported'
       ? [e.blockers.length ? `원문 미확정 조건: ${e.blockers.join(' / ')}` : '', e.unaskableFields.length ? `앱이 아직 입력받지 못하는 조건: ${e.unaskableFields.join(', ')}` : ''].filter(Boolean).join(' · ')
       : `${e.rule.status === 'conflict' ? '근거 충돌' : '조사 미확정'}: ${e.rule.reasons.join(' / ') || e.rule.note || '학교 확인 필요'}`;
   return {
-    kind, id: e.rule.id, title, displayReason: displayReasonFor(kind, e.rule),
+    kind, askable: asked.length > 0, id: e.rule.id, title, displayReason: displayReasonFor(kind, e.rule),
     text: `${title} — ${why}`, ruleIds: [e.rule.id], sourceIds: e.rule.sourceIds,
   };
 }

@@ -113,6 +113,20 @@ export const ASKABLE_FIELDS: Record<string, FieldSpec> = {
   statisticsPracticeCompletedBeforeIntroOffering: { label: '통계학개론 개설 전에 통계 실습 과목을 이수했나요?', kind: 'bool' },
 };
 
+/**
+ * 화면에서 질문으로 묻지 않는 조건 필드.
+ * 입학 전형·과목 이수 예외는 목록 선택용 입력으로 묻지 않고, 편입 학년·입학 학기도 묻지 않는다.
+ * 저장된 답과 내부 규칙은 그대로 보존한다. (질문 목록과 '추가 입력 필요' 문구가 이 목록을 함께 쓴다)
+ */
+export const UNASKED_FIELDS: ReadonlySet<string> = new Set([
+  'transferEntryGrade', 'entryTerm', 'primaryMajorIsEnglish', 'primaryMajorCollegeIsEnglishCollege',
+  'foreignLanguageSpecialAdmission', 'pureForeignAdmission', 'statisticsIntroCompleted',
+  'statisticsPractice1Completed', 'statisticsPractice2Completed', 'statisticsPracticeCompletedBeforeIntroOffering',
+]);
+/** 학생이 화면에서 실제로 답할 수 있는 필드인가 (면제·승인 질문도 목록에서는 묻지 않는다) */
+export const isAskedOnScreen = (field: string): boolean =>
+  !UNASKED_FIELDS.has(field) && !field.startsWith('approved');
+
 /** 과목마다 값이 다른 조건: 학생에게 묻지 않고 과목 대조 때 그 과목의 수강 학기로 평가한다 */
 export const PER_COURSE_FIELDS = new Set(['courseEnrollmentTerm']);
 

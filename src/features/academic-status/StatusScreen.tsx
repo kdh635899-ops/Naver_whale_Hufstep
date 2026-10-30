@@ -191,7 +191,8 @@ export function StatusScreen() {
     return input?.length ? `확인 필요 · ${input.join(' · ')}` : '확인 필요';
   };
   const specialAdmission = profile.facts?.foreignLanguageSpecialAdmission === true;
-  const inquiry = (key: string, category: 'requiredCourses' | 'departmentAssessment') => {
+  /** shown = 카드 제목 줄에 이미 같은 '확인 필요 · …' 문구가 보이는 상태 (안내에서 되풀이하지 않는다) */
+  const inquiry = (key: string, category: 'requiredCourses' | 'departmentAssessment', shown = false) => {
     const row = coverageFor(key, category);
     if (category === 'departmentAssessment') {
       const guides = assessmentGuides.filter((g) => g.scope === key);
@@ -214,7 +215,8 @@ export function StatusScreen() {
       && pending.every((e) => e.askFields.some((field) => ['dualSelectionYear', 'graduationTerm'].includes(field)
         && (profile.facts?.[field] === undefined || profile.facts?.[field] === null)))) return null;
     return <div className="sc-check-hint">{row.notes.some((n) => n.kind === 'needsInput')
-      ? emptyMessage(key, category) : <>학과 확인이 필요해요. 현재 자료만으로는 본인에게 적용되는 기준을 확인하기 어려워요. 학과에 문의해 주세요.</>}
+      ? shown ? null : emptyMessage(key, category)
+      : <>학과 확인이 필요해요. 현재 자료만으로는 본인에게 적용되는 기준을 확인하기 어려워요. 학과에 문의해 주세요.</>}
       <InquiryContact departmentId={row.departmentId} /></div>;
   };
   /** 특별전형으로 입학한 학생에게 전용 목록이 없는 카드: 일반 목록을 적용하지 않고 학과 확인으로 안내한다 */
@@ -323,7 +325,7 @@ export function StatusScreen() {
                     ))}
                   </Panel>
                 )}
-                {specialAdmission && c.total === 0 ? specialInquiry(c.key, c.total) : inquiry(c.key, 'requiredCourses')}
+                {specialAdmission && c.total === 0 ? specialInquiry(c.key, c.total) : inquiry(c.key, 'requiredCourses', c.total === 0)}
                 {specialDefault.has(c.key) && <p className="sc-check-hint">외국어 특기자 등 특별전형으로 입학했다면 전공 정보에서 바꿔 주세요</p>}
                 {open[k] && c.items.some((it) => it.canCheck) && <p className="sc-check-hint">직접 이수 표시는 취득학점·평점에 더해지지 않아요.</p>}
               </div>

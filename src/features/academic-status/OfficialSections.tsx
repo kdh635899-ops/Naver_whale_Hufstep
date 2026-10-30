@@ -4,7 +4,7 @@ import { briefAssessment, describeAssessment } from '../../domain/requirements/a
 import { useState } from 'react';
 import { useStore } from '../../app/store';
 import { catalog, departmentById, departmentFacts, departmentMetaById, departmentName, sourceById } from '../../data';
-import { type Scalar } from '../../domain/requirements/conditions';
+import { isAskedOnScreen, type Scalar } from '../../domain/requirements/conditions';
 import { buildQuestions, evaluateRules, leafDisplay, linkableLeaves, normalizeCourseName, noteFrom, ruleTitle, type CoreCategory, type CoverageNote, type CoverageRow, type CourseRuleProgress, type NodeProgress, type NoteKind, type Question, type RuleEval } from '../../domain/requirements/officialRules';
 import { profileSchema } from '../../domain/validation/schemas';
 import type { CampusId, CourseExpr, Course } from '../../domain/types';
@@ -25,7 +25,9 @@ function rowState(r: CoverageRow): string {
   if (r.determinable) return r.basis === 'none' ? '원문에 요건 없음' : '확인됨';
   // 학교 공통 기준이 '요건 없음'이면(예: 전공필수는 부전공 제외) 학과 확인이 남아도 해당 없음으로 둔다
   if (r.basis === 'none') return '해당 없음';
-  if (r.notes.some((n) => n.kind === 'needsInput')) return NOTE_LABEL.needsInput;
+  if (r.notes.some((n) => n.kind === 'needsInput' && n.askable)) return NOTE_LABEL.needsInput;
+  // 물을 질문이 없는 줄은 학생이 입력할 곳이 없다 (이유는 줄마다 아래에 적는다)
+  if (r.notes.some((n) => n.kind === 'needsInput')) return '학과 확인 필요';
   if (r.notes.length) return '';
   return '제공되는 자료 없음';
 }
@@ -191,13 +193,9 @@ export function QuestionsCard() {
   const selectionRules = catalog.officialRules.filter((r) => r.category !== 'departmentAssessment');
   const initial = buildQuestions(evaluateRules({ ...state.profile, facts: {} }, selectionRules, departmentFacts), selectionRules);
   const current = buildQuestions(report.evals.filter((e) => e.rule.category !== 'departmentAssessment'), selectionRules);
-  // 입학 전형·과목 이수 예외는 목록 선택용 입력으로 묻지 않고, 저장된 답과 규칙은 보존한다.
-  // 편입 학년·입학 학기는 화면에서 묻지 않는다. 기존 답과 내부 규칙은 보존한다.
-  const hidden = new Set(['transferEntryGrade', 'entryTerm', 'primaryMajorIsEnglish', 'primaryMajorCollegeIsEnglishCollege',
-    'foreignLanguageSpecialAdmission', 'pureForeignAdmission', 'statisticsIntroCompleted',
-    'statisticsPractice1Completed', 'statisticsPractice2Completed', 'statisticsPracticeCompletedBeforeIntroOffering']);
-  const questions = [...new Map([...current, ...initial].filter((q) => !q.optional && !hidden.has(q.field)
-    && !q.field.startsWith('approved')).map((q) => [q.field, q])).values()];
+  // 묻지 않는 필드 목록은 conditions.ts(UNASKED_FIELDS)에 모아 두고 '추가 입력 필요' 문구와 함께 쓴다.
+  const questions = [...new Map([...current, ...initial].filter((q) => !q.optional && isAskedOnScreen(q.field))
+    .map((q) => [q.field, q])).values()];
   if (!questions.length) return null;
   const setFact = async (field: string, value: Scalar | undefined) => {
     const next = { ...facts };
