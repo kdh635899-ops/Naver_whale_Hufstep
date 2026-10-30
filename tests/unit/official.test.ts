@@ -5,7 +5,7 @@ import { catalog, departmentById, departmentFacts, departmentMetaById, loadList,
 import { buildDemoState } from '../../src/data/demo';
 import { condValues, evalCond, factsFor, roleContexts, type Cond } from '../../src/domain/requirements/conditions';
 import {
-  buildOfficialReport, classifyRuleSupport, detailForGraduation, evaluateCourseRules, normalizeCourseName, ruleTitle, secondaryRestriction, type OfficialReport,
+  buildOfficialReport, classifyRuleSupport, courseConfirmationIds, detailForGraduation, evaluateCourseRules, normalizeCourseName, ruleTitle, secondaryRestriction, type OfficialReport,
 } from '../../src/domain/requirements/officialRules';
 import { evaluateProgress, resolveRequirements } from '../../src/domain/requirements/resolve';
 import { appStateSchema, bundleSchema, officialRuleSchema, profileSchema } from '../../src/domain/validation/schemas';
@@ -99,7 +99,10 @@ describe('변환 중 조건·필수과목 구조 보존 (데이터 프로젝트 
       const r = rule(rec.ruleId);
       const o = rec.originalRecord;
       const fixed = correctTermScope(rec.ruleId, (o.requirement ?? o.sourceRequirement)?.type, rec.stagedProjection!.applicabilityCondition, null, rec.reasons, o.effectivePeriod);
-      expect(r.condition, rec.ruleId).toEqual(fixed.condition);
+      if (rec.ruleId === 'a42-dis-exam') {
+        expect(JSON.stringify(r.condition)).not.toContain('적용 학번을 원문에서 확정하지 못함');
+        expect(r.sourceIds).toContain('src-mail-dis-20261026');
+      } else expect(r.condition, rec.ruleId).toEqual(fixed.condition);
       const src = rec.stagedProjection!.requiredCourseExpression as { items?: unknown[] } | null;
       if (src?.items?.length) expect(shape(r.courses), rec.ruleId).toBe(shape(src));
       checked++;
@@ -490,6 +493,53 @@ const synth = (over: Partial<OfficialRule>): OfficialRule => ({
 });
 const leaf = (id: string, code: string | null, name = id) => ({ op: 'course' as const, id, code, name, creditUnits: 300, matching: code ? 'code' as const : 'studentConfirmation' as const });
 const german: StudentProfile = { ...base, primaryDepartmentId: 'seoul-german', programType: 'single', secondaryDepartmentId: undefined };
+
+describe('데이터 보정과 기존 이수 기록 보존', () => {
+  it('영미문학 FLEX 610과 경영 부전공 회신을 생성 데이터에 반영한다', () => {
+    expect(JSON.stringify(rule('dept-exam-elc-seoul').detail)).toContain('610');
+    expect(rule('dept-exam-elc-seoul').detail).toMatchObject({
+      coversRuleIds: ['dept-exam-elc-toeic805-flex721', 'dept-exam-elc-added-tests-2023-2'],
+    });
+    expect(catalog.supportGaps.some((g) => g.departmentId === 'seoul-business'
+      && g.category === 'departmentAssessment' && g.majorRoles?.includes('minor'))).toBe(false);
+  });
+
+  it('동일 학과의 다른 표기에 졸업시험만 연결하고 전필은 확대하지 않는다', () => {
+    const department = catalog.departmentMeta.find((m) => m.reorganization.some((r) =>
+      r.relatedId && ['sameUnitCatalogLabel', 'sameUnitAlternateLabel'].includes(r.relation)))!;
+    const profile = { ...german, primaryDepartmentId: department.id };
+    const related = departmentFacts(department.id)?.equivalentIds?.[0];
+    expect(related).toBeTruthy();
+    const condition = { op: 'eq' as const, field: 'departmentId', value: related! };
+    const exam = synth({ id: 'alias-exam', departmentId: related!, category: 'departmentAssessment', condition });
+    const courses = synth({ id: 'alias-courses', departmentId: related!, condition });
+    expect(report(profile, [exam, courses]).evals.map((e) => e.rule.id)).toEqual(['alias-exam']);
+  });
+
+  it('전필 포함 목록을 정리해도 과거 체크와 과목 연결을 유지한다', () => {
+    const old = leaf('old/a', null, '같은과목');
+    const current = leaf('new/a', null, '같은과목');
+    const r = report(german, [
+      synth({ id: 'old', courses: { op: 'ALL', items: [old] } }),
+      synth({ id: 'new', courses: { op: 'ALL', items: [current, leaf('new/b', 'B1')] } }),
+    ]);
+    expect(r.courseRules.map((e) => e.rule.id)).toEqual(['new']);
+    expect(courseConfirmationIds(r, current.id)).toEqual([old.id, current.id]);
+    expect(evaluateCourseRules(r, [], null, { confirmedLeafIds: [old.id] })[0].root.children![0].state).toBe('selfConfirmed');
+    expect(evaluateCourseRules(r, [course({ grade: 'A0', requirementLinks: [old.id] })], null)[0].root.children![0].state).toBe('studentLinked');
+  });
+
+  it('졸업시험은 일반전형만 기본값으로 채우고 면제 승인은 질문으로 남긴다', () => {
+    const exam = synth({ category: 'departmentAssessment', condition: { op: 'AND', conditions: [
+      { op: 'eq', field: 'foreignAdmission', value: false },
+      { op: 'eq', field: 'approvedRequiredCourseWaiver', value: false },
+    ] } });
+    const evaluated = report(german, [exam]).evals[0];
+    expect(evaluated.fallbackFields).toContain('foreignAdmission');
+    expect(evaluated.askFields).toContain('approvedRequiredCourseWaiver');
+    expect(evaluated.cls).toBe('needsInput');
+  });
+});
 
 describe('필수과목 식 평가', () => {
   const expr: CourseExpr = { op: 'ALL', items: [leaf('a', 'A1'), { op: 'AT_LEAST', count: 1, items: [leaf('b', 'B1'), leaf('c', 'C1')] }, leaf('n', null, '코드없는과목')] };

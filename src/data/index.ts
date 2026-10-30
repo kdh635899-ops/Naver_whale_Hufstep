@@ -61,10 +61,17 @@ const deptById = new Map(catalog.departments.map((d) => [d.id, d]));
 const metaById = new Map(catalog.departmentMeta.map((m) => [m.id, m]));
 export const departmentById = (id: string) => deptById.get(id);
 export const departmentMetaById = (id: string) => metaById.get(id);
+// 동일 단위의 카탈로그 표기만 양방향 연결한다. 학부·세부전공·개편 승계는 추정하지 않는다.
+const equivalentIdsById = new Map<string, string[]>();
+for (const m of catalog.departmentMeta) for (const r of m.reorganization) {
+  if (!r.relatedId || !['sameUnitCatalogLabel', 'sameUnitAlternateLabel'].includes(r.relation)) continue;
+  equivalentIdsById.set(m.id, [...(equivalentIdsById.get(m.id) ?? []), r.relatedId]);
+  equivalentIdsById.set(r.relatedId, [...(equivalentIdsById.get(r.relatedId) ?? []), m.id]);
+}
 /** 조건식에 넣을 학과 사실 (카탈로그에서 확정되는 값만) */
 export const departmentFacts = (id: string) => {
   const d = deptById.get(id);
-  return d && { campus: d.campus, name: d.name, college: metaById.get(id)?.college };
+  return d && { campus: d.campus, name: d.name, college: metaById.get(id)?.college, equivalentIds: equivalentIdsById.get(id) ?? [] };
 };
 
 export const departmentName = (id?: string) => catalog.departments.find((d) => d.id === id)?.name ?? (id ? '알 수 없는 학과' : '');

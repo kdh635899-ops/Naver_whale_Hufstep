@@ -178,6 +178,28 @@ for (const rec of manifest.records) {
   const title = o.summary ?? (o.title && o.title !== rec.ruleId ? o.title : null);
   const isCompat = state === 'compatible';
   const scoped = isCompat ? null : correctTermScope(rec.ruleId, req?.type, sp.applicabilityCondition, sanitize(req), rec.reasons, o.effectivePeriod);
+  // 보관된 국제학부 회신으로 해소된 학번 조건만 제거한다. 역할·입학유형·어학 세부 공백은 유지한다.
+  if (rec.ruleId === 'a42-dis-exam' && o.unknownReason?.includes('모든 학번 동일')
+    && [...collectSourceIds([rec.sourceRefs, o])].includes('src-mail-dis-20261026')) {
+    const removeCohortBlocker = (c) => c.op === 'unknown' && c.reason === '적용 학번을 원문에서 확정하지 못함'
+      ? { op: 'true' } : c.conditions ? { ...c, conditions: c.conditions.map(removeCohortBlocker) }
+        : c.op === 'NOT' ? { ...c, condition: removeCohortBlocker(c.condition) } : c;
+    scoped.condition = removeCohortBlocker(scoped.condition);
+  }
+  // 회신으로 확정된 FLEX 610과 기존의 부분 대체 규칙은 같은 졸업시험 의무다.
+  // 과거 공지의 상충 문구는 원본 자료에 남기고 현재 인정 기준만 투영한다.
+  if (rec.ruleId === 'dept-exam-elc-seoul' && scoped.detail?.FLEX610AcceptedAllCohorts === true
+    && [...collectSourceIds([rec.sourceRefs, o])].includes('src-mail-elc-20261026')) {
+    const d = scoped.detail;
+    scoped.detail = {
+      type: d.type, replacesDepartmentExam: d.replacesDepartmentExam,
+      expression: { op: 'OR', items: Object.entries(d.since2023H2).map(([test, minimumScore]) => ({
+        type: 'languageTest', test: test === 'TOEFL_IBT' ? 'TOEFL iBT' : test, minimumScore,
+      })) },
+      documentRule: d.documentRule, documentRuleScope: d.documentRuleScope, provisionalNote: d.provisionalNote,
+      coversRuleIds: ['dept-exam-elc-toeic805-flex721', 'dept-exam-elc-added-tests-2023-2'],
+    };
+  }
   rules.push({
     id: rec.ruleId,
     state,
@@ -185,7 +207,8 @@ for (const rec of manifest.records) {
     departmentId: rec.departmentId ?? null,
     category: o.category,
     type: req?.type ?? o.category,
-    ...(title && { title }),
+    ...(title && { title: rec.ruleId === 'a42-dis-exam' ? '국제학부 졸업시험·외국어성적 인증'
+      : scoped?.detail?.coversRuleIds ? '졸업시험 대체 어학성적 (영미문학·문화)' : title }),
     condition: isCompat ? null : scoped.condition,
     ...(isCompat && { bundleIds: rec.bundleIds }),
     totalRequiredUnits: isCompat ? null : sp.totalRequiredUnits ?? null,
@@ -214,7 +237,11 @@ const officialRules = {
   wholeResearchComplete: manifest.wholeResearchComplete,
   counts,
   rules,
-  supportGaps: manifest.initialFourSupportGaps.map((g) => ({ ...g, departmentId: mapId(g.departmentId) })),
+  supportGaps: manifest.initialFourSupportGaps.filter((g) => !(mapId(g.departmentId) === 'seoul-business'
+    && g.category === 'departmentAssessment' && g.majorRoles?.length === 1 && g.majorRoles[0] === 'minor'
+    && rules.some((r) => r.id === 'dept-exam-biz-seoul-minor-unknown' && r.status === 'verified'
+      && r.none?.categories.includes('departmentAssessment') && r.sourceIds.includes('src-mail-biz-20261026'))))
+    .map((g) => ({ ...g, departmentId: mapId(g.departmentId) })),
 };
 
 // ---- 3) 학과 메타데이터: 종류·모집 상태·상위 전공·역할 제한 ----

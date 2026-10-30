@@ -7,7 +7,7 @@ import type {
   SupportGap, Term,
 } from '../types';
 import {
-  ASKABLE_FIELDS, askableFieldFor, condValues, evalCond, factsFor, PER_COURSE_FIELDS, programComposition, roleContexts,
+  ASKABLE_FIELDS, GENERAL_ADMISSION_DEFAULTS, askableFieldFor, condValues, evalCond, factsFor, PER_COURSE_FIELDS, programComposition, roleContexts,
   type DepartmentFacts, type Facts, type FieldSpec, type MajorRole, type Scalar, type Tri,
 } from './conditions';
 import { combineParts, selectBundles, type CombinablePart, type ResolvedRequirements } from './resolve';
@@ -76,18 +76,23 @@ export function evaluateRules(
   const out: RuleEval[] = [];
   for (const rule of rules) {
     if (rule.state === 'compatible' || !rule.condition) continue; // 호환 규칙은 requirement-bundles.json으로 처리
-    const candidates = rule.departmentId ? ctxs.filter((c) => c.departmentId === rule.departmentId) : ctxs;
+    const assessment = ['departmentAssessment', 'commonLanguageCertification'].includes(rule.category);
+    const candidates = rule.departmentId ? ctxs.filter((c) => c.departmentId === rule.departmentId
+      || assessment && dept(c.departmentId)?.equivalentIds?.includes(rule.departmentId!)) : ctxs;
     let best: { ctx: (typeof ctxs)[number]; r: ReturnType<typeof evalCond>; facts: Facts; fallbackFields: string[] } | null = null;
     for (const ctx of candidates) {
       let facts = factsFor(profile, ctx, dept);
+      if (assessment && rule.departmentId && ctx.departmentId !== rule.departmentId) facts = { ...facts, departmentId: rule.departmentId };
       let r = evalCond(rule.condition, facts);
       // 답이 없어 '모름'이 된 필드 중 기본값이 있는 것은 그 값으로 다시 평가 (예: 전필 면제 승인 → 아니요)
       // 파생 필드(entryYear 등)도 원래 질문(entryTerm)의 기본값으로 다시 계산한다.
       const fields = r.value === 'unknown' ? [...new Set(r.missing.map(askableFieldFor)
-        .filter((f): f is string => !!f && f in defaults && !(f in (profile.facts ?? {}))))] : [];
+        .filter((f): f is string => !!f && f in defaults && !(f in (profile.facts ?? {}))
+          && (!assessment || f in GENERAL_ADMISSION_DEFAULTS)))] : [];
       const fill = fields.map((f) => [f, defaults[f]] as const);
       if (fill.length) {
         facts = factsFor({ ...profile, facts: { ...Object.fromEntries(fill), ...profile.facts } }, ctx, dept);
+        if (assessment && rule.departmentId && ctx.departmentId !== rule.departmentId) facts = { ...facts, departmentId: rule.departmentId };
         r = evalCond(rule.condition, facts);
         // 제외된 규칙도 어떤 기본값으로 제외했는지 학생이 수정할 수 있어야 한다.
         for (const [field, value] of fill) {
@@ -132,7 +137,8 @@ export function buildQuestions(evals: RuleEval[], allRules: OfficialRule[], used
   const optional = new Set<string>(usedDefaults.keys());
   for (const e of evals) {
     for (const f of e.fallbackFields) { optional.add(f); byField.set(f, [...(byField.get(f) ?? []), e.rule.id]); }
-    if (e.cls !== 'needsInput') continue;
+    // 전필은 원문 미확정 조항이 함께 있어도, 목록 선택에 필요한 답을 먼저 받는다.
+    if (e.cls !== 'needsInput' && !(e.rule.category === 'requiredCourses' && e.askFields.length)) continue;
     for (const f of e.askFields) byField.set(f, [...(byField.get(f) ?? []), e.rule.id]);
   }
   // 필수 질문을 먼저, 기본값으로 판정되는 선택 질문은 뒤에
@@ -160,6 +166,7 @@ const CORE_OF: Record<string, CoreCategory> = {
   commonLanguageCertification: 'languageCertification',
 };
 const coreOf = (r: OfficialRule): CoreCategory | undefined => {
+  if (r.type === 'commonLanguageCertificationOption') return undefined;
   const c = CORE_OF[r.category];
   // 학과별 어학 요건은 그 전공의 졸업평가·인증 항목으로 본다
   return c === 'languageCertification' && r.departmentId ? 'departmentAssessment' : c;
@@ -268,6 +275,38 @@ export interface ReportInput {
   dept: (id: string) => DepartmentFacts | undefined;
   meta: (id: string) => DepartmentMeta | undefined;
   today?: string;
+}
+
+/** 같은 역할의 평면 필수 목록이 더 큰 목록에 그대로 포함되면 한 번만 대조한다. 택일 식은 합치지 않는다. */
+export function distinctCourseRules(evals: RuleEval[]): RuleEval[] {
+  const keys = (e: RuleEval): string[] | undefined => e.rule.courses?.op === 'ALL'
+    && e.rule.courses.items.every((n) => n.op === 'course')
+    ? e.rule.courses.items.map((n) => {
+      const leaf = n as CourseLeaf;
+      return JSON.stringify([leaf.code, normalizeCourseName(leaf.name), leaf.waiverRuleIds ?? []]);
+    }) : undefined;
+  return evals.filter((e) => {
+    const own = keys(e);
+    return !own || !evals.some((other) => {
+      if (e === other || e.scope !== other.scope || e.role !== other.role || e.rule.departmentId !== other.rule.departmentId
+        || e.cls !== other.cls || e.rule.category !== other.rule.category) return false;
+      const larger = keys(other);
+      return larger && larger.length > own.length && own.every((key) => larger.includes(key));
+    });
+  });
+}
+
+/** 중복 목록 정리 전의 직접 이수 기록은 같은 전공·역할·과목의 새 목록에서도 유지한다. */
+export function courseConfirmationIds(report: OfficialReport | null, leafId: string): string[] {
+  const flat = report?.evals.filter((e) => e.cls === 'confirmed' && e.rule.courses?.op === 'ALL'
+    && e.rule.courses.items.every((n) => n.op === 'course')) ?? [];
+  const owner = flat.find((e) => e.rule.courses?.op === 'ALL' && e.rule.courses.items.some((n) => n.op === 'course' && n.id === leafId));
+  if (!owner || owner.rule.courses?.op !== 'ALL') return [leafId];
+  const leaf = owner.rule.courses.items.find((n) => n.op === 'course' && n.id === leafId) as CourseLeaf;
+  return flat.filter((e) => e.scope === owner.scope && e.role === owner.role && e.rule.departmentId === owner.rule.departmentId
+    && e.rule.category === owner.rule.category).flatMap((e) => e.rule.courses?.op === 'ALL' ? e.rule.courses.items.filter((n) => n.op === 'course'
+      && n.code === leaf.code && normalizeCourseName(n.name) === normalizeCourseName(leaf.name)
+      && JSON.stringify(n.waiverRuleIds ?? []) === JSON.stringify(leaf.waiverRuleIds ?? [])).map((n) => (n as CourseLeaf).id) : []);
 }
 
 export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept, meta, today }: ReportInput): OfficialReport {
@@ -400,7 +439,7 @@ export function buildOfficialReport({ profile, bundles, rules, supportGaps, dept
     evals,
     questions: buildQuestions(evals, rules, usedDefaults),
     resolved,
-    courseRules: [...confirmed, ...conservative].filter((e) => !!e.rule.courses),
+    courseRules: distinctCourseRules([...confirmed, ...conservative].filter((e) => !!e.rule.courses)),
     items: confirmed.filter((e) => !e.rule.courses && !isCreditRule(e.rule)
       && e.rule.type !== 'requiredCoursePolicy'
       && !(e.scope === 'common' && e.rule.type === 'assessmentRequired'
@@ -529,10 +568,11 @@ export function evaluateCourseRules(
       if (hit) return hit;
     }
     if (allowStudent) {
-      const linked = take(free.find((c) => c.requirementLinks?.includes(leaf.id)), 'studentLinked', 1);
+      const ids = courseConfirmationIds(report, leaf.id);
+      const linked = take(free.find((c) => c.requirementLinks?.some((id) => ids.includes(id))), 'studentLinked', 1);
       if (linked) return linked;
       // 성적표에 없는 과목: 학점은 더하지 않고 '이수함(직접 확인)'만 기록
-      if (selfConfirmed.has(leaf.id)) return { node: leaf, level: 1, state: 'selfConfirmed' };
+      if (ids.some((id) => selfConfirmed.has(id))) return { node: leaf, level: 1, state: 'selfConfirmed' };
     }
     return { node: leaf, level: 0, state: 'unmet' };
   };

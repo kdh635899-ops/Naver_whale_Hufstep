@@ -8,7 +8,8 @@ describe('졸업평가 제목을 읽기 좋게', () => {
     expect(prettyTitle('일본언어문화 primary: FLEX700 OR JLPTN1합격+120 OR JPT750')).toBe('일본언어문화 주전공: FLEX700 OR JLPTN1합격+120 OR JPT750');
   });
   it('학과 — 영문-이름표 형태는 학과 + 읽을 수 있는 이름으로 바꾼다', () => {
-    expect(prettyTitle('노어과 — russian-minor-no-course-exam')).toBe('노어과 부전공 졸업시험 (면제·없음)');
+    expect(prettyTitle('노어과 — russian-minor-no-course-exam')).toBe('노어과 부전공 졸업시험');
+    expect(prettyTitle('그리스·불가리아학과 — greek-bulgarian-exam-nominal')).not.toContain('없음');
     expect(prettyTitle('폴란드학과 — polish-project-dual')).toBe('폴란드학과 이중전공 프로젝트');
     expect(prettyTitle('중국언어문화학부 — language-seoul-f94625560c-primary')).toBe('중국언어문화학부 주전공 어학 인증');
     expect(prettyTitle('컴퓨터공학부 — temporary')).toBe('컴퓨터공학부 졸업평가 (임시)');

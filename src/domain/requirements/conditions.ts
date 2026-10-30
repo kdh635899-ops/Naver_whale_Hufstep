@@ -75,6 +75,9 @@ export type FieldKind = 'bool' | 'choice' | 'term' | 'year';
 /** fallback: 학생이 답하지 않았을 때 판정에 쓰는 값. 결과 아래 접힌 기본값 수정란에서 바꿀 수 있다. */
 export interface FieldSpec { label: string; kind: FieldKind; help?: string; fallback?: Scalar }
 
+/** 별도 답변이 없으면 일반학생 기준으로 계산하는 전형만 명시한다. */
+export const GENERAL_ADMISSION_DEFAULTS = { foreignAdmission: false, northKoreanAdmission: false, militaryCommissioned: false } as const;
+
 /** 규칙이 요구할 때만 묻는 학생 입력. 여기 없는 필드는 앱이 아직 입력받지 못하는 조건이다. */
 export const ASKABLE_FIELDS: Record<string, FieldSpec> = {
   graduationTerm: { label: '졸업 예정 학기', kind: 'term', help: '현재 학기를 졸업 학기로 가정하지 않아요. 예정이 바뀌면 다시 고쳐 주세요.' },
@@ -145,7 +148,7 @@ export function roleContexts(p: StudentProfile): RoleContext[] {
   return out;
 }
 
-export interface DepartmentFacts { campus?: string; name?: string; college?: string }
+export interface DepartmentFacts { campus?: string; name?: string; college?: string; equivalentIds?: string[] }
 
 /**
  * 학생 조건 + 판정 중인 전공 문맥 → 조건식에 넣을 값.

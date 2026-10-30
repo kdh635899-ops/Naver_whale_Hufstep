@@ -13,15 +13,15 @@ const KIND: [string[], string][] = [
   [['language', 'flex', 'certificate', 'certification', 'topik', 'score', 'english'], '어학 인증'],
   [['project', 'capstone', 'publication'], '프로젝트'],
 ];
-const NONE_WORDS = ['exemption', 'waiver', 'removed', 'no', 'nominal'];
 
-/** '노어과 — russian-minor-no-course-exam' → '노어과 부전공 졸업시험 (면제·없음)' */
+/** '노어과 — russian-minor-no-course-exam' → '노어과 부전공 졸업시험' */
 function fromSlug(head: string, slug: string): string {
   const words = slug.toLowerCase().split(/[^a-z]+/).filter((w) => w.length >= 2);
   const has = (...keys: string[]) => words.some((w) => keys.includes(w));
   const scope = [has('primary') && '주전공', has('dual') && '이중전공', has('minor') && '부전공'].filter(Boolean).join('·');
   const kind = KIND.find(([keys]) => has(...keys))?.[1] ?? '졸업평가';
-  const mods = [has('temporary') && '임시', has(...NONE_WORDS) && '면제·없음'].filter(Boolean).join(', ');
+  // 제목의 내부 이름만으로 공식 면제·요건 없음을 추정하지 않는다.
+  const mods = has('temporary') ? '임시' : '';
   return [head.trim(), scope, kind].filter(Boolean).join(' ') + (mods ? ` (${mods})` : '');
 }
 

@@ -53879,7 +53879,7 @@
    "departmentId": "seoul-f29d119faa",
    "category": "departmentAssessment",
    "type": "approvedLanguageAssessmentReplacement",
-   "title": "영미문학·문화 2023-2 이후 졸업: FLEX 610~720점 인정 여부만 미해결(721 기준과 610 기준 병기)",
+   "title": "졸업시험 대체 어학성적 (영미문학·문화)",
    "condition": {
     "op": "AND",
     "conditions": [
@@ -53945,43 +53945,38 @@
    "detail": {
     "type": "approvedLanguageAssessmentReplacement",
     "replacesDepartmentExam": true,
-    "byCohort": {
-     "2007학번 이후": {
-      "FLEX": 721,
-      "TOEIC": 805
-     },
-     "2006학번 이전": {
-      "FLEX": 701,
-      "TOEIC": 750
-     }
-    },
-    "since2023H2": {
-     "FLEX": 610,
-     "TOEIC": 805,
-     "TOEFL_IBT": 94,
-     "IELTS": 6.5
-    },
-    "documentRule": "성적표 원본만 인정(온라인·컴퓨터 토익 불가)",
-    "unknownReason": "2023-2~2026-2 졸업자에게 \"07학번 이후 FLEX 721\"과 \"2023학년도 하반기부터 FLEX 610\"이 함께 게시됨. TOEIC805·FLEX721 이상·TOEFL/IELTS는 별도 규칙으로 확정. 남은 쟁점은 FLEX 610~720점의 인정 여부뿐.",
-    "documentRuleScope": "온라인·컴퓨터 토익 불가 문구는 2026-1 공지에서 확인",
-    "researchedHistory": {
-     "beforeChange": [
-      "2021-2",
-      "2022-2"
-     ],
-     "bothBlocksPublished": [
-      "2023-1",
-      "2023-2",
-      "2024-1",
-      "2024-2",
-      "2025-1",
-      "2025-2",
-      "2026-1",
-      "2026-2"
+    "expression": {
+     "op": "OR",
+     "items": [
+      {
+       "type": "languageTest",
+       "test": "FLEX",
+       "minimumScore": 610
+      },
+      {
+       "type": "languageTest",
+       "test": "TOEIC",
+       "minimumScore": 805
+      },
+      {
+       "type": "languageTest",
+       "test": "TOEFL iBT",
+       "minimumScore": 94
+      },
+      {
+       "type": "languageTest",
+       "test": "IELTS",
+       "minimumScore": 6.5
+      }
      ]
     },
-    "FLEX610AcceptedAllCohorts": true,
-    "provisionalNote": "학과 회신: 추후 학과 회의에서 변경될 수 있음"
+    "documentRule": "성적표 원본만 인정(온라인·컴퓨터 토익 불가)",
+    "documentRuleScope": "온라인·컴퓨터 토익 불가 문구는 2026-1 공지에서 확인",
+    "provisionalNote": "학과 회신: 추후 학과 회의에서 변경될 수 있음",
+    "coversRuleIds": [
+     "dept-exam-elc-toeic805-flex721",
+     "dept-exam-elc-added-tests-2023-2"
+    ]
    },
    "reasons": [],
    "note": "학과 회신(2026-10-27): 학번과 무관하게 FLEX 610점 이상이면 졸업요건 충족. 학과 회의 후 변경 가능성 있음",
@@ -75443,7 +75438,7 @@
    "departmentId": "seoul-a4bf0a9036",
    "category": "departmentAssessment",
    "type": "departmentAssessment",
-   "title": "국제학부 주전공: 졸업시험(정치·경제 택1)+외국어 성적 — 적용 학번 미확정",
+   "title": "국제학부 졸업시험·외국어성적 인증",
    "condition": {
     "op": "AND",
     "conditions": [
@@ -75478,8 +75473,7 @@
       ]
      },
      {
-      "op": "unknown",
-      "reason": "적용 학번을 원문에서 확정하지 못함"
+      "op": "true"
      }
     ]
    },
@@ -92997,15 +92991,6 @@
  "supportGaps": [
   {
    "departmentId": "seoul-malay-indonesian",
-   "category": "departmentAssessment",
-   "majorRoles": [
-    "minor"
-   ],
-   "status": "unverified",
-   "reason": "학과 공개 안내에 부전공 평가 적용의 명시 근거 미확보"
-  },
-  {
-   "departmentId": "seoul-business",
    "category": "departmentAssessment",
    "majorRoles": [
     "minor"

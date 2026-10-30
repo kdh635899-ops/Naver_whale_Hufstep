@@ -88,7 +88,7 @@ describe('질문 기본값과 직접 답변 우선순위', () => {
   });
 
   it('학과 기준이 있으면 학교 시험/논문 중복 항목과 전필 정책을 제외한다', () => {
-    const rep = report();
+    const rep = report({ ...SYNTHETIC_PROFILE, facts: { ...SYNTHETIC_PROFILE.facts, approvedRequiredCourseWaiver: false } });
     expect(rep.items.map((e) => e.rule.id)).toContain('core-malay-flex-primary');
     expect(rep.items.some((e) => e.rule.type === 'assessmentRequired' || e.rule.type === 'requiredCoursePolicy')).toBe(false);
     expect(ruleTitle(catalog.officialRules.find((r) => r.id === 'transfer-bachelor-recognition-seoul')!)).toMatch(/^학사편입/);
