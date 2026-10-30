@@ -533,14 +533,22 @@ describe('데이터 보정과 기존 이수 기록 보존', () => {
     expect(evaluateCourseRules(r, [course({ grade: 'A0', requirementLinks: [old.id] })], null)[0].root.children![0].state).toBe('studentLinked');
   });
 
-  it('졸업시험은 일반전형만 기본값으로 채우고 면제 승인은 질문으로 남긴다', () => {
+  it('졸업시험도 일반학생 기준(전형·전공필수 면제)은 기본값으로 채운다', () => {
     const exam = synth({ category: 'departmentAssessment', condition: { op: 'AND', conditions: [
       { op: 'eq', field: 'foreignAdmission', value: false },
+      { op: 'eq', field: 'foreignLanguageSpecialAdmission', value: false },
       { op: 'eq', field: 'approvedRequiredCourseWaiver', value: false },
     ] } });
     const evaluated = report(german, [exam]).evals[0];
-    expect(evaluated.fallbackFields).toContain('foreignAdmission');
-    expect(evaluated.askFields).toContain('approvedRequiredCourseWaiver');
+    expect(evaluated.fallbackFields).toEqual(expect.arrayContaining(
+      ['foreignAdmission', 'foreignLanguageSpecialAdmission', 'approvedRequiredCourseWaiver']));
+    expect(evaluated.cls).toBe('confirmed');
+  });
+  it('일반학생 기준을 두지 않은 면제는 졸업시험에서도 질문으로 남긴다', () => {
+    const exam = synth({ category: 'departmentAssessment',
+      condition: { op: 'eq', field: 'approvedDisabilityCertificationWaiver', value: false } });
+    const evaluated = report(german, [exam]).evals[0];
+    expect(evaluated.askFields).toContain('approvedDisabilityCertificationWaiver');
     expect(evaluated.cls).toBe('needsInput');
   });
 });

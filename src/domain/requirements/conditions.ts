@@ -75,8 +75,14 @@ export type FieldKind = 'bool' | 'choice' | 'term' | 'year';
 /** fallback: 학생이 답하지 않았을 때 판정에 쓰는 값. 결과 아래 접힌 기본값 수정란에서 바꿀 수 있다. */
 export interface FieldSpec { label: string; kind: FieldKind; help?: string; fallback?: Scalar }
 
-/** 별도 답변이 없으면 일반학생 기준으로 계산하는 전형만 명시한다. */
-export const GENERAL_ADMISSION_DEFAULTS = { foreignAdmission: false, northKoreanAdmission: false, militaryCommissioned: false } as const;
+/**
+ * 별도 답변이 없으면 일반학생 기준으로 계산하는 전형·면제만 명시한다.
+ * 졸업평가·어학 규칙에도 전필 규칙과 같은 기본값을 쓴다 (기본은 특별전형·면제 아님).
+ * 학생이 직접 답한 값(profile.facts)은 factsFor에서 항상 우선하므로, 체크한 학생에게는 이 기본값을 쓰지 않는다.
+ * 외국어 특기자·순수외국인·전공필수 면제는 같은 규칙에 함께 걸려 있어 셋을 함께 둬야 판정이 열린다.
+ */
+export const GENERAL_ADMISSION_DEFAULTS = { foreignAdmission: false, northKoreanAdmission: false, militaryCommissioned: false,
+  foreignLanguageSpecialAdmission: false, pureForeignAdmission: false, approvedRequiredCourseWaiver: false } as const;
 
 /** 규칙이 요구할 때만 묻는 학생 입력. 여기 없는 필드는 앱이 아직 입력받지 못하는 조건이다. */
 export const ASKABLE_FIELDS: Record<string, FieldSpec> = {

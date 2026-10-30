@@ -16,7 +16,7 @@ import { checklistCount, deleteChecklistItem, linkedChecklistIds, migrateCheckli
 import { emptyEdits, emptyState, type AppState } from '../../src/domain/state';
 import type { CourseExpr, StudentProfile } from '../../src/domain/types';
 import { appStateSchema } from '../../src/domain/validation/schemas';
-import { QuestionsCard } from '../../src/features/academic-status/OfficialSections';
+import { CoverageCard, QuestionsCard } from '../../src/features/academic-status/OfficialSections';
 import { ProfileForm } from '../../src/features/profile/ProfileForm';
 import { StatusScreen } from '../../src/features/academic-status/StatusScreen';
 import { loadState, migrate, saveState } from '../../src/storage/repository';
@@ -504,18 +504,28 @@ describe("입력할 곳 없는 '추가 입력 필요' 문구 정리", () => {
   };
 
   it('화면에서 묻는 질문이 하나도 없으면 학과 확인 필요로 적는다', () => {
-    // 전형 질문은 화면에서 묻지 않는다 (답이 없는 상태로 둔다)
-    const r = rep({ ...base, facts: {} });
-    const e = r.evals.find((x) => x.rule.id === 'core-malay-flex-primary')!;
+    // 편입 학년은 화면에서 묻지 않는다 (저장된 답과 내부 규칙만 보존한다)
+    const r = rep({ ...base, entryType: 'transferGeneral', cohortYear: 2023, facts: {} });
+    const e = r.evals.find((x) => x.rule.id === 'transfer-general-recognition-seoul')!;
     expect(e.cls).toBe('needsInput');
+    expect(e.askFields).toEqual(['transferEntryGrade']);
     expect(e.askFields.filter(isAskedOnScreen)).toHaveLength(0);
     const note = noteFrom(e, departmentName);
     expect(note.text).toContain('학과 확인 필요');
     expect(note.text).not.toContain('추가 입력 필요');
     expect(note.askable).toBe(false);
     // 면제·승인만 남은 줄은 기존 문구를 그대로 쓴다
-    const waiver = r.evals.find((x) => x.rule.id === 'common-language-seoul-general')!;
+    // 장애학생 졸업인증 면제는 일반학생 기본값을 두지 않는다 (면제·승인 문구를 그대로 쓴다)
+    const waiver = rep({ ...base, facts: {} }).evals.find((x) => x.rule.id === 'common-language-seoul-general')!;
+    expect(waiver.askFields).toEqual(['approvedDisabilityCertificationWaiver']);
     expect(noteFrom(waiver, departmentName).text).toContain('면제·승인 여부 확인 필요');
+  });
+
+  it('판정 범위 카드의 배지와 이유 라벨도 같은 기준을 쓴다', () => {
+    const profile: StudentProfile = { ...base, entryType: 'transferGeneral', cohortYear: 2023, facts: {} };
+    const html = render({ ...emptyState(), profile }, CoverageCard);
+    expect(html).toContain('학과 확인 필요');
+    expect(html).not.toContain('추가 입력 필요');
   });
 
   it('묻지 않는 필드는 질문 목록에도 없고 문구와 같은 목록을 쓴다', () => {
@@ -531,5 +541,46 @@ describe("입력할 곳 없는 '추가 입력 필요' 문구 정리", () => {
     expect(rep(profile).coverage.find((r) => r.scope === 'primary' && r.category === 'requiredCourses')!
       .notes.some((n) => n.kind === 'needsInput')).toBe(true);
     expect(sec.split('확인 필요 · ').length - 1).toBe(1);
+  });
+});
+
+describe('졸업평가에도 특기자 기본값 적용', () => {
+  // 외국어 특기자 전용 기준이 있는 학과 (한 전공만 이수하는 신입학 학생으로 본다)
+  const DEPTS = [['네덜란드어과', 'seoul-18dc6e0e6d', 'remaining-dutch-certification-or'],
+    ['태국어과', 'seoul-8c71399e19', 'remaining-thai-language-or-project']] as const;
+  const single = (departmentId: string, facts: StudentProfile['facts']): StudentProfile => ({ ...base,
+    primaryDepartmentId: departmentId, secondaryDepartmentId: undefined, programType: 'intensive', cohortYear: 2021, facts });
+  const examSection = (html: string) => {
+    const start = html.indexOf('<section id="st-exams"');
+    return html.slice(start, html.indexOf('</section>', start));
+  };
+
+  it.each(DEPTS)('%s 1전공 신입학·체크 안 함: 졸업시험 기준을 안내한다', (_name, departmentId, ruleId) => {
+    const profile = single(departmentId, {});
+    const e = rep(profile).evals.find((x) => x.rule.id === ruleId)!;
+    expect(e.cls).toBe('confirmed');
+    // 기본값으로 판정했음을 밝혀 학생이 고칠 수 있게 한다
+    expect(e.fallbackFields).toContain('foreignLanguageSpecialAdmission');
+    expect(rep(profile).items.map((x) => x.rule.id)).toContain(ruleId);
+    const note = rep(profile).coverage.find((r) => r.category === 'departmentAssessment' && r.departmentId === departmentId);
+    expect(note?.notes.some((n) => n.kind === 'needsInput')).not.toBe(true);
+    expect(examSection(render({ ...emptyState(), profile }))).not.toContain('학과 확인 필요');
+  });
+
+  it.each(DEPTS)('%s 체크함: 일반 기준을 적용하지 않고 학과 확인으로 안내한다', (_name, departmentId, ruleId) => {
+    const profile = single(departmentId, { foreignLanguageSpecialAdmission: true });
+    const r = rep(profile);
+    expect(r.evals.find((x) => x.rule.id === ruleId)).toBeUndefined();
+    expect(r.items.map((x) => x.rule.id)).not.toContain(ruleId);
+    const html = examSection(render({ ...emptyState(), profile }));
+    expect(html).toContain('졸업 시험 및 요건 안내'); // 일반 목록을 채우지 않는다
+    expect(html).not.toContain('학과 확인 필요');
+  });
+
+  it('학생이 직접 답한 값은 기본값보다 앞선다', () => {
+    const p = single('seoul-8c71399e19', { foreignLanguageSpecialAdmission: true });
+    const facts = factsFor(p, roleContexts(p)[0], departmentFacts);
+    expect(facts.foreignLanguageSpecialAdmission).toBe(true);
+    expect(defaultAnswers(p, catalog.officialRules, departmentFacts).foreignLanguageSpecialAdmission).toBe(false);
   });
 });

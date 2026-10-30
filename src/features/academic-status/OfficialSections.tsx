@@ -134,7 +134,8 @@ export function CoverageCard() {
                 <summary className="small">이유 {r.notes.filter((n) => !isInquiry(n)).length}건 보기</summary>
                 <ul className="plain small">
                   {r.notes.filter((n) => !isInquiry(n)).map((n, i) => (
-                    <li key={i}><b>{NOTE_LABEL[n.kind]}</b> {n.text}</li>
+                    // 물을 질문이 없는 줄은 제목 줄 배지와 같은 기준으로 적는다
+                    <li key={i}><b>{n.kind === 'needsInput' && !n.askable ? '학과 확인 필요' : NOTE_LABEL[n.kind]}</b> {n.text}</li>
                   ))}
                 </ul>
               </details>
