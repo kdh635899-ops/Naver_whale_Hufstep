@@ -69,14 +69,14 @@ test.afterAll(async () => {
   try { rmSync(profileDir, { recursive: true, force: true }); } catch { /* 웨일이 파일을 잡고 있으면 남겨 둠 */ }
 });
 
-test('웨일 API: whale.alarms / notifications / sidebarAction 이 서비스 워커에 있다', async () => {
+test('웨일 API: sidebarAction은 있고, 알림 권한(alarms / notifications)은 요청하지 않는다', async () => {
   const apis = await sw!.evaluate(() => {
     const w = (globalThis as unknown as { whale: Record<string, unknown> }).whale;
     return { alarms: typeof w.alarms, notifications: typeof w.notifications, sidebarAction: typeof w.sidebarAction };
   });
-  expect(apis).toEqual({ alarms: 'object', notifications: 'object', sidebarAction: 'object' });
+  expect(apis).toEqual({ alarms: 'undefined', notifications: 'undefined', sidebarAction: 'object' });
   const iconOk = await page.evaluate(async () => (await fetch('/icons/icon128.png')).ok);
-  expect(iconOk).toBe(true); // 알림 아이콘 실제 파일
+  expect(iconOk).toBe(true); // 확장앱 아이콘 실제 파일
 });
 
 // Figma 화면 기준 흐름. 현재 학기는 앱이 정하는 값(오늘 날짜 기준)이라 학기 이름 대신 요소로 찾는다.

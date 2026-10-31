@@ -41,9 +41,8 @@ describe('배포 데이터 묶음', () => {
 
 describe('매니페스트 최소 권한', () => {
   it('학교 접근·탭·클립보드 권한을 요구하지 않는다', () => {
-    expect([...manifest.permissions].sort()).toEqual(['alarms', 'notifications']);
     const m = manifest as Record<string, unknown>;
-    for (const k of ['host_permissions', 'content_scripts', 'externally_connectable', 'action']) expect(m[k]).toBeUndefined();
+    for (const k of ['permissions', 'host_permissions', 'content_scripts', 'externally_connectable', 'action']) expect(m[k]).toBeUndefined();
     expect(manifest.sidebar_action.default_page).toBe('sidebar.html');
     expect(manifest.content_security_policy.extension_pages).not.toMatch(/unsafe-eval|unsafe-inline|https?:/);
   });

@@ -6,13 +6,13 @@ import { extApi } from '../platform/browser';
 import { clearAllScheduling, handleAlarm, openFromNotification, reconcile } from './reconcile';
 
 const runtime = extApi('runtime')!;
-const alarms = extApi('alarms')!;
+const alarms = extApi('alarms'); // 알림 권한을 뺐기 때문에 없을 수 있다 (없으면 아무것도 예약하지 않는다)
 const notifications = extApi('notifications');
 
 runtime.onInstalled.addListener(() => void reconcile());
 runtime.onStartup.addListener(() => void reconcile());
 
-alarms.onAlarm.addListener((alarm) => {
+alarms?.onAlarm.addListener((alarm) => {
   void (alarm.name === RECONCILE_ALARM ? reconcile() : handleAlarm(alarm.name));
 });
 
