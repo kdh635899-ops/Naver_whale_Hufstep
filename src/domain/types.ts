@@ -31,6 +31,9 @@ export interface StudentProfile {
   /** double·minor는 필수, intensive는 부전공을 함께 할 때만 (전공심화+부전공) */
   secondaryDepartmentId?: string;
   currentYear?: 1 | 2 | 3 | 4;
+  /** 학생이 직접 고른 현재 학기(휴학하면 달력 학기와 다를 수 있다). 고른 시점의 달력 학기를 semesterAnchor에 함께 둔다. */
+  currentSemester?: '1' | '2';
+  semesterAnchor?: Term;
   currentTerm: Term;
   /** 특정 규칙이 요구할 때만 받은 추가 조건 답 (졸업 예정 학기·특별전형 등). 키가 없으면 '모름' */
   facts?: Record<string, string | number | boolean | null>;

@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { stairCharacter, STAIRS_IMG } from '../../app/stairs';
 import { useStore } from '../../app/store';
 import { catalog, departmentFacts, departmentMetaById, departmentName } from '../../data';
+import { currentPosition } from '../../domain/gradeYear';
 import { shortTitle } from '../../domain/requirements/displayTitle';
 import { courseConfirmationIds, normalizeCourseName, replacementNeedsPermission, ruleTitle, type NodeProgress } from '../../domain/requirements/officialRules';
 import { departmentAssessmentGuides, groupAssessments } from '../../domain/requirements/assessment';
@@ -34,6 +35,7 @@ export function StatusScreen() {
   const [sec, setSec] = useState<Section>('credits');
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const profile = state.profile!;
+  const year = currentPosition(profile).year;
   const confirmed = new Set(state.certConfirmations.flatMap((c) => courseConfirmationIds(report, c.requirementId)));
   const attending = timetableRequirementStates(state, report);
   const secondLabel = profile.programType === 'double' ? '이중전공' : '부전공';
@@ -246,15 +248,15 @@ export function StatusScreen() {
     <div className="page">
       <h1 className="page-title">내 학사현황</h1>
       <p className="st-meta">
-        {String(profile.cohortYear).slice(2)}학번{profile.currentYear ? <><span className="sep">ㅣ</span>{profile.currentYear}학년</> : null}
+        {String(profile.cohortYear).slice(2)}학번{year ? <><span className="sep">ㅣ</span>{year}학년</> : null}
         <span className="sep">ㅣ</span>{ENTRY_LABEL[profile.entryType]}<span className="sep">ㅣ</span>{CAMPUS_LABEL[profile.homeCampus]}
         <br /><b>{cards.primary.dept}</b>{secondary && <> <span className="sep">|</span> <b>{cards.secondary.dept}</b></>}
       </p>
 
       {/* Figma: 계단 위에 현재 학년의 캐릭터가 선다 (학년을 바꾸면 같이 바뀐다) */}
-      <div className="stairs" role="img" aria-label={profile.currentYear ? `${profile.currentYear}학년: 계단 ${profile.currentYear}층` : '계단'}>
+      <div className="stairs" role="img" aria-label={year ? `${year}학년: 계단 ${year}층` : '계단'}>
         <img className="stairs-bg" src={STAIRS_IMG} alt="" />
-        {profile.currentYear && <img className={`stair-char s${profile.currentYear}`} data-year={profile.currentYear} src={stairCharacter(profile.currentYear)} alt="" />}
+        {year && <img className={`stair-char s${year}`} data-year={year} src={stairCharacter(year as 1 | 2 | 3 | 4)} alt="" />}
       </div>
       <section className="remain-card" aria-label="졸업까지 남은 학점">
         <p className="t">졸업까지 남은 총 학점</p>

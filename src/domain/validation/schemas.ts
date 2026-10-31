@@ -44,6 +44,8 @@ export const profileSchema: z.ZodType<StudentProfile> = z.object({
   programType,
   secondaryDepartmentId: id.optional(),
   currentYear: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)]).optional(),
+  currentSemester: z.union([z.literal('1'), z.literal('2')]).optional(),
+  semesterAnchor: termSchema.optional(),
   currentTerm: termSchema,
   facts: z.record(z.string().max(60), z.union([z.string().max(60), z.number().int().min(0).max(999999), z.boolean(), z.null()]))
     .refine((f) => Object.keys(f).length <= 60, '추가 조건이 너무 많아요').optional(),

@@ -1,6 +1,7 @@
 // 사이드바 앱 뼈대: 헤더 · 5개 메뉴 · 화면 · 공유 과목 편집기.
 // 메뉴 순서(§2.2): 종정시 입력 → 학사 현황 → 시간표 → 학점 계산 → 마이페이지
 import { useEffect, useState } from 'react';
+import { currentPosition } from '../domain/gradeYear';
 import type { View } from '../domain/state';
 import { AssessmentsScreen } from '../features/assessments/AssessmentsScreen';
 import { CalculatorScreen } from '../features/calculator/CalculatorScreen';
@@ -35,7 +36,7 @@ function Splash() {
 
 function Header() {
   const { state } = useStore();
-  const year = state.profile?.currentYear;
+  const year = state.profile ? currentPosition(state.profile).year : undefined;
   return (
     <header className="app-header">
       <img className="logo" src={logoForYear(year)} alt="" data-year={year ?? ''} />

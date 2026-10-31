@@ -182,6 +182,7 @@ label.field { gap: 9px; font-size: 18px; font-weight: 600; line-height: 1.1; col
 .fig-lead { margin: 14px 0 46px; font-size: 15px; line-height: 27px; color: #000; }
 .fig-form { gap: 30px; }
 .fig-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+.fig-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .field-legend { padding: 0; margin-bottom: 15px; font-size: 18px; font-weight: 600; line-height: 1.1; color: var(--label); }
 /* 알약 탭 바 (학사 현황 3구간 / 학점 계산 학년) */
 .pill-tabs { display: flex; gap: 10px; align-items: center; justify-content: center; min-height: 54px; padding: 7px; background: var(--panel); border-radius: var(--r-pill); }

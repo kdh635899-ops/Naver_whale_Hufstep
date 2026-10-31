@@ -1,10 +1,11 @@
 // 마이페이지 (Figma): 인사 → 프로필 카드 → 내 학적 정보(톱니바퀴로 수정) → 하단 문의 문구.
-// 알림·동의 철회·삭제·전체 초기화·현재 학기 설정은 가볍게 가기 위해 뺐다. (종정시 정보를 지우고 다시 저장하는 것은 종정시 입력의 '초기화')
+// 알림·동의 철회·삭제·전체 초기화는 가볍게 가기 위해 뺐다. (현재 학기 선택은 Figma에 없는 칸이지만 휴학 학생의 학기 표시를 위해 학적 정보 수정에 둔다.) (종정시 정보를 지우고 다시 저장하는 것은 종정시 입력의 '초기화')
 // '정보 관리'(종정시 성적 다시 불러오기 / 졸업요건 기준 확인하기)는 보류 중이라 만들지 않았다.
 import { useState } from 'react';
 import hufsLogo from '../../assets/logo/hufs-logo.png';
 import { useStore } from '../../app/store';
 import { departmentName } from '../../data';
+import { currentPosition } from '../../domain/gradeYear';
 import { formatUnits } from '../../domain/terms';
 import { useProgress } from '../academic-status/useProgress';
 import { ProfileForm } from '../profile/ProfileForm';
@@ -19,6 +20,7 @@ export function MyPage() {
   const remaining = progress.hasRecords ? progress.total.remaining : null;
   const secondLabel = p.programType === 'double' ? '이중전공' : '부전공';
   const yy = `${String(p.cohortYear).slice(2)}학번`;
+  const pos = currentPosition(p);
 
   return (
     <div className="page">
@@ -33,7 +35,7 @@ export function MyPage() {
         <div className="avatar" aria-hidden="true"><img src={hufsLogo} alt="" /></div>
         <div>
           <p className="pc-name">{name || '이름 없음'}</p>
-          <p className="pc-sub">{yy}{p.currentYear ? ` · ${p.currentYear}학년` : ''}</p>
+          <p className="pc-sub">{yy}{pos.year ? ` · ${pos.year}학년${pos.semester ? ` ${pos.semester}학기` : ''}` : ''}</p>
         </div>
       </div>
 
@@ -46,7 +48,7 @@ export function MyPage() {
         <div className="info-row"><dt>소속 캠퍼스</dt><dd>{CAMPUS_LABEL[p.homeCampus]}</dd></div>
         <div className="info-row"><dt>주전공</dt><dd>{departmentName(p.primaryDepartmentId)}</dd></div>
         {p.secondaryDepartmentId && <div className="info-row"><dt>{secondLabel}</dt><dd>{departmentName(p.secondaryDepartmentId)}</dd></div>}
-        <div className="info-row"><dt>학번 / 현재 학년</dt><dd>{yy}{p.currentYear ? ` / ${p.currentYear}학년` : ''}</dd></div>
+        <div className="info-row"><dt>학번 / 현재 학년·학기</dt><dd>{yy}{pos.year ? ` / ${pos.year}학년${pos.semester ? ` ${pos.semester}학기` : ''}` : ''}</dd></div>
         <div className="info-row"><dt>입학 유형</dt><dd>{ENTRY_LABEL[p.entryType]}</dd></div>
       </dl>
 

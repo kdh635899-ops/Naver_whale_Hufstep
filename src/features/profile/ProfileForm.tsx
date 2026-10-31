@@ -4,6 +4,7 @@ import { ProfileSelect } from './ProfileSelect';
 import { useStore } from '../../app/store';
 import { catalog, departmentMetaById } from '../../data';
 import { secondaryRestriction } from '../../domain/requirements/officialRules';
+import { currentPosition } from '../../domain/gradeYear';
 import { suggestTerm } from '../../domain/terms';
 import type { CampusId, Department, EntryType, ProgramType, StudentProfile } from '../../domain/types';
 import { firstIssue, profileSchema } from '../../domain/validation/schemas';
@@ -54,7 +55,10 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
     p?.entryType === 'freshman' && p.programType === 'single' ? 'double' : p?.programType ?? 'double',
   );
   const [secondary, setSecondary] = useState(p?.secondaryDepartmentId ?? '');
-  const [year, setYear] = useState<string>(p?.currentYear ? String(p.currentYear) : '');
+  // 학기를 고른 적이 있으면 지금의 학년·학기를 세어서 보여 준다 (고른 뒤 학기가 지나도 맞게)
+  const pos = p ? currentPosition(p) : {};
+  const [year, setYear] = useState<string>(pos.year ? String(pos.year) : '');
+  const [sem, setSem] = useState<string>(pos.semester ?? '');
   // 외국어 특기자 등 특별전형: 기본은 꺼짐(= 아니요). 신입학에만 해당한다.
   const [special, setSpecial] = useState(p?.facts?.foreignLanguageSpecialAdmission === true);
   const [error, setError] = useState('');
@@ -74,6 +78,7 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
     e.preventDefault();
     if (!primary) return setError('주전공을 골라 주세요');
     if (!cohort) return setError('학번(입학 연도)을 골라 주세요');
+    if (sem && !year) return setError('현재 학년을 먼저 골라 주세요');
     const sec = allowsSecond && secondary ? catalog.departments.find((d) => d.id === secondary) : undefined;
     const why = sec && restricted(sec);
     if (why) return setError(`이 학과는 지금 조건에서 ${role === 'dual' ? '이중전공' : '부전공'}으로 고를 수 없어요: ${why}`);
@@ -89,6 +94,7 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
       programType: program, secondaryDepartmentId: allowsSecond ? secondary || undefined : undefined,
       currentYear: year ? (Number(year) as 1 | 2 | 3 | 4) : undefined,
       currentTerm: p?.currentTerm ?? suggestTerm(now),
+      ...(year && sem ? { currentSemester: sem as '1' | '2', semesterAnchor: p?.currentTerm ?? suggestTerm(now) } : {}),
       ...(Object.keys(facts).length ? { facts } : {}),
     };
     const r = profileSchema.safeParse(next);
@@ -131,7 +137,7 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
           </ProfileSelect>
         </label>
       )}
-      <div className="fig-row">
+      <div className="fig-row three">
         <label className="field">학번
           <ProfileSelect aria-label="학번" downward={downward} value={cohort} onChange={(e) => setCohort(Number(e.target.value))}>
             <option value={0}>선택</option>
@@ -142,6 +148,13 @@ export function ProfileForm({ onDone, submitLabel, downward = false }: { onDone:
           <ProfileSelect aria-label="현재 학년" downward={downward} value={year} onChange={(e) => setYear(e.target.value)}>
             <option value="">선택</option>
             {[1, 2, 3, 4].map((y) => <option key={y} value={y}>{y}학년</option>)}
+          </ProfileSelect>
+        </label>
+        <label className="field">현재 학기
+          <ProfileSelect aria-label="현재 학기" downward={downward} value={sem} onChange={(e) => setSem(e.target.value)}>
+            <option value="">선택</option>
+            <option value="1">1학기</option>
+            <option value="2">2학기</option>
           </ProfileSelect>
         </label>
       </div>

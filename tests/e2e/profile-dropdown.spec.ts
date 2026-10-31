@@ -28,8 +28,8 @@ test('내 정보 수정의 모든 메뉴가 아래로 펼쳐지고 키보드 선
   const dialog = page.getByRole('dialog', { name: '내 정보 수정' });
   await dialog.evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).map((animation) => animation.finished)));
   const controls = dialog.getByRole('combobox');
-  await expect(controls).toHaveCount(6);
-  for (let i = 0; i < 6; i++) {
+  await expect(controls).toHaveCount(7);
+  for (let i = 0; i < 7; i++) {
     const control = controls.nth(i);
     await control.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     const entry = dialog.getByRole('combobox', { name: '입학유형' });

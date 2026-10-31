@@ -646,13 +646,17 @@ test('마이페이지: 인사·프로필 카드·학적 정보 표, 톱니바퀴
   await expect(page.getByRole('link', { name: 'hufswavoo123@gmail.com' })).toHaveAttribute('href', 'mailto:hufswavoo123@gmail.com');
   await page.getByRole('button', { name: '학적 정보 수정하기' }).click();
   const dlg = page.getByRole('dialog', { name: '내 정보 수정' });
-  for (const gone of ['기타 설정', '알림', '동의 철회', '전체 초기화', '현재 학기']) await expect(dlg).not.toContainText(gone);
+  for (const gone of ['기타 설정', '알림', '동의 철회', '전체 초기화']) await expect(dlg).not.toContainText(gone);
+  await expect(dlg.getByRole('combobox', { name: '현재 학기', exact: true })).toBeVisible(); // 휴학한 학생을 위해 학기를 직접 고른다
   await dlg.getByLabel('이름 / 닉네임').fill('웨이');
   await dlg.getByRole('combobox', { name: '현재 학년', exact: true }).click();
   await dlg.getByRole('option', { name: '4학년', exact: true }).click();
+  await dlg.getByRole('combobox', { name: '현재 학기', exact: true }).click();
+  await dlg.getByRole('option', { name: '1학기', exact: true }).click();
   await dlg.getByRole('button', { name: '저장', exact: true }).click();
   await expect(dlg).toBeHidden();
   await expect(page.getByRole('heading', { name: /안녕하세요,\s*웨이님/ })).toBeVisible();
+  await expect(page.locator('.info-row').filter({ hasText: '현재 학년·학기' })).toContainText('4학년 1학기');
   expect(JSON.parse(await readState()).profile.name).toBe('웨이');
   // 학년을 바꾸면 헤더 로고도 같이 바뀐다 (4학년 = 학사모)
   await expect(page.locator('.app-header img.logo')).toHaveAttribute('data-year', '4');
