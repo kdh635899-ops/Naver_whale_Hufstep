@@ -13,7 +13,7 @@ import { departmentAssessmentGuides, groupAssessments } from '../../domain/requi
 import { checklistCount, deleteChecklistItem, linkedChecklistIds } from '../../domain/requirements/statusEdits';
 import { emptyEdits, newId } from '../../domain/state';
 import { formatUnits } from '../../domain/terms';
-import { timetableRequirementStates } from '../../domain/timetableStatus';
+import { plannedCredits, timetableRequirementStates, withPlanned } from '../../domain/timetableStatus';
 import type { BoxKind, BundleScope, CertificationRequirement, CourseExpr, StatusEdits } from '../../domain/types';
 import { AREA_LABEL, CAMPUS_LABEL, ENTRY_LABEL, Confirm, SafeLink } from '../common';
 import { FieldPrompt } from './AddPrompt';
@@ -38,6 +38,9 @@ export function StatusScreen() {
   const year = currentPosition(profile).year;
   const confirmed = new Set(state.certConfirmations.flatMap((c) => courseConfirmationIds(report, c.requirementId)));
   const attending = timetableRequirementStates(state, report);
+  // 이번 학기 시간표 학점을 취득학점에 합쳐 한 숫자로 보여 준다 (재수강은 이전 기록 학점을 대신한 순증가분만)
+  const planned = plannedCredits(state);
+  const shown = withPlanned(progress, planned);
   const secondLabel = profile.programType === 'double' ? '이중전공' : '부전공';
   const secondary = profile.secondaryDepartmentId;
   const edits = state.statusEdits ?? emptyEdits();
@@ -238,11 +241,12 @@ export function StatusScreen() {
   };
   // ---- 상단 요약 ----
   const required = progress.total.required;
-  const remaining = progress.hasRecords ? progress.total.remaining : null;
-  const pct = required && required > 0 ? Math.min(100, Math.round((progress.total.earned / required) * 100)) : 0;
+  const hasCredits = progress.hasRecords || planned.total > 0;
+  const remaining = hasCredits ? shown.remaining : null;
+  const pct = required && required > 0 ? Math.min(100, Math.round((shown.earned / required) * 100)) : 0;
   const goSection = (k: Section) => { setSec(k); document.getElementById(`st-${k}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   const flip = (k: string) => setOpen((o) => ({ ...o, [k]: !o[k] }));
-  const areas = progress.areas.filter((a) => a.required !== undefined);
+  const areas = shown.areas;
 
   return (
     <div className="page">
@@ -262,8 +266,8 @@ export function StatusScreen() {
         <p className="t">졸업까지 남은 총 학점</p>
         <p className="big"><span>{remaining === null ? '—' : formatUnits(Math.max(0, remaining))}</span><small>학점</small></p>
         <div className="line" role="progressbar" aria-label="전체 이수 진행률" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}><i style={{ width: `${pct}%` }} /></div>
-        <p className="got">{progress.hasRecords
-          ? <><b>{formatUnits(progress.total.earned)}</b>{required !== null && <span>/{formatUnits(required)}</span>} 학점 취득</>
+        <p className="got">{hasCredits
+          ? <><b>{formatUnits(shown.earned)}</b>{required !== null && <span>/{formatUnits(required)}</span>} 학점 취득{planned.total > 0 && ' (이번 학기 포함)'}</>
           : '종정시 정보를 저장하면 표시돼요'}</p>
       </section>
 
@@ -278,8 +282,8 @@ export function StatusScreen() {
             {areas.map((a) => {
               const pctA = a.required ? Math.min(100, Math.round((a.earned / a.required) * 100)) : 0;
               return (
-                <div key={a.area} className={`area-row${a.status === 'met' ? ' met' : ''}`}>
-                  <p className="top"><span>{AREA_LABEL[a.area]}</span><span><span className="got">{formatUnits(a.earned)}</span><span className="of">/{formatUnits(a.required!)}학점</span></span></p>
+                <div key={a.area} className={`area-row${a.met ? ' met' : ''}`}>
+                  <p className="top"><span>{AREA_LABEL[a.area]}</span><span><span className="got">{formatUnits(a.earned)}</span><span className="of">/{formatUnits(a.required)}학점</span></span></p>
                   <div className="area-bar" role="progressbar" aria-label={`${AREA_LABEL[a.area]} 진행률`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={pctA}><i style={{ width: `${pctA}%` }} /></div>
                 </div>
               );

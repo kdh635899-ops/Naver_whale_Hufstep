@@ -87,8 +87,6 @@ async function addClass(page: Page, name: string, day: number, credits?: string)
 
 test('필수과목 수강 중 표시·동일 색상·재접속·삭제, 이수 학점과 완료 수 보존', async ({ page }, testInfo) => {
   await seed(page);
-  const earned = await page.locator('.remain-card .got').innerText();
-  const progress = await page.getByRole('progressbar', { name: '전체 이수 진행률' }).getAttribute('aria-valuenow');
   await tab(page, '시간표').click();
   await addClass(page, '지역과지역학', 0, '3');
   await addClass(page, '지역과지역학', 2);
@@ -100,8 +98,8 @@ test('필수과목 수강 중 표시·동일 색상·재접속·삭제, 이수 �
   const color = await primary.locator('.sc-top .todo').evaluate((el) => getComputedStyle(el).color);
   await expect(item.locator('.sc-attending')).toHaveCSS('color', color);
   await expect(primary.locator('.sc-row')).toHaveText('0/11과목');
-  await expect(page.locator('.remain-card .got')).toHaveText(earned);
-  await expect(page.getByRole('progressbar', { name: '전체 이수 진행률' })).toHaveAttribute('aria-valuenow', progress!);
+  // 이번 학기 시간표 학점은 학사현황 합계에 하나로 합친다 (B0 3학점 + 이번 학기 3학점)
+  await expect(page.locator('.remain-card .got')).toHaveText('6/134 학점 취득 (이번 학기 포함)');
   await page.setViewportSize({ width: 320, height: 820 });
   await item.scrollIntoViewIfNeeded();
   const textBox = (await item.locator('.tx').boundingBox())!;
@@ -201,8 +199,6 @@ test('재수강 자동 제안·수정·저장, 기존 이수 완료와 취득학
 
 test('F 과목 재수강 예상 성적을 선택해도 전공필수는 이수 완료로 바뀌지 않는다', async ({ page }, testInfo) => {
   await seed(page, '지역과지역학', 'F');
-  const earned = await page.locator('.remain-card .got').innerText();
-  const progress = await page.getByRole('progressbar', { name: '전체 이수 진행률' }).getAttribute('aria-valuenow');
   await tab(page, '시간표').click();
   await addClass(page, '지역과지역학', 0, '3');
   await tab(page, '학점 계산').click();
@@ -216,8 +212,8 @@ test('F 과목 재수강 예상 성적을 선택해도 전공필수는 이수 �
   await expect(item.locator('.sc-attending')).toHaveText('재수강 중');
   await expect(item.locator('.sc-done')).toHaveCount(0);
   await expect(primary.locator('.sc-row')).toHaveText('0/11과목');
-  await expect(page.locator('.remain-card .got')).toHaveText(earned);
-  await expect(page.getByRole('progressbar', { name: '전체 이수 진행률' })).toHaveAttribute('aria-valuenow', progress!);
+  // F는 취득학점이 없었으므로 재수강 3학점이 그대로 합계에 더해진다 (F 기록 자체는 바뀌지 않는다)
+  await expect(page.locator('.remain-card .got')).toHaveText('3/134 학점 취득 (이번 학기 포함)');
   await page.setViewportSize({ width: 320, height: 820 });
   await item.scrollIntoViewIfNeeded();
   await page.screenshot({ path: testInfo.outputPath('failed-required-retake-320.png') });

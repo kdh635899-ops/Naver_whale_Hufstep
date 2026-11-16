@@ -3,9 +3,9 @@
 // 수업 블록을 누르면 시험 정보·메모 시트가 열리고(메모는 수시로 쓰므로), 시간표 안의 삭제는 블록 맨 아래 삭제 아이콘 하나뿐이다.
 // 아이콘을 누르면 '삭제하시겠습니까?' 확인이 뜨고, 끌어서 지우기·Delete 키 삭제는 없다.
 // 수업·시험 정보 저장은 모두 store.save()를 거친다. 자유 메모는 알림을 만들지 않는다.
-import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { Fragment, useEffect, useId, useRef, useState, type ClipboardEvent, type KeyboardEvent, type PointerEvent } from 'react';
 import { useStore } from '../../app/store';
-import { catalog } from '../../data';
+import { catalog, departmentName } from '../../data';
 import { deriveEvaluationEvents, eventsOn, KIND_LABEL, PHASE_LABEL } from '../../domain/assessment-events/events';
 import { dropCourseRefs } from '../../domain/merge/mergeImport';
 import { newId } from '../../domain/state';
@@ -14,13 +14,16 @@ import { classTimeText, DAY_LABEL, layoutWeek, toMinutes } from '../../domain/ti
 import { dragRange, hhmm, hmToMinutes, overlapsAny } from '../../domain/timetableSelect';
 import { previousTimetableCourse, timetableTargets } from '../../domain/timetableStatus';
 import { autoProjectedRetake } from '../../domain/retake';
-import type { Assessment, AssessmentMode, ClassTime, Course, CourseMemo } from '../../domain/types';
+import { applyTimetableImport, matchTimetableCourse, parseTimetablePaste, TT_FROM_HOUR, TT_TO_HOUR, type ImportResult } from '../../domain/timetableImport';
+import type { Assessment, AssessmentMode, ClassTime, Course, CourseMemo, CreditArea } from '../../domain/types';
 import { assessmentSchema, classTimeSchema, courseMemoSchema, courseSchema, firstIssue, MAX_COURSE_NAME_LENGTH, MEMO_MAX } from '../../domain/validation/schemas';
-import { ConsentGate, Confirm, Sheet } from '../common';
+import { AREA_LABEL, ConsentGate, Confirm, SafeLink, Sheet, WIS_URL } from '../common';
 import { RetakeRecordSelect } from '../courses/RetakeRecordSelect';
 
 /** 시간표 한 시간의 높이(px) — Figma 70px, CSS(.tt-cell)와 같아야 한다 */
 const HOUR_PX = 70;
+/** 한 번에 보이는 시간 수 — 예전 기본 범위(9~17시)와 같은 높이를 유지하고 나머지(~21시)는 스크롤로 본다 */
+const VISIBLE_HOURS = 8;
 /** 손을 뗀 뒤 확인 창이 뜨기까지 (너무 빠르면 끌다 놓친 것처럼 느껴지고, 너무 느리면 답답하다) */
 const HOLD_MS = 300;
 /** 과목 블록 배경 (Figma 시간표 파스텔) */
@@ -52,6 +55,7 @@ export function AssessmentsScreen() {
   const current = state.profile!.currentTerm;
   const [examFor, setExamFor] = useState<string | null>(null);
   const [todayDate, setTodayDate] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
 
   // 알림을 눌러 들어오면 그 날짜의 평가 목록을 연다 (화면에는 '오늘 평가' 줄이 없지만 알림 연결은 그대로)
   useEffect(() => {
@@ -67,9 +71,11 @@ export function AssessmentsScreen() {
     <div className="page">
       <h1 className="page-title">시간표</h1>
       <p className="page-lead">아래 표를 드래그하여 수업 시간표를 추가하고,<br />시험 정보나 기억할 내용을 메모로 남길 수 있어요.</p>
+      <button type="button" className="btn ghost small tt-import" onClick={() => setImporting(true)}>종정시 시간표 붙여넣기</button>
 
       <Timetable courses={courses} times={state.classTimes} find={find} onExam={setExamFor} />
 
+      {importing && <ImportSheet onClose={() => setImporting(false)} />}
       {examFor && <ExamSheet courseId={examFor} onClose={() => setExamFor(null)} />}
       {todayDate && (
         <TodaySheet date={todayDate} setDate={setTodayDate} onClose={() => setTodayDate(null)}
@@ -95,8 +101,9 @@ function Timetable({ courses, times, find, onExam }: {
   const { state, save } = useStore();
   const byId = new Map(courses.map((c, i) => [c.id, { c, tint: TINTS[i % TINTS.length] }]));
   const visible = times.filter((t) => byId.has(t.courseId));
-  const { blocks, fromHour } = layoutWeek(visible);
-  const toHour = Math.max(17, ...blocks.map((b) => Math.ceil(toMinutes(b.end) / 60)));
+  const { blocks } = layoutWeek(visible);
+  // 표시 범위는 09~21시로 고정한다. 보이는 높이는 VISIBLE_HOURS만큼이고 나머지는 스크롤한다.
+  const fromHour = TT_FROM_HOUR, toHour = TT_TO_HOUR;
   const hours = Array.from({ length: toHour - fromHour }, (_, i) => fromHour + i);
   const memoed = new Set(state.courseMemos.filter((m) => m.text.trim()).map((m) => m.courseId));
   const hasInfo = (id: string) => memoed.has(id) || PHASES.some((p) => find(id, p)?.mode);
@@ -105,6 +112,9 @@ function Timetable({ courses, times, find, onExam }: {
   const [ask, setAsk] = useState<Ask | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  /** 왼쪽 시간 눈금을 위아래로 끌어 스크롤하는 중 (누른 위치·그때의 스크롤 위치) */
+  const scrollDrag = useRef<{ y: number; top: number } | null>(null);
   const gesture = useRef<{ day: number; anchor: number } | null>(null);
   const timer = useRef(0);
   const clearTimer = () => window.clearTimeout(timer.current);
@@ -133,6 +143,12 @@ function Timetable({ courses, times, find, onExam }: {
     setAsk(null);
     if (el.closest('[data-blk]')) { setSel(null); setTarget(null); return; } // 수업 블록은 아래 onClick에서 시트를 연다 (끌어도 지워지지 않는다)
     const p = locate(e.clientX, e.clientY);
+    if (p.col < 0) { // 시간 눈금: 칸 고르기 대신 시간표를 위아래로 움직인다
+      setSel(null); setTarget(null);
+      scrollDrag.current = { y: e.clientY, top: scrollRef.current!.scrollTop };
+      e.currentTarget.setPointerCapture(e.pointerId);
+      return;
+    }
     const hour = fromHour + p.row;
     if (!p.inside || busy(p.col, hour)) { setSel(null); setTarget(null); return; }
     gesture.current = { day: p.col, anchor: hour };
@@ -141,6 +157,8 @@ function Timetable({ courses, times, find, onExam }: {
     e.currentTarget.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    const d = scrollDrag.current;
+    if (d) { scrollRef.current!.scrollTop = d.top - (e.clientY - d.y); return; }
     const g = gesture.current;
     if (!g) return;
     const cursor = fromHour + Math.max(0, Math.min(hours.length - 1, locate(e.clientX, e.clientY).row));
@@ -149,6 +167,7 @@ function Timetable({ courses, times, find, onExam }: {
     setSel((prev) => (prev && prev.start === start && prev.end === end ? prev : { day: g.day, start, end }));
   };
   const onPointerUp = () => {
+    scrollDrag.current = null;
     const g = gesture.current;
     if (!g) return;
     gesture.current = null;
@@ -206,11 +225,16 @@ function Timetable({ courses, times, find, onExam }: {
 
   return (
     <>
-      <div className="tt" role="group" aria-label="수업 시간표"
-        onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={() => { if (gesture.current) cancel(); }}>
+      <div className="tt" role="group" aria-label="수업 시간표">
         <div className="tt-grid" aria-hidden="true">
           <div className="tt-dayh" />
           {DAY_LABEL.map((d) => <div key={d} className="tt-dayh">{d}</div>)}
+        </div>
+        {/* 요일 머리줄은 고정, 시간 칸만 스크롤한다 (휠 또는 왼쪽 시간 눈금 끌기) */}
+        <div className="tt-scroll" ref={scrollRef} style={{ height: VISIBLE_HOURS * HOUR_PX }}
+          onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}
+          onPointerCancel={() => { scrollDrag.current = null; if (gesture.current) cancel(); }}>
+        <div className="tt-grid" aria-hidden="true">
           {hours.map((h) => (
             <Fragment key={h}>
               <div className="tt-cell hour">{h}</div>
@@ -232,7 +256,7 @@ function Timetable({ courses, times, find, onExam }: {
                 const t: Target = { courseId: c.id, day: b.day, start: b.start, end: b.end };
                 return (
                   <div key={keyOf(t)} role="listitem" tabIndex={0} data-blk={keyOf(t)} data-course={c.id}
-                    className={`tt-blk${tall ? ' tall' : ' short'}`}
+                    className={`tt-blk${tall ? ' tall' : ' short'}${height < HOUR_PX ? ' mini' : ''}`}
                     style={{ top, height, left: `${(b.lane / b.lanes) * 100}%`, width: `${100 / b.lanes}%`, right: 'auto', background: tint }}
                     aria-label={`${c.name}, ${classTimeText(b)}, ${phaseText('midterm', mid)}, ${phaseText('final', fin)}. 수정하려면 Enter`}
                     onClick={() => onExam(c.id)} onKeyDown={(e) => onBlockKey(e, t)}>
@@ -262,6 +286,7 @@ function Timetable({ courses, times, find, onExam }: {
               )}
             </div>
           ))}
+        </div>
         </div>
       </div>
 
@@ -384,6 +409,138 @@ function ClassSheet({ sel, setSel, fromHour, toHour, courses, visible, onClose }
           {error && <p className="fg-error" role="alert">{error}</p>}
           <button type="submit" hidden />
         </form>
+      </ConsentGate>
+    </Sheet>
+  );
+}
+
+const CREDIT_CHOICES = ['1', '2', '3'] as const;
+type CreditChoice = '' | typeof CREDIT_CHOICES[number] | 'custom';
+
+/**
+ * 종정시 '개인별시간표 조회' 표 붙여넣기 → 미리보기 → 확정.
+ * 학점은 교시 수로 추정하지 않고 과목마다 학생이 고른다(원본에 학점이 적혀 있으면 미리 고른다).
+ * '확정하고 반영'을 눌러야만 저장한다. 닫기·Esc·바깥 누르기는 아무것도 저장하지 않는다.
+ */
+function ImportSheet({ onClose }: { onClose: () => void }) {
+  const { state, save, now } = useStore();
+  const pasteId = useId();
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [choice, setChoice] = useState<Record<string, CreditChoice>>({});
+  const [custom, setCustom] = useState<Record<string, string>>({});
+  const [areas, setAreas] = useState<Record<string, CreditArea | ''>>({});
+  const [error, setError] = useState('');
+  const maxCredit = catalog.policy.maxCreditUnitsPerCourse / 100;
+  // 전공은 학사정보에서 이미 골랐으므로 그 전공과 교양·자유선택만 고르게 한다. 기본값은 주전공.
+  const profile = state.profile!;
+  const secondArea: CreditArea | null = profile.programType === 'double' ? 'double'
+    : profile.secondaryDepartmentId && profile.programType !== 'single' ? 'minor' : null;
+  const areaOptions: [CreditArea, string][] = [
+    ['primary', `주전공 · ${departmentName(profile.primaryDepartmentId)}`],
+    ...(secondArea ? [[secondArea, `${AREA_LABEL[secondArea]} · ${departmentName(profile.secondaryDepartmentId)}`] as [CreditArea, string]] : []),
+    ['liberalArts', AREA_LABEL.liberalArts],
+    ['freeChoice', AREA_LABEL.freeChoice],
+  ];
+
+  function onPaste(e: ClipboardEvent<HTMLTextAreaElement>) {
+    e.preventDefault();
+    const r = parseTimetablePaste(e.clipboardData.getData('text/html'), e.clipboardData.getData('text/plain'),
+      (html) => new DOMParser().parseFromString(html, 'text/html'));
+    if (!r.courses.length) {
+      setError(r.outOfRange.length ? `시간표 범위(월~금 09~21시) 밖 수업만 있어요: ${r.outOfRange.join(', ')}`
+        : '수업을 찾지 못했어요. 종정시 ‘개인별시간표 조회’ 표를 요일 머리줄까지 함께 복사해 주세요.');
+      return;
+    }
+    const pick = (credit: number | null): CreditChoice => credit === null ? '' : CREDIT_CHOICES.find((c) => Number(c) === credit) ?? 'custom';
+    setChoice(Object.fromEntries(r.courses.map((c) => [c.key, pick(c.credit)])));
+    setCustom(Object.fromEntries(r.courses.map((c) => [c.key, c.credit !== null && pick(c.credit) === 'custom' ? String(c.credit) : ''])));
+    // 이미 시간표에 있는 과목이면 저장된 영역을, 아니면 주전공을 미리 고른다
+    setAreas(Object.fromEntries(r.courses.map((c) => {
+      const area = matchTimetableCourse(state, c.name)?.area;
+      return [c.key, area && areaOptions.some(([v]) => v === area) ? area : 'primary'];
+    })));
+    setError('');
+    setResult(r);
+  }
+
+  const creditOf = (key: string): number | null => {
+    const v = choice[key] === 'custom' ? Number(custom[key]) : Number(choice[key]);
+    return choice[key] && Number.isFinite(v) && v > 0 && v <= maxCredit ? v : null;
+  };
+  const total = result?.courses.reduce((sum, c) => sum + (creditOf(c.key) ?? 0), 0) ?? 0;
+
+  async function confirm() {
+    if (!result) return;
+    if (result.courses.some((c) => creditOf(c.key) === null)) return setError(`모든 과목의 학점을 골라 주세요 (직접 입력은 0보다 크고 ${maxCredit} 이하)`);
+    if (result.courses.some((c) => !areas[c.key])) return setError('모든 과목의 학점 반영 영역을 골라 주세요');
+    const picks = result.courses.map((c) => ({ name: c.name, creditUnits: toUnits(creditOf(c.key)!), area: areas[c.key] as CreditArea, slots: c.slots }));
+    const stamp = now.toISOString();
+    const probe = applyTimetableImport(state, picks, stamp);
+    if (probe.error !== undefined) return setError(probe.error);
+    const ok = await save((s) => applyTimetableImport(s, picks, stamp).state ?? s);
+    if (ok) onClose();
+  }
+
+  return (
+    <Sheet variant="fg" className="import" title="시간표 가져오기" onClose={onClose}
+      footer={result && <>
+        <p className="tt-import-sum" aria-live="polite">총 {result.courses.length}과목 · {formatUnits(toUnits(total))}학점</p>
+        <button type="button" className="btn-fg" onClick={confirm}>확정하고 반영</button>
+      </>}>
+      <ConsentGate>
+        {!result ? (
+          <div className="fg-memo">
+            <label htmlFor={pasteId}>붙여넣기</label>
+            <p className="fg-course-hint">종정시 ‘개인별시간표 조회’ 화면의 표를 직접 복사한 뒤, 아래 칸에 붙여넣어 주세요 (Ctrl+V).{' '}
+              <SafeLink href={WIS_URL}>종합정보시스템 바로가기 →</SafeLink></p>
+            <textarea id={pasteId} rows={3} autoFocus value="" onChange={() => undefined} onPaste={onPaste} placeholder="여기에 붙여넣기" />
+            {error && <p className="fg-error" role="alert">{error}</p>}
+          </div>
+        ) : (
+          <>
+            <p className="tt-import-note" role="note">수업 시간과 학점은 다를 수 있어요. 과목별 실제 학점을 확인해 주세요.</p>
+            {result.outOfRange.length > 0 && (
+              <p className="fg-course-hint">시간표 범위(월~금 09~21시) 밖이라 넣지 않는 수업: {result.outOfRange.join(', ')}</p>
+            )}
+            {result.unparsed.length > 0 && <p className="fg-course-hint">해석하지 못한 행: {result.unparsed.join(' / ')}</p>}
+            <ul className="tt-import-list">
+              {result.courses.map((c) => {
+                const matched = matchTimetableCourse(state, c.name);
+                const retake = matched ? matched.isRetake || !!matched.replacesCourseId
+                  : !!autoProjectedRetake(state.courses, { name: c.name, term: state.profile!.currentTerm });
+                return (
+                  <li key={c.key} className="tt-import-item">
+                    <p className="nm">{c.name}</p>
+                    <p className="fg-course-hint">{c.slots.map((t) => `${DAY_LABEL[t.day]} ${hhmm(t.start)}~${hhmm(t.end)}${t.room ? ` · ${t.room}` : ''}`).join(' / ')}</p>
+                    {matched && <p className="fg-course-hint">시간표에 있는 과목이에요. 메모·시험 정보는 그대로 두고 시간만 바꿔요.</p>}
+                    {retake && <p className="fg-course-hint">재수강 과목이에요. 이수하면 이전 기록의 학점을 대신해요 (시간표에서 수업을 눌러 바꿀 수 있어요).</p>}
+                    <div className="seg" role="radiogroup" aria-label={`${c.name} 학점`}>
+                      {[...CREDIT_CHOICES, 'custom' as const].map((v) => (
+                        <label key={v} className={choice[c.key] === v ? 'on' : undefined}>
+                          <input type="radio" name={`credit-${c.key}`} checked={choice[c.key] === v}
+                            onChange={() => { setChoice((o) => ({ ...o, [c.key]: v })); setError(''); }} />
+                          {v === 'custom' ? '직접 입력' : `${v}학점`}
+                        </label>
+                      ))}
+                    </div>
+                    {choice[c.key] === 'custom' && (
+                      <label className="fg-field">학점 직접 입력
+                        <input type="number" inputMode="decimal" min="0.5" step="0.5" max={maxCredit} value={custom[c.key] ?? ''}
+                          onChange={(e) => { setCustom((o) => ({ ...o, [c.key]: e.target.value })); setError(''); }} />
+                      </label>
+                    )}
+                    <label className="fg-sel">학점 반영 영역
+                      <select value={areas[c.key] ?? ''} onChange={(e) => { setAreas((o) => ({ ...o, [c.key]: e.target.value as CreditArea })); setError(''); }}>
+                        {areaOptions.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+            {error && <p className="fg-error" role="alert">{error}</p>}
+          </>
+        )}
       </ConsentGate>
     </Sheet>
   );

@@ -131,6 +131,9 @@ export function PrivacySummary() {
   );
 }
 
+/** 종합정보시스템(종정시) 첫 화면. 링크로 여는 것만 하고 앱이 접속해 데이터를 가져오지는 않는다 */
+export const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
+
 /** 공개 출처 링크: http/https만 링크로 만든다 */
 export function SafeLink({ href, children }: { href?: string; children: ReactNode }) {
   if (!href || !/^https?:\/\//.test(href)) return <span>{children}</span>;

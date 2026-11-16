@@ -8,12 +8,11 @@ import { analyzeTranscript } from '../../domain/parser/analyzeTranscript';
 import { applyMerge, dropCourseRefs, planMerge, type MergeDecisions } from '../../domain/merge/mergeImport';
 import { validateTranscript, type ParseResult } from '../../domain/parser/parseTranscript';
 import bannerImg from '../../assets/logo/start-banner.png';
-import { ConsentGate } from '../common';
+import { ConsentGate, WIS_URL } from '../common';
 import { GuideModal } from './GuideModal';
 import { SuccessModal } from './SuccessModal';
 import { WarningModal } from './WarningModal';
 
-const WIS_URL = 'https://wis.hufs.ac.kr/src08/jsp/index.jsp';
 
 /** 기존 안내 문구는 유지하고 분석 결과로 표시 상태만 바꾼다. */
 const PARTS = [
