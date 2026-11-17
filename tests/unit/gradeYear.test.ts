@@ -37,6 +37,19 @@ describe('학기를 학년으로 묶기', () => {
   });
 });
 
+describe('성적 기록이 있는 학기만 센다 (중간에 1년 휴학)', () => {
+  // 2022-1 ~ 2023-2, 2024 휴학, 2025-1 ~ 2026-1 (+2025 여름), 현재 2026-2
+  const taken = [t(2022, '1'), t(2022, '2'), t(2023, '1'), t(2023, '2'), t(2025, '1'), t(2025, 'summer'), t(2025, '2'), t(2026, '1')];
+  const labels = (p: Parameters<typeof gradeTermLabel>[1]) => [...taken, t(2026, '2')].map((x) => gradeTermLabel(x, p, taken));
+  const expected = ['1학년 1학기', '1학년 2학기', '2학년 1학기', '2학년 2학기', '3학년 1학기', '3학년 여름학기', '3학년 2학기', '4학년 1학기', '4학년 2학기'];
+  it('현재 학년(4)을 넣었을 때 2022·2023이 한 학년으로 겹치지 않는다', () => {
+    expect(labels({ cohortYear: 2022, currentYear: 4 as const, currentTerm: t(2026, '2') })).toEqual(expected);
+  });
+  it('현재 학년이 없을 때 2025·2026이 4학년으로 겹치지 않는다', () => {
+    expect(labels({ cohortYear: 2022, currentTerm: t(2026, '2') })).toEqual(expected);
+  });
+});
+
 describe('학기를 직접 고른 학생 (휴학해서 달력 학기와 다른 경우)', () => {
   // 2026년 가을(달력 2학기)에 복학했지만 실제로는 4학년 1학기
   const p = { cohortYear: 2021, currentYear: 4 as const, currentSemester: '1' as const, semesterAnchor: t(2026, '2'), currentTerm: t(2026, '2') };

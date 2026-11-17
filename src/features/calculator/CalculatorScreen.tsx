@@ -20,7 +20,21 @@ export function CalculatorScreen() {
   const { state, save, openEditor } = useStore();
   const profile = state.profile!;
   const term = profile.currentTerm;
-  const currentYear = gradeYearOf(term, profile);
+  const courses = useMemo(() => calculatorCourses(state), [state.courses, state.classTimes, term]);
+  // 지난 학기(성적이 확정된 과목)
+  const pastByTerm = useMemo(() => {
+    const m = new Map<string, { term: Term; list: Course[] }>();
+    for (const c of effectiveCourses(courses)) {
+      if (sameTerm(c.term, term) || !(c.status === 'completed' || c.status === 'notEarned')) continue;
+      const k = termKey(c.term);
+      if (!m.has(k)) m.set(k, { term: c.term, list: [] });
+      m.get(k)!.list.push(c);
+    }
+    return [...m.values()];
+  }, [courses, term]);
+  // 성적 기록이 있는 학기만 세어 학년을 정한다 (휴학한 해가 있어도 학년이 겹치지 않게)
+  const taken = pastByTerm.map((g) => g.term);
+  const currentYear = gradeYearOf(term, profile, taken);
   const [yearSel, setYearSel] = useState<number>(currentYear);
 
   const scenarioId = `scn-${termKey(term)}`;
@@ -28,7 +42,6 @@ export function CalculatorScreen() {
   const snap = latestSnapshot(state);
   // 상세 성적 없이 요약 평점만 있으면 '요약값 기반 추정'
   const summary = snap?.source === 'summaryInput' ? snap.reportedGpa : undefined;
-  const courses = useMemo(() => calculatorCourses(state), [state.courses, state.classTimes, term]);
   // 삭제·중복 제외된 수업과 이미 성적이 확정된 과목의 옛 예상 등급은 계산하지 않는다.
   const scenario = useMemo(() => savedScenario ? { ...savedScenario, entries: savedScenario.entries.filter((e) =>
     courses.some((c) => c.id === e.courseId && sameTerm(c.term, term) && c.creditUnits > 0
@@ -45,21 +58,11 @@ export function CalculatorScreen() {
     return { ...s, scenarios: [...s.scenarios.filter((x) => x.id !== scenarioId), { ...cur, entries }] };
   });
 
-  // 이번 학기 과목 / 지난 학기(성적이 확정된 과목)
+  // 이번 학기 과목
   const currentCourses = courses.filter((c) => sameTerm(c.term, term));
-  const pastByTerm = useMemo(() => {
-    const m = new Map<string, { term: Term; list: Course[] }>();
-    for (const c of effectiveCourses(courses)) {
-      if (sameTerm(c.term, term) || !(c.status === 'completed' || c.status === 'notEarned')) continue;
-      const k = termKey(c.term);
-      if (!m.has(k)) m.set(k, { term: c.term, list: [] });
-      m.get(k)!.list.push(c);
-    }
-    return [...m.values()];
-  }, [courses, term]);
 
   const showCurrent = currentYear === yearSel;
-  const pastInYear = pastByTerm.filter((g) => gradeYearOf(g.term, profile) === yearSel)
+  const pastInYear = pastByTerm.filter((g) => gradeYearOf(g.term, profile, taken) === yearSel)
     // 현재 학년은 최근 학기부터("지난 학기"), 지난 학년은 1학기 → 2학기 순서
     .sort((a, b) => (showCurrent ? semesterOrder(b.term) - semesterOrder(a.term) : semesterOrder(a.term) - semesterOrder(b.term)));
 
@@ -96,9 +99,9 @@ export function CalculatorScreen() {
       <div className="stack" style={{ marginTop: 22 }}>
         {showCurrent && (
           <div>
-            <section className="term-card current" aria-label={gradeTermLabel(term, profile)}>
+            <section className="term-card current" aria-label={gradeTermLabel(term, profile, taken)}>
               <div className="term-head">
-                <span>{gradeTermLabel(term, profile)}</span>
+                <span>{gradeTermLabel(term, profile, taken)}</span>
                 <span>{hasScenario && !r.errors.length ? gpaNum(r.termGpa) : '-'}</span>
               </div>
               {currentCourses.map((c) => {
@@ -134,7 +137,7 @@ export function CalculatorScreen() {
 
         {showCurrent && pastInYear.length > 0 && <p className="divider-label">지난 학기</p>}
 
-        {pastInYear.map((g) => <PastTerm key={termKey(g.term)} term={g.term} list={g.list} />)}
+        {pastInYear.map((g) => <PastTerm key={termKey(g.term)} term={g.term} list={g.list} taken={taken} />)}
 
         {!showCurrent && pastInYear.length === 0 && <p className="st-empty">이 학년에 저장된 학기가 없어요.</p>}
       </div>
@@ -142,15 +145,15 @@ export function CalculatorScreen() {
   );
 }
 
-function PastTerm({ term, list }: { term: Term; list: Course[] }) {
+function PastTerm({ term, list, taken }: { term: Term; list: Course[]; taken: Term[] }) {
   const { state, openEditor } = useStore();
   const completeness = latestSnapshot(state)?.completeness;
   const g = computeGpa(list, undefined, completeness?.gpa ?? true);
   const earned = list.filter((c) => c.earnedInclusion === 'included');
   return (
-    <section className="term-card" aria-label={gradeTermLabel(term, state.profile!)}>
+    <section className="term-card" aria-label={gradeTermLabel(term, state.profile!, taken)}>
       <div className="term-head">
-        <span>{gradeTermLabel(term, state.profile!)}</span>
+        <span>{gradeTermLabel(term, state.profile!, taken)}</span>
         <span>{g.hundredths === null ? '-' : formatGpa(g.hundredths)}</span>
       </div>
       {list.map((c) => (
