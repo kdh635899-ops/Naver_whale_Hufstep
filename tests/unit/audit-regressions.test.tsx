@@ -51,7 +51,7 @@ describe('R1: 필요한 학생 입력과 경계값', () => {
       expect(selected.length > 0).toBe(term === '2025-2' || term === '2026-1');
     }
     const html = render({ ...emptyState(), profile: ld }, QuestionsCard);
-    expect(html).toContain('미정'); expect(html).toContain('이중전공을 선택(배정)받은 연도');
+    expect(html).toContain('년도'); expect(html).toContain('이중전공을 선택(배정)받은 연도');
     expect(html).toContain('졸업 예정 학기'); expect(html).not.toMatch(/unknown|null|아직 모름/);
   });
   it.each([2024, 2025, 2026, 2027])('언어인지 선발 %i년 목록', (year) => {

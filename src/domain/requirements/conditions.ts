@@ -73,7 +73,7 @@ export function condValues(c: Cond, field: string, out = new Set<Scalar>()): Set
 
 export type FieldKind = 'bool' | 'choice' | 'term' | 'year';
 /** fallback: 학생이 답하지 않았을 때 판정에 쓰는 값. 결과 아래 접힌 기본값 수정란에서 바꿀 수 있다. */
-export interface FieldSpec { label: string; kind: FieldKind; help?: string; fallback?: Scalar }
+export interface FieldSpec { label: string; kind: FieldKind; help?: string; /** 아직 답하지 않았을 때 '○○ 확인 필요' 대신 보여 주는, 왜 묻는지 설명 */ why?: string; fallback?: Scalar }
 
 /**
  * 별도 답변이 없으면 일반학생 기준으로 계산하는 전형·면제만 명시한다.
@@ -105,8 +105,8 @@ export const ASKABLE_FIELDS: Record<string, FieldSpec> = {
   primaryMajorCollegeIsEnglishCollege: { label: '주전공이 영어대학 소속인가요?', kind: 'bool' },
   degreeTrack: { label: '학위 과정', kind: 'choice' },
   transferEntryGrade: { label: '편입 학년', kind: 'choice' },
-  dualSelectionYear: { label: '이중전공을 선택(배정)받은 연도', kind: 'year' },
-  majorSelectionTerm: { label: '전공을 선택(배정)받은 학기', kind: 'term' },
+  dualSelectionYear: { label: '이중전공을 선택(배정)받은 연도', kind: 'year', why: '이중전공을 배정받은 연도에 따라 적용되는 졸업요건이 달라요. 선택하면 요건이 더 정확해져요.' },
+  majorSelectionTerm: { label: '이중·부전공을 선택(배정)받은 학기', kind: 'term', why: '이중·부전공을 배정받은 학기에 따라 적용되는 졸업요건이 달라요. 선택하면 요건이 더 정확해져요.' },
   originalCourseTakenYear: { label: '기존 과목을 수강한 연도', kind: 'year' },
   assessmentRegime: { label: '적용받는 졸업평가 체계', kind: 'choice' },
   certificationLanguage: { label: '졸업인증 언어', kind: 'choice' },

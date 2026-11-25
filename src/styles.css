@@ -181,6 +181,10 @@ label.field { gap: 9px; font-size: 18px; font-weight: 600; line-height: 1.1; col
 .fig-title { margin-top: 44px; font-size: 28px; font-weight: 600; line-height: 43.5px; letter-spacing: -1.7px; color: var(--navy-900); }
 .fig-lead { margin: 14px 0 46px; font-size: 15px; line-height: 27px; color: #000; }
 .fig-form { gap: 30px; }
+/* 추가 조건 질문: 제목·입력칸·연도/학기 칸 사이를 넉넉하게 */
+.q-form { margin-top: 32px; }
+label.field.q-field { gap: 20px; }
+.q-field .q-row { flex-direction: column; flex-wrap: nowrap; gap: 16px; }
 .fig-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
 .fig-row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .field-legend { padding: 0; margin-bottom: 15px; font-size: 18px; font-weight: 600; line-height: 1.1; color: var(--label); }

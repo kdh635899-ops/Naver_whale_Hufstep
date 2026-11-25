@@ -158,25 +158,25 @@ export function CoverageCard() {
   );
 }
 
-const TERM_YEARS = Array.from({ length: 41 }, (_, i) => 2000 + i);
+const TERM_YEARS = Array.from({ length: 29 }, (_, i) => 2000 + i);
 
 function QuestionInput({ q, value, onAnswer }: { q: Question; value: Scalar | undefined; onAnswer: (v: Scalar | undefined) => void }) {
   const term = typeof value === 'string' ? value.split('-') : [];
   const [year, setYear] = useState(term[0] ?? '');
-  if (q.spec.kind === 'term') return <span className="row">
+  if (q.spec.kind === 'term') return <span className="row q-row">
     <ProfileSelect downward={false} aria-label={`${q.spec.label} 연도`} value={year} onChange={(e) => {
       setYear(e.target.value); onAnswer(e.target.value && term[1] ? `${e.target.value}-${term[1]}` : undefined);
     }}>
-      <option value="">미정</option>{TERM_YEARS.map((y) => <option key={y} value={y}>{y}년</option>)}
+      <option value="">년도</option>{TERM_YEARS.map((y) => <option key={y} value={y}>{y}년</option>)}
     </ProfileSelect>
     <ProfileSelect downward={false} aria-label={`${q.spec.label} 학기`} value={term[1] ?? ''} disabled={!year}
       onChange={(e) => onAnswer(e.target.value ? `${year}-${e.target.value}` : undefined)}>
-      <option value="">미정</option><option value="1">1학기</option><option value="2">2학기</option>
+      <option value="">학기</option><option value="1">1학기</option><option value="2">2학기</option>
     </ProfileSelect>
   </span>;
   if (q.spec.kind === 'year') return <ProfileSelect downward={false} aria-label={q.spec.label} value={value === undefined ? '' : String(value)}
     onChange={(e) => onAnswer(e.target.value ? Number(e.target.value) : undefined)}>
-    <option value="">미정</option>{TERM_YEARS.map((y) => <option key={y} value={y}>{y}년</option>)}
+    <option value="">년도</option>{TERM_YEARS.map((y) => <option key={y} value={y}>{y}년</option>)}
   </ProfileSelect>;
   const index = q.options.findIndex((o) => o.value === value);
   return <ProfileSelect downward={false} aria-label={q.spec.label} value={index < 0 ? '' : String(index)}
@@ -206,11 +206,11 @@ export function QuestionsCard() {
     setError('');
     await save((s) => ({ ...s, profile: r.data }));
   };
-  return <div className="form fig-form">
-    {questions.map((q) => <label className="field" key={q.field}>{q.spec.label}
+  return <div className="form fig-form q-form">
+    {questions.map((q) => <label className="field q-field" key={q.field}>{q.spec.label}
       <QuestionInput q={q} value={facts[q.field]} onAnswer={(v) => void setFact(q.field, v)} />
       {q.spec.help && <span className="small muted">{q.spec.help}</span>}
-      {facts[q.field] === undefined && <span className="small">{q.spec.label} 확인 필요</span>}
+      {facts[q.field] === undefined && <span className="small">{q.spec.why ?? `${q.spec.label} 확인 필요`}</span>}
     </label>)}
     {error && <p className="error" role="alert">{error}</p>}
   </div>;
