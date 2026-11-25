@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "HUFStep",
-  "version": "0.2.1",
-  "description": "한국외대 학생의 이수학점과 졸업요건, 시간표, 예상 평점을 관리합니다.",
+  "version": "0.2.4",
+  "description": "한국외대 서울, 글로벌캠퍼스 학생을 위한 학사 도우미. 졸업 학점 및 시험, 예상 평점, 시간표를 한눈에.",
   "sidebar_action": {
     "default_page": "sidebar.html",
     "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "64": "icons/icon64.png", "128": "icons/icon128.png", "256": "icons/icon256.png" },
